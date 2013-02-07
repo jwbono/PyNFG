@@ -4,7 +4,7 @@ Created on Wed Nov 21 09:49:05 2012
 
 @author: James Bono
 
-<one line to give the program's name and a brief idea of what it does.>
+PyNFG - a Python package for modeling and solving Network Form Games
 Copyright (C) 2013 James Bono
 
 This program is free software: you can redistribute it and/or modify
