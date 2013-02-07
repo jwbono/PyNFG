@@ -2,9 +2,9 @@
 """
 Created on Wed Jan  2 16:33:36 2013
 
-@author: James Bono
+Implements PGT solutions for SemiNFG and iterSemiNFG objects
 
-PyNFG - a Python package for modeling and solving Network Form Games
+Part of: PyNFG - a Python package for modeling and solving Network Form Games
 Copyright (C) 2013 James Bono
 
 This program is free software: you can redistribute it and/or modify

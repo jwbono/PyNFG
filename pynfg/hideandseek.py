@@ -2,9 +2,9 @@
 """
 Created on Mon Jan 28 16:22:43 2013
 
-@author: James Bono
+Implements a simple hide-and-seek iterSemiNFG
 
-PyNFG - a Python package for modeling and solving Network Form Games
+Part of: PyNFG - a Python package for modeling and solving Network Form Games
 Copyright (C) 2013 James Bono
 
 This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@ GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
+
 """
 from __future__ import division
 import numpy as np
@@ -162,11 +163,11 @@ for n in G.basename_partition['D2'][1:]:
     n.CPT = G.basename_partition['D2'][0].CPT
 
 G.basename_partition['D1'][0].uniformCPT()
-NN = 50
+NN = 500
 #        
-G1, Rseries = ewma_jaakkola(G, 'D1',J=np.floor(linspace(100,10,num=NN)), N=NN, \
-                            alpha=1, delta=.8, \
-                            eps=linspace(.05,0.2,num=NN))
+G1, Rseries = ewma_jaakkola(G, 'D1',J=np.floor(linspace(400,100,num=NN)), N=NN, \
+                            alpha=0.8, delta=0.8, \
+                            eps=linspace(.01,0.1,num=NN))
 
 #G1.sample_timesteps(G1.starttime)
 #

@@ -2,9 +2,9 @@
 """
 Created on Wed Dec  5 16:39:14 2012
 
-@author: James Bono
+Implements ChanceNode, DecisionNode and DeterNode classes
 
-PyNFG - a Python package for modeling and solving Network Form Games
+Part of: PyNFG - a Python package for modeling and solving Network Form Games
 Copyright (C) 2013 James Bono
 
 This program is free software: you can redistribute it and/or modify
