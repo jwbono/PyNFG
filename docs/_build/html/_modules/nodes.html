@@ -1,0 +1,1026 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>nodes &mdash; PyNFG 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="PyNFG 0.1.0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">PyNFG 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for nodes</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed Dec  5 16:39:14 2012</span>
+
+<span class="sd">@author: jamesbono</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">scipy.stats.distributions</span> <span class="kn">as</span> <span class="nn">randvars</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+
+<div class="viewcode-block" id="ChanceNode"><a class="viewcode-back" href="../nodes.html#nodes.ChanceNode">[docs]</a><span class="k">class</span> <span class="nc">ChanceNode</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements a chance node of the semi-NFG formalism created by D. Wolpert</span>
+
+<span class="sd">    The :class:`nodes.ChanceNode` can be initialized with either a </span>
+<span class="sd">    conditional probability distribution (CPT) or a distribution object </span>
+<span class="sd">    from :py:mod:`scipy.stats.distributions` (discrete and continuous types </span>
+<span class="sd">    are both supported).</span>
+<span class="sd">    </span>
+<span class="sd">    :arg name: the name of the ChanceNode, usually descriptive, e.g. C5 for</span>
+<span class="sd">       the fifth chance node, or C21 for the second chance node in the first </span>
+<span class="sd">       time step, etc.</span>
+<span class="sd">    :type name: str.</span>
+<span class="sd">    :arg CPTip: The input parameters for a chance node based on a CPT. It </span>
+<span class="sd">       is a tuple with the following three elements:</span>
+<span class="sd">       * CPTip[0]: np.array giving CPT - in order given by parent spaces</span>
+<span class="sd">       * CPTip[1]: list of parents - in order of dims of CPT</span>
+<span class="sd">       * CPTip[2]: list of space - in order of last dim of CPT</span>
+<span class="sd">    :type CPTip: tuple</span>
+<span class="sd">    :arg distip: The input parameters for a chance node based on a </span>
+<span class="sd">       distribution from the :py:mod:`scipy.stats.distributions` module. It is</span>
+<span class="sd">       a tuple with the following three elements:</span>
+<span class="sd">       * distip[0]: :py:mod:`scipy.stats.distributions` distribution object</span>
+<span class="sd">       * distip[1]: list of distribution params - order given by distribution </span>
+<span class="sd">          args.</span>
+<span class="sd">       * distip[2]: (None if distribution object is continuous) list of space </span>
+<span class="sd">          if distribution object is discrete.</span>
+<span class="sd">    :arg description: a description of the chance node, usually including a</span>
+<span class="sd">       summary description of the distribution, space, parents and children.</span>
+<span class="sd">    :type description: str.</span>
+<span class="sd">    :arg time: the timestep to which the node belongs. This is generally </span>
+<span class="sd">       only used when the node is in a :class:`seminfg.iterSemiNFG`.</span>
+<span class="sd">    :type time: integer</span>
+<span class="sd">    :arg basename: This is only used when the node is in a </span>
+<span class="sd">    :class:`seminfg.iterSemiNFG`. It references a theoretical node in the </span>
+<span class="sd">       base or kernel.</span>
+<span class="sd">    :type basename: str.</span>
+<span class="sd">    </span>
+<span class="sd">    .. note::</span>
+<span class="sd">       </span>
+<span class="sd">       For a :class:`nodes.ChanceNode` based on a CPT, the parents </span>
+<span class="sd">       must be discrete valued nodes. The dimensions of the CPT must </span>
+<span class="sd">       correspond to the order of the parents. The order of the CPT in each </span>
+<span class="sd">       dimension must correspond to the order of the parent space for that </span>
+<span class="sd">       dimension.</span>
+<span class="sd">       </span>
+<span class="sd">    Formally, a chance node has the following properties:</span>
+<span class="sd">    </span>
+<span class="sd">    * belongs to the *nature* player</span>
+<span class="sd">    * has a space of possible values</span>
+<span class="sd">    * has a conditional probability distribution from the values of its </span>
+<span class="sd">      parents - given by :py:meth:`nodes.DecisionNode.prob()` or</span>
+<span class="sd">      :py:meth:`nodes.ChanceNode.prob()`.</span>
+<span class="sd">    </span>
+<span class="sd">    Example::</span>
+<span class="sd">        </span>
+<span class="sd">        import scipy.stats.distributions as randvars</span>
+<span class="sd">                        </span>
+<span class="sd">        D1 = DecisionNode(&#39;D1&#39;, &#39;1&#39;, [-1, 0, 1], parents=[], description=&#39;This is a child node of C1&#39;)</span>
+<span class="sd">        </span>
+<span class="sd">        dist1 = randvars.norm</span>
+<span class="sd">        params1 = [D1, 2]</span>
+<span class="sd">        distip1 = (dist2, params2)</span>
+<span class="sd">        C1 = ChanceNode(&#39;C1&#39;, distip=distip1, description=&#39;CN norm rv with scale=2 and loc=D1&#39;)</span>
+<span class="sd">                        </span>
+<span class="sd">    or::</span>
+<span class="sd">        </span>
+<span class="sd">        import scipy.stats.distributions as randvars</span>
+<span class="sd">        </span>
+<span class="sd">        dist1 = randvars.randint</span>
+<span class="sd">        params1 = [5, 10]</span>
+<span class="sd">        distip1 = (dist1, params1)</span>
+<span class="sd">        C1 = ChanceNode(&#39;C1&#39;, distip=distip1, description=&#39;root CN randint from 5 to 10&#39;)</span>
+<span class="sd">        </span>
+<span class="sd">        dist2 = randvars.hypergeom</span>
+<span class="sd">        params2 = [C1, 3, 3]</span>
+<span class="sd">        space2 = [0, 1, 2, 3]</span>
+<span class="sd">        distip2 = (dist2, params2, space2)</span>
+<span class="sd">        C2 = ChanceNode(&#39;C2&#39;, distip=distip1, description=&#39;CN hypergeom M=C1, n=3, N=3&#39;)</span>
+<span class="sd">                        </span>
+<span class="sd">    Upon initialization, the following private method is called: </span>
+<span class="sd">    :py:meth:`nodes.ChanceNode._set_parent_dict()`</span>
+<span class="sd">    </span>
+<span class="sd">    Some useful methods are:</span>
+<span class="sd">       </span>
+<span class="sd">    * :py:meth:`nodes.ChanceNode.draw_value()` </span>
+<span class="sd">    * :py:meth:`nodes.ChanceNode.prob()`</span>
+<span class="sd">    * :py:meth:`nodes.ChanceNode.logprob()` </span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">CPTip</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> \
+                 <span class="n">description</span><span class="o">=</span><span class="s">&#39;no description&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Name: &#39;</span><span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Description: &#39;</span><span class="o">+</span> <span class="n">description</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;name and description should be strings&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">player</span> <span class="o">=</span> <span class="s">&#39;nature&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basename</span> <span class="o">=</span> <span class="n">basename</span>
+        <span class="k">if</span> <span class="n">distip</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">CPTip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_parent_dict</span><span class="p">(</span><span class="n">CPTip</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">check_parents</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="n">CPTip</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">=</span> <span class="n">distip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">distip</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">parlist</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">is</span> <span class="n">DecisionNode</span> \
+                         <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ChanceNode</span> \
+                         <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">is</span> <span class="n">DeterNode</span><span class="p">,</span> \
+                         <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_parent_dict</span><span class="p">(</span><span class="n">parlist</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span> <span class="o">=</span> <span class="p">(</span><span class="n">randvars</span><span class="o">.</span><span class="n">rv_continuous</span> <span class="ow">in</span> \
+                                <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="n">distip</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        
+<div class="viewcode-block" id="ChanceNode.draw_value"><a class="viewcode-back" href="../nodes.html#nodes.ChanceNode.draw_value">[docs]</a>    <span class="k">def</span> <span class="nf">draw_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">setvalue</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Draw a value from the :class:`nodes.ChanceNode` object</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           draw values from the conditional probability distribution. Keys are </span>
+<span class="sd">           parent names. Values are parent values. To specify values for only a </span>
+<span class="sd">           subset of the parents, only enter those parents in the dictionary. </span>
+<span class="sd">           If no parent values are specified, then the current values of the </span>
+<span class="sd">           parents are used. </span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg setvalue: (Optional) determines if the random draw replaces</span>
+<span class="sd">        :py:attr:`nodes.ChanceNode.value`. True by default.</span>
+<span class="sd">        :type setvalue: boolean</span>
+<span class="sd">        :returns: an element of :py:attr:`nodes.ChanceNode.space` if the </span>
+<span class="sd">           ChanceNode object is discrete. For continuous ChanceNode objects, it </span>
+<span class="sd">           returns a value at which the pdf is nonzero. </span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must be </span>
+<span class="sd">           legitimate values of the parent. For discrete parents, the values </span>
+<span class="sd">           must correspond to an item in the parent&#39;s space attribute. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">parentinput</span><span class="p">:</span>
+                <span class="n">arglist</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span> \
+                              <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">DecisionNode</span><span class="p">,</span> <span class="n">ChanceNode</span><span class="p">,</span> <span class="n">DeterNode</span><span class="p">)</span> \
+                              <span class="k">else</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">arglist</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">parentinput</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> \
+                              <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">DecisionNode</span><span class="p">,</span> <span class="n">ChanceNode</span><span class="p">,</span> <span class="n">DeterNode</span><span class="p">)</span> \
+                              <span class="k">else</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">argtuple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">arglist</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="o">*</span><span class="n">argtuple</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">parentinput</span><span class="p">:</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">parentinput</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">]))</span> 
+                <span class="k">else</span><span class="p">:</span>              
+                    <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>                                                 
+            <span class="n">indo</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+            <span class="n">cdf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">[</span><span class="n">indo</span><span class="p">])</span>
+            <span class="n">cutoff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span> <span class="n">cdf</span> <span class="o">&gt;=</span> <span class="n">cutoff</span> <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">setvalue</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span>
+        </div>
+<div class="viewcode-block" id="ChanceNode.prob"><a class="viewcode-back" href="../nodes.html#nodes.ChanceNode.prob">[docs]</a>    <span class="k">def</span> <span class="nf">prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the conditional probability of the current or specified value</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           compute the conditional probability. Keys are parent names. Values </span>
+<span class="sd">           are parent values. To specify values for only a subset of the </span>
+<span class="sd">           parents, only enter those parents in the dictionary. If no parent </span>
+<span class="sd">           values are specified, then the current values of the parents are used. </span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg valueinput: Optional. A legitimate value of the chance node </span>
+<span class="sd">           object. If no valueinput is specified, then the current value of the </span>
+<span class="sd">           node is used.</span>
+<span class="sd">        :returns: the conditional probability of valueinput or the current</span>
+<span class="sd">           value conditioned on parentinput or the current values of the parents.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must be </span>
+<span class="sd">           legitimate values of the parent. For discrete parents, the values </span>
+<span class="sd">           must correspond to an item in the parent&#39;s space attribute. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">valueinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">valueinput</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">parentinput</span><span class="p">:</span>
+                <span class="n">arglist</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span> \
+                              <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">DecisionNode</span><span class="p">,</span> <span class="n">ChanceNode</span><span class="p">,</span> <span class="n">DeterNode</span><span class="p">)</span> \
+                              <span class="k">else</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">arglist</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">parentinput</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> \
+                              <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">DecisionNode</span><span class="p">,</span> <span class="n">ChanceNode</span><span class="p">,</span> <span class="n">DeterNode</span><span class="p">)</span> \
+                              <span class="k">else</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">arglist</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">valueinput</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">pmf</span><span class="p">(</span><span class="n">valueinput</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">parentinput</span><span class="p">:</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">parentinput</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">]))</span> 
+                <span class="k">else</span><span class="p">:</span>               
+                    <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>   
+            <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">valueinput</span><span class="p">))</span>
+            <span class="n">indo</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">r</span>
+        </div>
+<div class="viewcode-block" id="ChanceNode.logprob"><a class="viewcode-back" href="../nodes.html#nodes.ChanceNode.logprob">[docs]</a>    <span class="k">def</span> <span class="nf">logprob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the conditional logprob of the current or specified value</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           compute the conditional logprob. Keys are parent names. Values are </span>
+<span class="sd">           parent values. To specify values for only a subset of the parents, </span>
+<span class="sd">           only enter those parents in the dictionary. If no parent values are </span>
+<span class="sd">           specified, then the current values of the parents are used. </span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg valueinput: Optional. A legitimate value of the chance node </span>
+<span class="sd">           object. If no valueinput is specified, then the current value of the </span>
+<span class="sd">           node is used.</span>
+<span class="sd">        :returns: the log conditional probability of valueinput or the current</span>
+<span class="sd">           value conditioned on parentinput or the current values of the parents.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must be </span>
+<span class="sd">           legitimate values of the parent. For discrete parents, the values </span>
+<span class="sd">           must correspond to an item in the parent&#39;s space attribute.</span>
+<span class="sd">           </span>
+<span class="sd">        This is equivalent to ``np.log(ChanceNode.prob())``</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob</span><span class="p">(</span><span class="n">parentinput</span><span class="p">,</span> <span class="n">valueinput</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ChanceNode.set_value"><a class="viewcode-back" href="../nodes.html#nodes.ChanceNode.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newvalue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the current value of the ChanceNode object</span>
+<span class="sd">        </span>
+<span class="sd">        :arg newvalue: a legitimate value of the ChanceNode object. If the </span>
+<span class="sd">           ChanceNode object is discrete, then newvalue must be in </span>
+<span class="sd">           :py:attr:`nodes.ChanceNode.space`. If the ChanceNode object is </span>
+<span class="sd">           continuous, no corrections are made for values at which the pdf is 0.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning::</span>
+<span class="sd">            </span>
+<span class="sd">           When arbitrarily setting values, some children may have zero </span>
+<span class="sd">           probability given their parents. This means the logprob may be -inf. </span>
+<span class="sd">           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a </span>
+<span class="sd">           divide by zero error.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newvalue</span>
+        <span class="k">elif</span> <span class="n">newvalue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newvalue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;the new value is not in &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&quot;&#39;s space&quot;</span><span class="p">)</span>
+        </div>
+    <span class="k">def</span> <span class="nf">_set_parent_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the parent OrderedDict based on the parents list entered by user</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parents: list of parent nodes for the ChanceNodes</span>
+<span class="sd">        :type parents: list</span>
+<span class="sd">        :returns: OrderedDict in which the items follow the order of the parent </span>
+<span class="sd">           list entered by the user. Keys are node names. Values are node </span>
+<span class="sd">           objects.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+            <span class="n">r</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span>
+        <span class="k">return</span> <span class="n">r</span>
+            </div>
+<div class="viewcode-block" id="DeterNode"><a class="viewcode-back" href="../nodes.html#nodes.DeterNode">[docs]</a><span class="k">class</span> <span class="nc">DeterNode</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements a deterministic node for the semi-NFG formalism created </span>
+<span class="sd">    by D. Wolpert</span>
+<span class="sd">    </span>
+<span class="sd">    :arg name: the name of the DeterNode, usually descriptive, e.g. F5 for</span>
+<span class="sd">       the fifth deterministic node (F for fixed), or F21 for the second </span>
+<span class="sd">       deterministic node in the first time step, etc.</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :arg func: a deterministic function - defined with defaults for each of </span>
+<span class="sd">       its inputs.</span>
+<span class="sd">    :type func: function</span>
+<span class="sd">    :arg params: keys are input keywords for func, values are parents or </span>
+<span class="sd">       fixed values if something other than defaults for non-parent inputs is</span>
+<span class="sd">       desired.</span>
+<span class="sd">    :type params: dict</span>
+<span class="sd">    :arg continuous: True if function takes on continuous values. False if</span>
+<span class="sd">       discrete.</span>
+<span class="sd">    :type continuous: boolean </span>
+<span class="sd">    :arg space: The list of elements in space if discrete. Empty list if </span>
+<span class="sd">       continuous </span>
+<span class="sd">    :type space: list</span>
+<span class="sd">    :arg description: a description of the DeterNode, usually including a</span>
+<span class="sd">       summary description of the function, space, parents and children.</span>
+<span class="sd">    :type description: str.</span>
+<span class="sd">    :arg time: the timestep to which the node belongs. This is generally </span>
+<span class="sd">       only used for :class:`seminfg.iterSemiNFG` objects.</span>
+<span class="sd">    :type time: integer</span>
+<span class="sd">    :arg basename: a reference to a theoretical node in the base or kernel.</span>
+<span class="sd">    :type basename: str.</span>
+<span class="sd">    </span>
+<span class="sd">    Formally, a deterministic node has the following properties:</span>
+<span class="sd">        </span>
+<span class="sd">       * belongs to the *nature* player</span>
+<span class="sd">       * has deterministic function from the values of its parents - given by </span>
+<span class="sd">          :py:meth:`nodes.DecisionNode.prob()` or</span>
+<span class="sd">          :py:meth:`nodes.ChanceNode.prob()`.</span>
+<span class="sd">       </span>
+<span class="sd">    .. note::</span>
+<span class="sd">        </span>
+<span class="sd">       Deterministic nodes are not a part of the Semi-NFG formalism. Their </span>
+<span class="sd">       functionality is implicit in the relationship between stochastic parent</span>
+<span class="sd">       nodes and their stochastic children, as is the convention in Bayesian </span>
+<span class="sd">       Networks. They can be seen as deterministically *transforming* the </span>
+<span class="sd">       values of parents into the parameters that are used by their children.</span>
+<span class="sd">    </span>
+<span class="sd">    Example::</span>
+<span class="sd">            </span>
+<span class="sd">        import scipy.stats.distributions as randvars</span>
+<span class="sd">        </span>
+<span class="sd">        dist1 = randvars.norm</span>
+<span class="sd">        params1 = [0.5, 1]</span>
+<span class="sd">        distip1 = (dist1, params1)</span>
+<span class="sd">        C1 = ChanceNode(&#39;C1&#39;, distip=distip1, description=&#39;CN given by norm loc=0.5, scale=1&#39;)</span>
+<span class="sd">       </span>
+<span class="sd">        def func2(var1=1, var2=0):</span>
+<span class="sd">            r = np.sign(var1+var2)</span>
+<span class="sd">            return r</span>
+<span class="sd">            </span>
+<span class="sd">        params2 = {&#39;var1&#39;: C1}</span>
+<span class="sd">        continuous2 = False</span>
+<span class="sd">        space2 = [-1, 0, 1]</span>
+<span class="sd">        F2 = DeterNode(&#39;F2&#39;, func2, params2, continuous2, space=space2, description=&#39;a disc. DeterNode child of C1&#39;)</span>
+<span class="sd">    </span>
+<span class="sd">    Upon initialization, the following private method is called: </span>
+<span class="sd">    :py:meth:`nodes.DeterNode._set_parent_dict()`</span>
+<span class="sd">    </span>
+<span class="sd">    Some useful methods are:</span>
+<span class="sd">       </span>
+<span class="sd">    * :py:meth:`nodes.DeterNode.draw_value()` </span>
+<span class="sd">    * :py:meth:`nodes.DeterNode.prob()`</span>
+<span class="sd">    * :py:meth:`nodes.DeterNode.logprob()`</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">continuous</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="p">[],</span> \
+                 <span class="n">description</span><span class="o">=</span><span class="s">&#39;no description&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Name: &#39;</span><span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Description: &#39;</span><span class="o">+</span> <span class="n">description</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;name and description should be strings&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">player</span> <span class="o">=</span> <span class="s">&#39;nature&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dfunction</span> <span class="o">=</span> <span class="n">func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="n">space</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_parent_dict</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span> <span class="o">=</span> <span class="n">continuous</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basename</span> <span class="o">=</span> <span class="n">basename</span>
+        
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+    
+<div class="viewcode-block" id="DeterNode.draw_value"><a class="viewcode-back" href="../nodes.html#nodes.DeterNode.draw_value">[docs]</a>    <span class="k">def</span> <span class="nf">draw_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">setvalue</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Draw a value from the :class:`nodes.DeterNode` object</span>
+<span class="sd">        </span>
+<span class="sd">        This function computes the value of the deterministic node given the</span>
+<span class="sd">        current values of the parents or with the values provided in pareninput</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           compute values from the function governing the DeterNode. Keys are </span>
+<span class="sd">           parent names. Values are parent values. To specify values for only a </span>
+<span class="sd">           subset of the parents, only enter those parents in the dictionary. </span>
+<span class="sd">           If no parent values are specified, then the current values of the </span>
+<span class="sd">           parents are used. </span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg setvalue: (Optional) determines if the random draw replaces</span>
+<span class="sd">           :py:attr:`nodes.DeterNode.value`. True by default.</span>
+<span class="sd">        :type setvalue: boolean</span>
+<span class="sd">        :returns: the value of the deterministic node that corresponds to the </span>
+<span class="sd">           parent values.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must be </span>
+<span class="sd">           legitimate values of the parent. For discrete parents, the values </span>
+<span class="sd">           must correspond to an item in the parent&#39;s space attribute. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">funinput</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">])</span> <span class="ow">in</span> <span class="p">(</span><span class="n">DecisionNode</span><span class="p">,</span> <span class="n">DeterNode</span><span class="p">,</span> <span class="n">ChanceNode</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">parentinput</span><span class="p">:</span>
+                    <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="n">pareninput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dfunction</span><span class="p">(</span><span class="o">**</span><span class="n">funinput</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">setvalue</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span>
+        
+        </div>
+<div class="viewcode-block" id="DeterNode.prob"><a class="viewcode-back" href="../nodes.html#nodes.DeterNode.prob">[docs]</a>    <span class="k">def</span> <span class="nf">prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the probability of the current or specified value</span>
+<span class="sd">        </span>
+<span class="sd">        Note that since this is a deterministic node, the probability is always</span>
+<span class="sd">        either zero or one.</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           compute the probability of the value of the DeterNode function. </span>
+<span class="sd">           Keys are parent names. Values are parent values. To specify values </span>
+<span class="sd">           for only a subset of the parents, only enter those parents in the </span>
+<span class="sd">           dictionary. If no parent values are specified, then the current </span>
+<span class="sd">           values of the parents are used. </span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg valueinput: Optional. A legitimate value of the DeterNode </span>
+<span class="sd">           object. If no valueinput is specified, then the current value of the </span>
+<span class="sd">           node is used.</span>
+<span class="sd">        :returns: the conditional probability of valueinput or the current</span>
+<span class="sd">           value conditioned on parentinput or the current values of the </span>
+<span class="sd">           parents.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must be </span>
+<span class="sd">           legitimate values of the parent. For discrete parents, the values </span>
+<span class="sd">           must correspond to an item in the parent&#39;s space attribute. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>       
+        <span class="n">funinput</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">])</span> <span class="ow">in</span> <span class="p">(</span><span class="n">DecisionNode</span><span class="p">,</span> <span class="n">DeterNode</span><span class="p">,</span> <span class="n">ChanceNode</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">parentinput</span><span class="p">:</span>
+                    <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="n">parentinput</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">valueinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">valueinput</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dfunction</span><span class="p">(</span><span class="o">**</span><span class="n">funinput</span><span class="p">)</span> <span class="o">==</span> <span class="n">valueinput</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">return</span> <span class="n">r</span>
+        </div>
+<div class="viewcode-block" id="DeterNode.logprob"><a class="viewcode-back" href="../nodes.html#nodes.DeterNode.logprob">[docs]</a>    <span class="k">def</span> <span class="nf">logprob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the conditional logprob of the current or specified value</span>
+<span class="sd">        </span>
+
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           compute the logprob of the value of the DeterNode. Keys are parent </span>
+<span class="sd">           names. Values are parent values. To specify values for only a subset </span>
+<span class="sd">           of the parents, only enter those parents in the dictionary. If no </span>
+<span class="sd">           parent values are specified, then the current values of the parents are used. </span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg valueinput: Optional. A legitimate value of the DeterNode object. </span>
+<span class="sd">           If no valueinput is specified, then the current value of the node is </span>
+<span class="sd">           used.</span>
+<span class="sd">        :returns: the log conditional probability of valueinput or the current</span>
+<span class="sd">           value conditioned on parentinput or the current values of the parents.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must be </span>
+<span class="sd">           legitimate values of the parent. For discrete parents, the values </span>
+<span class="sd">           must correspond to an item in the parent&#39;s space attribute.</span>
+<span class="sd">           </span>
+<span class="sd">        .. note::</span>
+<span class="sd">            </span>
+<span class="sd">           Since this is a deterministic node, the logprob is alwayseither zero </span>
+<span class="sd">           or -inf.</span>
+<span class="sd">           </span>
+<span class="sd">        This is equivalent to ``np.log(DeterNode.prob())``</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob</span><span class="p">(</span><span class="n">parentinput</span><span class="p">,</span> <span class="n">valueinput</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="DeterNode.set_value"><a class="viewcode-back" href="../nodes.html#nodes.DeterNode.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newvalue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the current value of the DeterNode object</span>
+<span class="sd">        </span>
+<span class="sd">        :arg newvalue: a legitimate value of the DeterNode object. If the </span>
+<span class="sd">           DeterNode object is discrete, then newvalue must be in </span>
+<span class="sd">           :py:attr:`nodes.DeterNode.space`. If the DeterNode object is </span>
+<span class="sd">           continuous, no corrections are made for unattainable values.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning::</span>
+<span class="sd">            </span>
+<span class="sd">           When arbitrarily setting values, some children may have zero </span>
+<span class="sd">           probability given their parents. This means the logprob may be -inf. </span>
+<span class="sd">           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a </span>
+<span class="sd">           divide by zero error.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newvalue</span>
+        <span class="k">elif</span> <span class="n">newvalue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newvalue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;the new value is not in &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&quot;&#39;s space&quot;</span><span class="p">)</span>
+    </div>
+    <span class="k">def</span> <span class="nf">_set_parent_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the parent OrderedDict based on the params entered by user</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parents: list of parameter values for the DeterNode function</span>
+<span class="sd">        :type parents: list</span>
+<span class="sd">        :returns: OrderedDict. Keys are node names. Values are node objects.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">par</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">DecisionNode</span><span class="p">,</span> <span class="n">DeterNode</span><span class="p">,</span> <span class="n">ChanceNode</span><span class="p">):</span>
+                <span class="n">r</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span>
+        <span class="k">return</span> <span class="n">r</span>
+</div>
+<div class="viewcode-block" id="DecisionNode"><a class="viewcode-back" href="../nodes.html#nodes.DecisionNode">[docs]</a><span class="k">class</span> <span class="nc">DecisionNode</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements a decision node of the semi-NFG formalism by D. Wolpert</span>
+<span class="sd">    </span>
+<span class="sd">    The :class:`nodes.DecisionNode` can be initialized with either a </span>
+<span class="sd">    conditional probability distribution (CPT) or a distribution object </span>
+<span class="sd">    from :py:mod:`scipy.stats.distributions` (discrete and continuous types </span>
+<span class="sd">    are both supported).</span>
+<span class="sd">    </span>
+<span class="sd">    :arg name: the name of the DecisionNode, usually descriptive, e.g. D5, </span>
+<span class="sd">    for player 5&#39;s decision node, or D51 for player 5&#39;s 1st decision node, </span>
+<span class="sd">    or D512 for player 5&#39;s 1st decision node in the 2nd time step, etc.</span>
+<span class="sd">    :type name: str.</span>
+<span class="sd">    :arg player: the name of the player to which this DecisionNode belongs.</span>
+<span class="sd">    :type player: str.</span>
+<span class="sd">    :arg space: the list of the possible values for the DecisionNode. The </span>
+<span class="sd">    order determines the order of the CPT when generated.</span>
+<span class="sd">    :type space: list</span>
+<span class="sd">    :arg parents: the list of the parents of the decision node. All entries </span>
+<span class="sd">    must be a :class:`nodes.DecisionNode` or a discrete </span>
+<span class="sd">    :class:`nodes.ChanceNode` or :class:`nodes.DeterNode`. The order of the </span>
+<span class="sd">    parents in the list determinesthe rder of the CPT when generated.</span>
+<span class="sd">    :type parents: list</span>
+<span class="sd">    :arg description: a description of the decision node, usually including </span>
+<span class="sd">    a summary description of the space, parents and children.</span>
+<span class="sd">    :type description: str.</span>
+<span class="sd">    :arg time: the timestep to which the node belongs. This is generally </span>
+<span class="sd">    only used for :class:`seminfg.iterSemiNFG` objects.</span>
+<span class="sd">    :type time: integer</span>
+<span class="sd">    :class:`seminfg.iterSemiNFG`. It references a theoretical node in the </span>
+<span class="sd">    base or kernel.</span>
+<span class="sd">    :type basename: str.</span>
+<span class="sd">    </span>
+<span class="sd">    Formally, a decision node has the following properties:</span>
+<span class="sd">        </span>
+<span class="sd">       * belongs to a human player</span>
+<span class="sd">       * has a space of possible values.</span>
+<span class="sd">       * the conditional probability distribution from the values of its </span>
+<span class="sd">          parents - given by :py:meth:`nodes.DecisionNode.prob()` or</span>
+<span class="sd">          :py:meth:`nodes.ChanceNode.prob()`, is not specified in the game. That</span>
+<span class="sd">          distribution is given by the solution concept applied to the semi-NFG. </span>
+<span class="sd">          This lack of CPDs at decision nodes is the reason the semi-NFG is </span>
+<span class="sd">          said to be based on a semi-Bayes net.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">           </span>
+<span class="sd">       For a :class:`nodes.DecisionNode`, the parents nodes must be </span>
+<span class="sd">       discrete.</span>
+<span class="sd">    </span>
+<span class="sd">    Example::</span>
+<span class="sd">        </span>
+<span class="sd">        import scipy.stats.distributions as randvars</span>
+<span class="sd">                        </span>
+<span class="sd">        dist1 = randvars.randint</span>
+<span class="sd">        params1 = [1, 4]</span>
+<span class="sd">        space1 = [1, 2, 3]</span>
+<span class="sd">        distip1 = (dist1, params1, space1)</span>
+<span class="sd">        C1 = ChanceNode(&#39;C1&#39;, distip=distip1, description=&#39;root CN given by randint 1 to 4&#39;)</span>
+<span class="sd">                        </span>
+<span class="sd">        D1 = DecisionNode(&#39;D1&#39;, &#39;1&#39;, [-1, 0, 1], parents=[C1], description=&#39;This is a child node of C1&#39;)</span>
+<span class="sd">                            </span>
+<span class="sd">    Upon initialization, the following private method is called: </span>
+<span class="sd">    :py:meth:`nodes.DecisionNode._set_parent_dict()`</span>
+<span class="sd">    </span>
+<span class="sd">    Some useful methods are:</span>
+<span class="sd">       </span>
+<span class="sd">    * :py:meth:`nodes.DecisionNode.draw_value()` </span>
+<span class="sd">    * :py:meth:`nodes.DecisionNode.prob()`</span>
+<span class="sd">    * :py:meth:`nodes.DecisionNode.logprob()`</span>
+<span class="sd">    * :py:meth:`nodes.DecisionNode.randomCPT()`</span>
+<span class="sd">    * :py:meth:`nodes.DecisionNode.perturbCPT()`</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">space</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[],</span> \
+                 <span class="n">description</span><span class="o">=</span><span class="s">&#39;no description&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Name: &#39;</span><span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Description: &#39;</span><span class="o">+</span> <span class="n">description</span> <span class="o">+</span> \
+                <span class="s">&#39;</span><span class="se">\n</span><span class="s">Player: &#39;</span><span class="o">+</span><span class="n">player</span> 
+        <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;name, description, and player should be strings&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basename</span> <span class="o">=</span> <span class="n">basename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">player</span> <span class="o">=</span> <span class="n">player</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="n">space</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_parent_dict</span><span class="p">(</span><span class="n">parents</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_createCPT</span><span class="p">()</span>
+        <span class="n">check_parents</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        
+<div class="viewcode-block" id="DecisionNode.draw_value"><a class="viewcode-back" href="../nodes.html#nodes.DecisionNode.draw_value">[docs]</a>    <span class="k">def</span> <span class="nf">draw_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">setvalue</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Draw a value from the :class:`nodes.DecisionNode` object</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           draw values using the CPT. Keys are parent names. Values are parent </span>
+<span class="sd">           values. To specify values for only a subset of the parents, only </span>
+<span class="sd">           enter those parents in the dictionary. If no parent values are </span>
+<span class="sd">           specified, then the current values of the parents are used. </span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg setvalue: (Optional) determines if the random draw replaces</span>
+<span class="sd">           :py:attr:`nodes.DecisionNode.value`. True by default.</span>
+<span class="sd">        :type setvalue: boolean</span>
+<span class="sd">        :returns: an element of :py:attr:`nodes.DecisionNode.space`.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           The values specified in parentinput must correspond to an item in the </span>
+<span class="sd">           parent&#39;s space attribute.</span>
+<span class="sd">           </span>
+<span class="sd">        .. warning::</span>
+<span class="sd">            </span>
+<span class="sd">           The CPT is an np.zero array upon initialization. Therefore, one must </span>
+<span class="sd">           set the CPT wih :py:meth:`nodes.DecisionNode.randomCPT()` or </span>
+<span class="sd">           manually before calling this method.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&#39;CPT for </span><span class="si">%s</span><span class="s"> is just a zeros array&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">parentinput</span><span class="p">:</span>
+                <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">parentinput</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">]))</span> 
+            <span class="k">else</span><span class="p">:</span>               
+                <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">value</span><span class="p">))</span> 
+<span class="c">#        if parentinput is None:</span>
+<span class="c">#            for par in self.parents:</span>
+<span class="c">#                # finding the index for each dimension of the CPT for current values               </span>
+<span class="c">#                ind.append(self.parents[par].space.index(self.parents[par].value))</span>
+<span class="c">#        else:</span>
+<span class="c">#            for par in self.parents:</span>
+<span class="c">#                # finding the index for each dimension of the CPT for input values               </span>
+<span class="c">#                ind.append(self.parents[par].space.index(parentinput[par]))                </span>
+        <span class="c"># converting the ind array to a tuple for indexing the CPT</span>
+        <span class="n">indo</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+        <span class="n">cdf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">[</span><span class="n">indo</span><span class="p">])</span>
+        <span class="n">cutoff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span> <span class="n">cdf</span> <span class="o">&gt;=</span> <span class="n">cutoff</span> <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">setvalue</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span>
+        </div>
+<div class="viewcode-block" id="DecisionNode.randomCPT"><a class="viewcode-back" href="../nodes.html#nodes.DecisionNode.randomCPT">[docs]</a>    <span class="k">def</span> <span class="nf">randomCPT</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mixed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a random CPT for the :class:`nodes.DecisionNode` object</span>
+<span class="sd">        </span>
+<span class="sd">        :arg mixed: Optional. Determines whether a mixed CPT, i.e. a CPT that </span>
+<span class="sd">           assigns nonzero weight to every value in </span>
+<span class="sd">           :py:attr:`nodes.DecisionNode.space`, or a pure CPT, i.e. a CPT that </span>
+<span class="sd">           assigns probability 1 to a single value in </span>
+<span class="sd">           :py:attr:`nodes.DecisionNode.space` for each of the parent values.</span>
+<span class="sd">        :type mixed: boolean</span>
+<span class="sd">        :arg setCPT: Optional. Default is True. Determines whether the </span>
+<span class="sd">           :py:attr:`nodes.DecisionNode.CPT` attribut is set by the function</span>
+<span class="sd">        :type setCPT: boolean</span>
+<span class="sd">        :returns: a mixed or pure CPT.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">CPTshape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="o">.</span><span class="n">shape</span>        
+        <span class="n">shape_last</span> <span class="o">=</span> <span class="n">CPTshape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">other_dims</span> <span class="o">=</span> <span class="n">CPTshape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">CPTshape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mixed</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">randint</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">shape_last</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">other_dims</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">z</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape_last</span><span class="p">))[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span><span class="o">=</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">z</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape_last</span><span class="p">))[</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="mi">100000000</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">randint</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">other_dims</span><span class="o">+</span><span class="p">(</span><span class="n">shape_last</span><span class="o">-</span><span class="mi">1</span><span class="p">,))</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">other_dims</span><span class="o">+</span><span class="p">(</span><span class="mi">1</span><span class="p">,)),</span> <span class="n">x</span><span class="p">,</span> \
+                                <span class="n">M</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">other_dims</span><span class="o">+</span><span class="p">(</span><span class="mi">1</span><span class="p">,))),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yy</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">M</span>
+        <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">z</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">z</span>
+        </div>
+<div class="viewcode-block" id="DecisionNode.perturbCPT"><a class="viewcode-back" href="../nodes.html#nodes.DecisionNode.perturbCPT">[docs]</a>    <span class="k">def</span> <span class="nf">perturbCPT</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mixed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">sliver</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a perturbation of the CPT attribute.</span>
+<span class="sd">        </span>
+<span class="sd">        :arg noise: The noise determines the mixture between the current CPT </span>
+<span class="sd">           and a random CPT, e.g. `new = self.CPT*(1-noise) + randCPT*noise`. </span>
+<span class="sd">           Noise must be a number between 0 and 1.</span>
+<span class="sd">        :type noise: float</span>
+<span class="sd">        :arg mixed: Optional. Determines if the perturbation is pure or mixed. </span>
+<span class="sd">           If pure, then the perturbed CPT is a pure CPT with some of the pure </span>
+<span class="sd">           weights shifted to other values. If mixed, then the perturbed CPT is </span>
+<span class="sd">           a mixed CPT with positive weight on all values. </span>
+<span class="sd">        :type mixed: boolean</span>
+<span class="sd">        :arg sliver: Optional. Determines the values of the parents for which </span>
+<span class="sd">           to perturb the current CPT. Keys are parent names. Values are parent </span>
+<span class="sd">           values. If empty, the entire CPT is perturbed. If sliver is nonempty, </span>
+<span class="sd">           but specifies values for only a subset of parents, the current values </span>
+<span class="sd">           are used for the remaining parents.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning::</span>
+<span class="sd">            </span>
+<span class="sd">           Functionality for pure perturbations is not yet implemented!</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="c">#        if not mixed:</span>
+<span class="c">#            if not sliver:</span>
+<span class="c">#                shape_last = self.CPT.shape[-1]</span>
+<span class="c">#                other_dims = self.CPT.shape[0:-1]</span>
+<span class="c">#                y = randvars.randint.rvs(0, shape_last, size=other_dims)</span>
+<span class="c">#        else:</span>
+        <span class="n">randCPT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">randomCPT</span><span class="p">(</span><span class="n">mixed</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sliver</span><span class="p">:</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">noise</span><span class="p">)</span> <span class="o">+</span> <span class="n">randCPT</span><span class="o">*</span><span class="n">noise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">sliver</span><span class="p">:</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sliver</span><span class="p">[</span><span class="n">par</span><span class="p">]))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">par</span><span class="p">]))</span>
+            <span class="n">indo</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span>
+            <span class="n">z</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">noise</span><span class="p">)</span> <span class="o">+</span> <span class="n">randCPT</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span><span class="o">*</span><span class="n">noise</span>
+        <span class="k">return</span> <span class="n">z</span>
+        </div>
+<div class="viewcode-block" id="DecisionNode.prob"><a class="viewcode-back" href="../nodes.html#nodes.DecisionNode.prob">[docs]</a>    <span class="k">def</span> <span class="nf">prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the conditional probability of the current or specified value</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           compute the conditional probability. Keys are parent names. Values </span>
+<span class="sd">           are parent values. To specify values for only a subset of the </span>
+<span class="sd">           parents, only enter those parents in the dictionary. If only a </span>
+<span class="sd">           subset of parent values are specified, then the current values are </span>
+<span class="sd">           used for the remaining parents.</span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg valueinput: Optional. A legitimate value of the decision node </span>
+<span class="sd">           object. If no valueinput is specified, then the current value of the </span>
+<span class="sd">           node is used.</span>
+<span class="sd">        :returns: the conditional probability of valueinput or the current</span>
+<span class="sd">           value conditioned on parentinput or the current values of the </span>
+<span class="sd">           parents.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must </span>
+<span class="sd">           correspond to items in the space attributes of the parents.</span>
+<span class="sd">           </span>
+<span class="sd">        .. warning::</span>
+<span class="sd">            </span>
+<span class="sd">           The CPT is an np.zero array upon initialization. Therefore, one must </span>
+<span class="sd">           set the CPT wih :py:meth:`nodes.DecisionNode.randomCPT()` or </span>
+<span class="sd">           manually before calling this method.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&#39;CPT for </span><span class="si">%s</span><span class="s"> is just a zeros array&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">parentinput</span><span class="p">:</span>
+                <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">parentinput</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">]))</span> 
+            <span class="k">else</span><span class="p">:</span>            
+                <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">value</span><span class="p">))</span> 
+<span class="c">#        if parentinput is None:</span>
+<span class="c">#            for par in self.parents:</span>
+<span class="c">#                # finding the index for each dimension of the CPT for current values               </span>
+<span class="c">#                ind.append( self.parents[par].space.index(self.parents[par].value) )</span>
+<span class="c">#        else:</span>
+<span class="c">#            for par in self.parents:</span>
+<span class="c">#                # finding the index for each dimension of the CPT for input values               </span>
+<span class="c">#                ind.append( self.parents[par].space.index(parentinput[par]) )</span>
+        <span class="k">if</span> <span class="n">valueinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">valueinput</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">indo</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">p</span>
+        </div>
+<div class="viewcode-block" id="DecisionNode.logprob"><a class="viewcode-back" href="../nodes.html#nodes.DecisionNode.logprob">[docs]</a>    <span class="k">def</span> <span class="nf">logprob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the conditional logprob of the current or specified value</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           compute the conditional logprob. Keys are parent names. Values are </span>
+<span class="sd">           parent values. To specify values for only a subset of the parents, </span>
+<span class="sd">           only enter those parents in the dictionary. If only a subset of </span>
+<span class="sd">           parent values are specified, then the current values are used for the </span>
+<span class="sd">           remaining parents.</span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg valueinput: Optional. A legitimate value of the decision node </span>
+<span class="sd">           object. If no valueinput is specified, then the current value of the </span>
+<span class="sd">           node is used.</span>
+<span class="sd">        :returns: the conditional logprob of valueinput or the current</span>
+<span class="sd">           value conditioned on parentinput or the current values of the </span>
+<span class="sd">           parents.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must </span>
+<span class="sd">           correspond to items in the space attributes of the parents.</span>
+<span class="sd">           </span>
+<span class="sd">        .. warning::</span>
+<span class="sd">            </span>
+<span class="sd">           The CPT is an np.zero array upon initialization. Therefore, one must </span>
+<span class="sd">           set the CPT wih :py:meth:`nodes.DecisionNode.randomCPT()` or </span>
+<span class="sd">           manually before calling this method.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob</span><span class="p">(</span><span class="n">parentinput</span><span class="p">,</span> <span class="n">valueinput</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="DecisionNode.set_value"><a class="viewcode-back" href="../nodes.html#nodes.DecisionNode.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newvalue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the current value of the DecisionNode object</span>
+<span class="sd">        </span>
+<span class="sd">        :arg newvalue: a legitimate value of the DecisionNode object, i.e. the </span>
+<span class="sd">           value must be in :py:attr:`nodes.ChanceNode.space`.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning::</span>
+<span class="sd">            </span>
+<span class="sd">           When arbitrarily setting values, some children may have zero </span>
+<span class="sd">           probability given their parents. This means the logprob may be -inf. </span>
+<span class="sd">           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a </span>
+<span class="sd">           divide by zero error.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">newvalue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newvalue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;the new value is not in &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&quot;&#39;s space&quot;</span><span class="p">)</span>  
+        </div>
+    <span class="k">def</span> <span class="nf">_set_parent_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the parent OrderedDict based on the parents list entered by user</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parents: list of parent nodes for the DecisionNode</span>
+<span class="sd">        :type parents: list</span>
+<span class="sd">        :returns: OrderedDict in which the items follow the order of the parent </span>
+<span class="sd">           list entered by the user. Keys are parent names. Values are parent </span>
+<span class="sd">           objects.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">parents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+                <span class="n">r</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span>
+        <span class="k">return</span> <span class="n">r</span>
+        
+    <span class="k">def</span> <span class="nf">_createCPT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a CPT of the correct size with zeros for the DecisionNode</span>
+<span class="sd">        </span>
+<span class="sd">        Uses the order of the parents in the parent list as entered by the user </span>
+<span class="sd">        to initialize the DecisionNode object and the sizes of space attributes </span>
+<span class="sd">        of the parents to create a :py:func:`numpy.zeros()` array of the </span>
+<span class="sd">        appropriate size and shape.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">CPT_size</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+            <span class="n">CPT_size</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">space</span><span class="p">))</span>
+        <span class="n">CPT_size</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">CPT_size</span><span class="p">)</span>
+
+        </div>
+<div class="viewcode-block" id="check_parents"><a class="viewcode-back" href="../nodes.html#nodes.check_parents">[docs]</a><span class="k">def</span> <span class="nf">check_parents</span><span class="p">(</span><span class="n">parents</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check that parents entered by user are discrete</span>
+<span class="sd">    </span>
+<span class="sd">    :arg parent: a dictionary with keys as parent names and values as parent </span>
+<span class="sd">       nodes</span>
+<span class="sd">    :type parent: dict</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">par</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ChanceNode</span><span class="p">,</span> <span class="n">DeterNode</span><span class="p">)</span> <span class="ow">and</span> <span class="n">par</span><span class="o">.</span><span class="n">continuous</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;The parent named </span><span class="si">%s</span><span class="s"> is continuous!&quot;</span> <span class="o">%</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">PyNFG 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
