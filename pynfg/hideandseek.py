@@ -1,26 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jan 28 16:22:43 2013
-
-Implements a simple hide-and-seek iterSemiNFG
+Copyright (C) 2013 James Bono
+GNU Affero General Public License
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
-Copyright (C) 2013 James Bono
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>
+Implements a simple hide-and-seek iterSemiNFG
 
 """
+__author__="""James Bono (jwbono@gmail.com)"""
+
 from __future__ import division
 import numpy as np
 from nodes import *
@@ -163,11 +152,12 @@ for n in G.basename_partition['D2'][1:]:
     n.CPT = G.basename_partition['D2'][0].CPT
 
 G.basename_partition['D1'][0].uniformCPT()
+G.draw_graph()
 NN = 500
 #        
-G1, Rseries = ewma_jaakkola(G, 'D1',J=np.floor(linspace(400,100,num=NN)), N=NN, \
-                            alpha=0.8, delta=0.8, \
-                            eps=linspace(.01,0.1,num=NN))
+#G1, Rseries = ewma_jaakkola(G, 'D1',J=np.floor(linspace(400,100,num=NN)), N=NN, \
+#                            alpha=0.8, delta=0.8, \
+#                            eps=linspace(.01,0.1,num=NN))
 
 #G1.sample_timesteps(G1.starttime)
 #

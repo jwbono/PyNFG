@@ -1,25 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Nov 21 09:49:05 2012
-
-Implements SemiNFG and iterSemiNFG classes
+Copyright (C) 2013 James Bono
+GNU Affero General Public License
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
-Copyright (C) 2013 James Bono
+Implements SemiNFG and iterSemiNFG classes
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>
 """
+__author__="""James Bono (jwbono@gmail.com)"""
+
 from __future__ import division
 import numpy as np
 import scipy as sp
@@ -417,8 +407,9 @@ class SemiNFG(object):
         for n in subgraph:
             for child in subgraph.intersection(self.edges[n.name]):
                 G.add_edge(n.name,child.name)
-        pos = nx.spring_layout(G)
+        pos = nx.spring_layout(G, iterations=100)
         nx.draw_networkx(G, pos)
+#        nx.draw_graphviz(G, prog='dot')
         plt.show()
         
     def _set_partition(self):

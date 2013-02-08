@@ -1,25 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jan 22 14:17:38 2013
-
-Implements Reinforcement Learning solutions for iterSemiNFG objects
+Copyright (C) 2013 James Bono
+GNU Affero General Public License
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
-Copyright (C) 2013 James Bono
+Implements Reinforcement Learning solutions for iterSemiNFG objects
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>
 """
+__author__="""James Bono (jwbono@gmail.com)"""
+
 from __future__ import division
 import time
 import numpy as np
