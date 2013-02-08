@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jan  2 16:33:36 2013
-Copyright (C) 2013 James Bono
+Copyright (C) 2013 James Bono (jwbono@gmail.com)
 GNU Affero General Public License
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
 Implements PGT solutions for SemiNFG and iterSemiNFG objects
 
 """
-__author__="""James Bono (jwbono@gmail.com)"""
-
 from __future__ import division
 import copy
 import numpy as np

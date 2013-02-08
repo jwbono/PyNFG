@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jan 28 16:22:43 2013
-Copyright (C) 2013 James Bono
+Copyright (C) 2013 James Bono (jwbono@gmail.com)
 GNU Affero General Public License
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
 Implements a simple hide-and-seek iterSemiNFG
 
 """
-__author__="""James Bono (jwbono@gmail.com)"""
-
 from __future__ import division
+
 import numpy as np
 from nodes import *
 from seminfg import SemiNFG, iterSemiNFG
@@ -147,17 +146,16 @@ def reward2(F=np.array([[1,0],[0,1]])):
 rfuncs = {'seeker': reward1, 'hider': reward2}
 G = iterSemiNFG(nodeset, rfuncs)
 
-G.basename_partition['D2'][0].randomCPT(mixed=False)
+G.basename_partition['D2'][0].randomCPT(mixed=True)
 for n in G.basename_partition['D2'][1:]:
     n.CPT = G.basename_partition['D2'][0].CPT
 
 G.basename_partition['D1'][0].uniformCPT()
-G.draw_graph()
-NN = 500
+#G.draw_graph()
+NN = 20
 #        
-#G1, Rseries = ewma_jaakkola(G, 'D1',J=np.floor(linspace(400,100,num=NN)), N=NN, \
-#                            alpha=0.8, delta=0.8, \
-#                            eps=linspace(.01,0.1,num=NN))
+G1, Rseries = ewma_mcrl(G, 'D1', J=np.floor(linspace(300,100,num=NN)), N=NN, \
+                            alpha=0.8, delta=0.8, eps=0.3)
 
 #G1.sample_timesteps(G1.starttime)
 #
