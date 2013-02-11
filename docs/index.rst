@@ -13,6 +13,8 @@ Contents:
 
    seminfg
    nodes
+   pgtsolutions
+   rlsolutions
    ...
 
 

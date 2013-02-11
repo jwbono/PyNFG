@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jan  2 16:33:36 2013
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
-GNU Affero General Public License
+Implements PGT solutions for SemiNFG and iterSemiNFG objects
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
-Implements PGT solutions for SemiNFG and iterSemiNFG objects
+
+Created on Wed Jan  2 16:33:36 2013
+
+Copyright (C) 2013 James Bono (jwbono@gmail.com)
+
+GNU Affero General Public License
 
 """
 from __future__ import division

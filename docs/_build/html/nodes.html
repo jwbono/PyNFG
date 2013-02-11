@@ -52,11 +52,14 @@
             
   <div class="section" id="nodes">
 <span id="id1"></span><h1>Nodes<a class="headerlink" href="#nodes" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-nodes"></span><p>Created on Wed Dec  5 16:39:14 2012</p>
-<p>&#64;author: jamesbono</p>
+<span class="target" id="module-nodes"></span><p>Created on Wed Dec  5 16:39:14 2012
+Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)
+GNU Affero General Public License</p>
+<p>Part of: PyNFG - a Python package for modeling and solving Network Form Games
+Implements ChanceNode, DecisionNode and DeterNode classes</p>
 <dl class="class">
 <dt id="nodes.ChanceNode">
-<em class="property">class </em><tt class="descclassname">nodes.</tt><tt class="descname">ChanceNode</tt><big>(</big><em>name</em>, <em>CPTip=None</em>, <em>distip=None</em>, <em>description='no description'</em>, <em>time=None</em>, <em>basename=None</em><big>)</big><a class="reference internal" href="_modules/nodes.html#ChanceNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nodes.ChanceNode" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">nodes.</tt><tt class="descname">ChanceNode</tt><big>(</big><em>name</em>, <em>CPTip=None</em>, <em>distip=None</em>, <em>description='no description'</em>, <em>time=None</em>, <em>basename=None</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/nodes.html#ChanceNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nodes.ChanceNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a chance node of the semi-NFG formalism created by D. Wolpert</p>
 <p>The <a class="reference internal" href="#nodes.ChanceNode" title="nodes.ChanceNode"><tt class="xref py py-class docutils literal"><span class="pre">nodes.ChanceNode</span></tt></a> can be initialized with either a 
 conditional probability distribution (CPT) or a distribution object 
@@ -279,7 +282,7 @@ divide by zero error.</p>
 
 <dl class="class">
 <dt id="nodes.DecisionNode">
-<em class="property">class </em><tt class="descclassname">nodes.</tt><tt class="descname">DecisionNode</tt><big>(</big><em>name</em>, <em>player</em>, <em>space</em>, <em>parents=</em><span class="optional">[</span><span class="optional">]</span>, <em>description='no description'</em>, <em>time=None</em>, <em>basename=None</em><big>)</big><a class="reference internal" href="_modules/nodes.html#DecisionNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nodes.DecisionNode" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">nodes.</tt><tt class="descname">DecisionNode</tt><big>(</big><em>name</em>, <em>player</em>, <em>space</em>, <em>parents=</em><span class="optional">[</span><span class="optional">]</span>, <em>description='no description'</em>, <em>time=None</em>, <em>basename=None</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/nodes.html#DecisionNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nodes.DecisionNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a decision node of the semi-NFG formalism by D. Wolpert</p>
 <p>The <a class="reference internal" href="#nodes.DecisionNode" title="nodes.DecisionNode"><tt class="xref py py-class docutils literal"><span class="pre">nodes.DecisionNode</span></tt></a> can be initialized with either a 
 conditional probability distribution (CPT) or a distribution object 
@@ -358,7 +361,7 @@ discrete.</p>
 </ul>
 <dl class="method">
 <dt id="nodes.DecisionNode.draw_value">
-<tt class="descname">draw_value</tt><big>(</big><em>parentinput={}</em>, <em>setvalue=True</em><big>)</big><a class="reference internal" href="_modules/nodes.html#DecisionNode.draw_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nodes.DecisionNode.draw_value" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">draw_value</tt><big>(</big><em>parentinput={}</em>, <em>setvalue=True</em>, <em>mode=False</em><big>)</big><a class="reference internal" href="_modules/nodes.html#DecisionNode.draw_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nodes.DecisionNode.draw_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw a value from the <a class="reference internal" href="#nodes.DecisionNode" title="nodes.DecisionNode"><tt class="xref py py-class docutils literal"><span class="pre">nodes.DecisionNode</span></tt></a> object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -509,7 +512,7 @@ manually before calling this method.</p>
 
 <dl class="method">
 <dt id="nodes.DecisionNode.randomCPT">
-<tt class="descname">randomCPT</tt><big>(</big><em>mixed=False</em>, <em>setCPT=False</em><big>)</big><a class="reference internal" href="_modules/nodes.html#DecisionNode.randomCPT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nodes.DecisionNode.randomCPT" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">randomCPT</tt><big>(</big><em>mixed=False</em>, <em>setCPT=True</em><big>)</big><a class="reference internal" href="_modules/nodes.html#DecisionNode.randomCPT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nodes.DecisionNode.randomCPT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a random CPT for the <a class="reference internal" href="#nodes.DecisionNode" title="nodes.DecisionNode"><tt class="xref py py-class docutils literal"><span class="pre">nodes.DecisionNode</span></tt></a> object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -555,11 +558,28 @@ divide by zero error.</p>
 </div>
 </dd></dl>
 
+<dl class="method">
+<dt id="nodes.DecisionNode.uniformCPT">
+<tt class="descname">uniformCPT</tt><big>(</big><em>setCPT=True</em><big>)</big><a class="headerlink" href="#nodes.DecisionNode.uniformCPT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a uniform CPT for the <a class="reference internal" href="#nodes.DecisionNode" title="nodes.DecisionNode"><tt class="xref py py-class docutils literal"><span class="pre">nodes.DecisionNode</span></tt></a> object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>setCPT</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Optional. Default is True. Determines whether the 
+<tt class="xref py py-attr docutils literal"><span class="pre">nodes.DecisionNode.CPT</span></tt> attribute is set by the function</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a uniform mixed CPT.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="nodes.DeterNode">
-<em class="property">class </em><tt class="descclassname">nodes.</tt><tt class="descname">DeterNode</tt><big>(</big><em>name</em>, <em>func</em>, <em>params</em>, <em>continuous</em>, <em>space=</em><span class="optional">[</span><span class="optional">]</span>, <em>description='no description'</em>, <em>time=None</em>, <em>basename=None</em><big>)</big><a class="reference internal" href="_modules/nodes.html#DeterNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nodes.DeterNode" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">nodes.</tt><tt class="descname">DeterNode</tt><big>(</big><em>name</em>, <em>func</em>, <em>params</em>, <em>continuous</em>, <em>space=</em><span class="optional">[</span><span class="optional">]</span>, <em>description='no description'</em>, <em>time=None</em>, <em>basename=None</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/nodes.html#DeterNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nodes.DeterNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a deterministic node for the semi-NFG formalism created 
 by D. Wolpert</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -777,6 +797,58 @@ divide by zero error.</p>
 </div>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="nodes.dict2list_vals">
+<tt class="descclassname">nodes.</tt><tt class="descname">dict2list_vals</tt><big>(</big><em>parentdict</em>, <em>parentinput={}</em>, <em>valueinput=None</em><big>)</big><a class="headerlink" href="#nodes.dict2list_vals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert parent/value dict entered by user to a list of values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parentdict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; the parents OrderedDict attribute for the node, e.g.
+<cite>:py:attr:DecisionNode.parents</cite> or <cite>:py:attr:ChanceNode.parents</cite></li>
+<li><strong>parentinput</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Optional. Specify values of the parents. Keys are 
+parent names. Values are parent values. To specify values for only a 
+subset of the parents, only enter those parents in the dictionary. 
+If only a subset of parent values are specified, then the current 
+values are used for the remaining parents.</li>
+<li><strong>valueinput</strong> &#8211; Optional. A legitimate value of the decision node 
+object. If no valueinput is specified, then the output does not include a 
+value for the node itself.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of the values for the parents and the decision node 
+itself in the order determine by the :py:attr:DecisionNode.parents` 
+OrderedDict.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nodes.get_CPTindex">
+<tt class="descclassname">nodes.</tt><tt class="descname">get_CPTindex</tt><big>(</big><em>node</em>, <em>values</em>, <em>onlyparents=False</em><big>)</big><a class="headerlink" href="#nodes.get_CPTindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the CPT index that corresponds to the (parent, node) values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>parentdict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; the parents OrderedDict attribute for the node, e.g.
+<cite>:py:attr:DecisionNode.parents</cite> or <cite>:py:attr:ChanceNode.parents</cite></li>
+<li><strong>values</strong> &#8211; a list whose members are values for the parents of the 
+decision node and the decision node itself, in the order given by 
+the <cite>:py:attr:DecisionNode.parents</cite> OrderedDict</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>

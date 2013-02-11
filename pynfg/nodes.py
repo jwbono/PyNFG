@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Dec  5 16:39:14 2012
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
-GNU Affero General Public License
+Implements ChanceNode, DecisionNode and DeterNode classes
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
-Implements ChanceNode, DecisionNode and DeterNode classes
+
+Created on Wed Dec  5 16:39:14 2012
+
+Copyright (C) 2013 James Bono (jwbono@gmail.com)
+
+GNU Affero General Public License
 
 """
 

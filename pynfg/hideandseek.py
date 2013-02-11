@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jan 28 16:22:43 2013
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
-GNU Affero General Public License
+Implements a simple hide-and-seek iterSemiNFG
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
-Implements a simple hide-and-seek iterSemiNFG
+
+Created on Mon Jan 28 16:22:43 2013
+
+Copyright (C) 2013 James Bono (jwbono@gmail.com)
+
+GNU Affero General Public License
 
 """
 from __future__ import division
@@ -14,13 +17,13 @@ import numpy as np
 from nodes import *
 from seminfg import SemiNFG, iterSemiNFG
 import scipy.stats.distributions as randvars
-from RLsolutions import *
-import PGTsolutions
+from rlsolutions import *
+import pgtsolutions
 
 # boundaries of the grid
 west = 0
-east = 2
-north = 2
+east = 1
+north = 1
 south = 0
 
 # moves of the players
@@ -53,7 +56,7 @@ def newloc(var1=np.array([0,0]), var2=np.array([0,0]), \
 
 # root DeterNode F
 paramsf = {'var1': np.array([0,0]), 'var2': np.array([0,0]), 'var3': \
-            np.array([[east,0], [0,north]])}
+            np.array([[east,north-1], [0,north-1]])}
 continuousf = False
 spaceseek = [np.array([[w,x], [y,z]]) for w in range(east+1) for x in \
             range(north+1) for y in range(east+1) for z in range(north+1)]
@@ -151,11 +154,11 @@ for n in G.basename_partition['D2'][1:]:
     n.CPT = G.basename_partition['D2'][0].CPT
 
 G.basename_partition['D1'][0].uniformCPT()
-#G.draw_graph()
-NN = 20
+G.draw_graph()
+NN = 100
 #        
-G1, Rseries = ewma_mcrl(G, 'D1', J=np.floor(linspace(300,100,num=NN)), N=NN, \
-                            alpha=0.8, delta=0.8, eps=0.3)
+G1, Rseries = ewma_mcrl(G, 'D1', J=20, N=NN, \
+                            alpha=0.7, delta=0.8, eps=0.5)
 
 #G1.sample_timesteps(G1.starttime)
 #

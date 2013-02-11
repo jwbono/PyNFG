@@ -56,8 +56,11 @@
             
   <div class="section" id="seminfg">
 <span id="id1"></span><h1>SemiNFG<a class="headerlink" href="#seminfg" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-seminfg"></span><p>Created on Wed Nov 21 09:49:05 2012</p>
-<p>&#64;author: jamesbono</p>
+<span class="target" id="module-seminfg"></span><p>Created on Wed Nov 21 09:49:05 2012
+Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)
+GNU Affero General Public License</p>
+<p>Part of: PyNFG - a Python package for modeling and solving Network Form Games
+Implements SemiNFG and iterSemiNFG classes</p>
 <dl class="class">
 <dt id="seminfg.SemiNFG">
 <em class="property">class </em><tt class="descclassname">seminfg.</tt><tt class="descname">SemiNFG</tt><big>(</big><em>nodes</em>, <em>u_functions=None</em><big>)</big><a class="reference internal" href="_modules/seminfg.html#SemiNFG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seminfg.SemiNFG" title="Permalink to this definition">¶</a></dt>
@@ -222,8 +225,17 @@ the SemiNFG object.</td>
 
 <dl class="method">
 <dt id="seminfg.SemiNFG.draw_graph">
-<tt class="descname">draw_graph</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/seminfg.html#SemiNFG.draw_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seminfg.SemiNFG.draw_graph" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">draw_graph</tt><big>(</big><em>subgraph=None</em><big>)</big><a class="reference internal" href="_modules/seminfg.html#SemiNFG.draw_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seminfg.SemiNFG.draw_graph" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw the DAG representing the topology of the SemiNFG.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subgraph</strong> (<em>set or list</em>) &#8211; (Optional) a set or list of nodes to be graphed. If not
+specified, all nodes are graphed.</td>
+</tr>
+</tbody>
+</table>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This method uses the <tt class="xref py py-mod docutils literal"><span class="pre">matplotlib.pyplot</span></tt> and 
@@ -567,7 +579,7 @@ player&#8217;s reward function.</li>
 
 <dl class="method">
 <dt id="seminfg.iterSemiNFG.sample_timesteps">
-<tt class="descname">sample_timesteps</tt><big>(</big><em>start</em>, <em>stop=None</em><big>)</big><a class="reference internal" href="_modules/seminfg.html#iterSemiNFG.sample_timesteps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seminfg.iterSemiNFG.sample_timesteps" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">sample_timesteps</tt><big>(</big><em>start</em>, <em>stop=None</em>, <em>basenames=None</em><big>)</big><a class="reference internal" href="_modules/seminfg.html#iterSemiNFG.sample_timesteps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seminfg.iterSemiNFG.sample_timesteps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample the nodes from a starting time through a stopping time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -577,6 +589,8 @@ player&#8217;s reward function.</li>
 <li><strong>start</strong> (<em>integer</em>) &#8211; the first timestep to be sampled</li>
 <li><strong>stop</strong> (<em>integer</em>) &#8211; (Optional) the last timestep to be sampled. If unspecified, 
 the net will be sampled to completion.</li>
+<li><strong>basenames</strong> &#8211; (Optional) a list of strings that give the basenames 
+the user wants to collect as output. If omitted, there is no output.</li>
 </ul>
 </td>
 </tr>

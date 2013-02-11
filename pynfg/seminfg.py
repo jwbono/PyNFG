@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov 21 09:49:05 2012
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
-GNU Affero General Public License
+Implements SemiNFG and iterSemiNFG classes
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
-Implements SemiNFG and iterSemiNFG classes
+
+Created on Wed Nov 21 09:49:05 2012
+
+Copyright (C) 2013 James Bono (jwbono@gmail.com)
+
+GNU Affero General Public License
 
 """
 
@@ -407,8 +410,8 @@ class SemiNFG(object):
             for child in subgraph.intersection(self.edges[n.name]):
                 G.add_edge(n.name,child.name)
         pos = nx.spring_layout(G, iterations=100)
-        nx.draw_networkx(G, pos)
-#        nx.draw_graphviz(G, prog='dot')
+ #       nx.draw_networkx(G, pos)
+        nx.draw_graphviz(G, prog='dot')
         plt.show()
         
     def _set_partition(self):

@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jan 22 14:17:38 2013
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
-GNU Affero General Public License
+Implements Reinforcement Learning solutions for iterSemiNFG objects
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
-Implements Reinforcement Learning solutions for iterSemiNFG objects
+
+Created on Tue Jan 22 14:17:38 2013
+
+Copyright (C) 2013 James Bono (jwbono@gmail.com)
+
+GNU Affero General Public License
 
 """
 from __future__ import division
@@ -33,6 +36,11 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
     :type delta: float
     :arg eps: The maximum step-size for policy improvements
     :type eps: float
+    
+    Example::
+        
+        G1, Rseries = ewma_mcrl(G, 'D1', J=np.floor(linspace(300,100,num=50)), \
+           N=50, alpha=1, delta=0.8, eps=0.4)
     
     """
     timepassed = np.zeros(N)
@@ -140,7 +148,7 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
                     visit.add(mapair)
                     visitn.add(mapair)
                     visitj.add(mapair)
-                    # if the message is visited, all actions are updated 
+                    # only visited actions are updated 
                     indicaten[mapair] = 1
         go = time.time()
         # update CPT with shift towards Qtable argmax actions.
