@@ -16,33 +16,30 @@ from math import acos
 
 #parameters
 actions = [pi/2, pi/4, 0, -pi/4, -pi/2]
-
+#starting locations
 loca = np.array([0,0])
 locb = np.array([5,0])
 locc = np.array([2.5, 4.33])
-
+#starting vectors
 veca = np.array([1,1])/norm(np.array([1,1]))
 vecb = np.array([-1,1])/norm(np.array([-1,1]))
 vecc = np.array([0,-1])
-
-acta = 0
-actb = 0
-actc = 0
-
+#locations of terminal airports
 goal = [np.array([5,5]), np.array([0,5]), np.array([2.5, 4.33-7.07])]
-
+#Euclidian distance covered per time step by each aircraft
 speed = [.5, .5, 1]
-
+#defining safe distances from aircraft
 redzone = 1
 orangezone = 2
-redrew = -5
-orangerew = -1
-
-termzone = 1.5
-landzone = 0.5
-termrew = 1
+#penalties for not maintaining safe distance
+redpen = -5
+orangepen = -1
+#defining distance markers from terminal airport
+termzone = 2 #getting close
+landzone = 1 #within this dist., aircraft are considered landed
+#reward for getting close/landing
+termrew = 1 
 landrew = 3
-
 #functions used
 def frootfunc(locvec=[[loca, locb, locc], [veca, vecb, vecc]]):
     #a dummy function that just spits out the starting loc & vec
@@ -171,9 +168,9 @@ def distrew(goaldist, oppdist):
     if oppdist>orangezone or goaldist<landzone: #no penalty assessed in landzone
         pen = 0
     elif oppdist<redzone: 
-        pen = redrew
+        pen = redpen
     else:
-        pen = orangerew
+        pen = orangepen
     if goaldist<landzone:
         rew = landrew
     elif goaldist<termzone:

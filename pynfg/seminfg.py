@@ -18,7 +18,6 @@ import scipy as sp
 import networkx as nx
 import inspect
 import matplotlib.pyplot as plt
-import pylab as P 
 from nodes import DecisionNode, ChanceNode, DeterNode
 
 class SemiNFG(object):

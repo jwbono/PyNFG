@@ -14,11 +14,11 @@ GNU Affero General Public License
 from __future__ import division
 
 import numpy as np
-from nodes import *
-from seminfg import SemiNFG, iterSemiNFG
+import pynfg
+from pynfg.nodes import *
+from pynfg.seminfg import SemiNFG, iterSemiNFG
 import scipy.stats.distributions as randvars
-from rlsolutions import *
-import pgtsolutions
+from pynfg.rlsolutions import *
 
 # boundaries of the grid
 west = 0
@@ -157,7 +157,7 @@ G.bn_part['D1'][0].uniformCPT()
 #G.draw_graph()
 NN = 60
 #        
-G1, Rseries = ewma_mcrl(G, 'D1', J=50, N=NN, alpha=0.7, delta=0.8, eps=0.1)
+#G1, Rseries = ewma_mcrl(G, 'D1', J=50, N=NN, alpha=0.7, delta=0.8, eps=0.1)
 
 #G1.sample_timesteps(G1.starttime)
 #
