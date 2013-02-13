@@ -596,7 +596,7 @@ class iterSemiNFG(SemiNFG):
     * :py:meth:`seminfg.SemiNFG._set_edges()`
     * :py:meth:`seminfg.SemiNFG._topological_sort()`
     * :py:meth:`seminfg.iterSemiNFG._set_time_partition()`
-    * :py:meth:`seminfg.iterSemiNFG.self._set_basename_partition()`
+    * :py:meth:`seminfg.iterSemiNFG.self._set_bn_part()`
         
     """
     def __init__(self, nodes, r_functions=None):
@@ -609,7 +609,7 @@ class iterSemiNFG(SemiNFG):
         self._set_partition()
         self.players = [p for p in self.partition.keys() if p!='nature']
         self._set_time_partition()
-        self._set_basename_partition()
+        self._set_bn_part()
         self.r_functions = r_functions
 
     def reward(self, player, time, nodeinput={}):
@@ -632,7 +632,7 @@ class iterSemiNFG(SemiNFG):
             if nam in nodeinput:
                 kw[nam] = nodeinput[nam]
             else:
-                kw[nam] = self.basename_partition[nam][time].value
+                kw[nam] = self.bn_part[nam][time].value
         r = self.r_functions[player](**kw)
         return r
     
@@ -665,24 +665,24 @@ class iterSemiNFG(SemiNFG):
             self.time_partition[t] = \
                 [n for n in self.iterator if n in self.time_partition[t]]
                 
-    def _set_basename_partition(self):
-        """Set the basename_partition :py:attr:`seminfg.iterSemiNFG.basename_partition`
+    def _set_bn_part(self):
+        """Set the bn_part :py:attr:`seminfg.iterSemiNFG.bn_part`
         
-        :py:attr:`seminfg.iterSemiNFG.basename_partition` is a partition of the 
+        :py:attr:`seminfg.iterSemiNFG.bn_part` is a partition of the 
         nodes into groups according to nodes in a theoretical base/kernel. It 
         is a dictionary, where keys are basenames, and values are lists of 
         nodes that correspond to that basename. The order of the list is given
         by the time attribute.
         
         """
-        self.basename_partition = {}
+        self.bn_part = {}
         for n in self.nodes:
-            if n.basename not in self.basename_partition.keys():
-                self.basename_partition[n.basename] = [n]
+            if n.basename not in self.bn_part.keys():
+                self.bn_part[n.basename] = [n]
             else:
-                self.basename_partition[n.basename].append(n)
-        for bn in self.basename_partition.keys():
-            self.basename_partition[bn].sort(key=lambda nod: nod.time)
+                self.bn_part[n.basename].append(n)
+        for bn in self.bn_part.keys():
+            self.bn_part[bn].sort(key=lambda nod: nod.time)
             
     def sample_timesteps(self, start, stop=None, basenames=None):
         """Sample the nodes from a starting time through a stopping time.

@@ -54,10 +54,10 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
     # getting shorter/more descriptive variable names to work with
     T0 = G.starttime
     T = G.endtime+1
-    player = G.basename_partition[bn][T0].player
-    shape = G.basename_partition[bn][T0].CPT.shape
+    player = G.bn_part[bn][T0].player
+    shape = G.bn_part[bn][T0].CPT.shape
     shape_last = shape[-1]
-    G.basename_partition[bn][T0].uniformCPT() #starting with a uniform CPT
+    G.bn_part[bn][T0].uniformCPT() #starting with a uniform CPT
     visit = set() #dict of the messages and mapairs visited throughout training
     R = 0 #average reward
     A = 0 #normalizing constant for average reward
@@ -75,13 +75,13 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
         for j in xrange(int(J[n])):
             visitj = set() #visitj must be cleared at the start of every run
             for t in xrange(T0,T):
-                G.basename_partition[bn][t].CPT = G.basename_partition[bn][T0].CPT
+                G.bn_part[bn][t].CPT = G.bn_part[bn][T0].CPT
                 G.sample_timesteps(t, t) #sampling the timestep
                 rew = G.reward(player, t) #getting the reward
-                malist = dict2list_vals(G.basename_partition[bn][t].parents, \
-                                valueinput=G.basename_partition[bn][t].value)
+                malist = dict2list_vals(G.bn_part[bn][t].parents, \
+                                valueinput=G.bn_part[bn][t].value)
                 # CPT index of messages and actions
-                mapair = get_CPTindex(G.basename_partition[bn][t], malist)
+                mapair = get_CPTindex(G.bn_part[bn][t], malist)
                 # updating scalar dynamics
                 a = A
                 A = 1+a
@@ -157,18 +157,18 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
         # normalizing shifts to be a % of message's biggest shift
         shiftnorm = np.absolute(shift).max(axis=-1)[...,np.newaxis]
         # for each mapair shift only eps% of the percent shift
-        updater = eps[n]*indicaten*G.basename_partition[bn][T0].CPT/shiftnorm
+        updater = eps[n]*indicaten*G.bn_part[bn][T0].CPT/shiftnorm
         # increment the CPT
-        G.basename_partition[bn][T0].CPT[idx] += updater[idx]*shift[idx]
+        G.bn_part[bn][T0].CPT[idx] += updater[idx]*shift[idx]
         # normalize after the shift
-        CPTsum = G.basename_partition[bn][T0].CPT.sum(axis=-1)
-        G.basename_partition[bn][T0].CPT /= CPTsum[...,np.newaxis]
+        CPTsum = G.bn_part[bn][T0].CPT.sum(axis=-1)
+        G.bn_part[bn][T0].CPT /= CPTsum[...,np.newaxis]
         timepassed[n] = time.time()-go
-        if np.any(G.basename_partition[bn][T0].CPT<0):
+        if np.any(G.bn_part[bn][T0].CPT<0):
             raise AssertionError('Negative values detected in the CPT')
     # before exiting, match all of the timesteps to the updated policy
     for tau in xrange(T0+1, T):
-            G.basename_partition[bn][tau].CPT = G.basename_partition[bn][T0].CPT
+            G.bn_part[bn][tau].CPT = G.bn_part[bn][T0].CPT
     plt.plot(Rseries)
     plt.show()
     print np.mean(timepassed)
@@ -197,11 +197,11 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
 #    # getting shorter/more descriptive variable names to work with
 #    T0 = G.starttime
 #    T = G.endtime+1
-#    player = G.basename_partition[bn][T0].player
-#    shape = G.basename_partition[bn][T0].CPT.shape
+#    player = G.bn_part[bn][T0].player
+#    shape = G.bn_part[bn][T0].CPT.shape
 #    shape_last = shape[-1]
 #    # starting with a uniform CPT
-#    G.basename_partition[bn][T0].uniformCPT()
+#    G.bn_part[bn][T0].uniformCPT()
 #    # initializing RL parameters
 #    if isinstance(J, (int)):
 #        J = J*np.ones(N)
@@ -230,13 +230,13 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
 #            # visitj must be cleared at the start of every run
 #            visitj = set()
 #            for t in xrange(T0,T):
-#                G.basename_partition[bn][t].CPT = G.basename_partition[bn][T0].CPT
+#                G.bn_part[bn][t].CPT = G.bn_part[bn][T0].CPT
 #                G.sample_timesteps(t, t)
 #                rew = G.reward(player, t)
 ##                parnodes = nodelist[t].parents.values()
-#                malist = dict2list_vals(G.basename_partition[bn][t].parents, \
-#                                            valueinput=G.basename_partition[bn][t].value)
-#                mapair = get_CPTindex(G.basename_partition[bn][t], malist)
+#                malist = dict2list_vals(G.bn_part[bn][t].parents, \
+#                                            valueinput=G.bn_part[bn][t].value)
+#                mapair = get_CPTindex(G.bn_part[bn][t], malist)
 #                # updating scalar dynamics
 #                a = A
 #                A = 1+a
@@ -331,15 +331,15 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
 #        shift = Q-V[...,np.newaxis]
 #        idx = np.nonzero(shift)
 #        shiftnorm = np.absolute(shift).max(axis=-1)[...,np.newaxis]
-#        updater = eps[n]*indicaten*G.basename_partition[bn][T0].CPT/shiftnorm
-#        G.basename_partition[bn][T0].CPT[idx] += updater[idx]*(Q-V[...,np.newaxis])[idx]
-#        CPTsum = G.basename_partition[bn][T0].CPT.sum(axis=-1)
-#        G.basename_partition[bn][T0].CPT = G.basename_partition[bn][T0].CPT/CPTsum[...,np.newaxis]
-#        if np.any(G.basename_partition[bn][T0].CPT<0):
+#        updater = eps[n]*indicaten*G.bn_part[bn][T0].CPT/shiftnorm
+#        G.bn_part[bn][T0].CPT[idx] += updater[idx]*(Q-V[...,np.newaxis])[idx]
+#        CPTsum = G.bn_part[bn][T0].CPT.sum(axis=-1)
+#        G.bn_part[bn][T0].CPT = G.bn_part[bn][T0].CPT/CPTsum[...,np.newaxis]
+#        if np.any(G.bn_part[bn][T0].CPT<0):
 #            raise AssertionError('Negative values detected in the CPT')
 #    # match all of the timesteps to the updated policy
 #    for tau in xrange(T0+1, T):
-#            G.basename_partition[bn][tau].CPT = G.basename_partition[bn][T0].CPT
+#            G.bn_part[bn][tau].CPT = G.bn_part[bn][T0].CPT
 #    plt.plot(Rseries)
 #    plt.show()
 ##    print 'J: %s' %J
