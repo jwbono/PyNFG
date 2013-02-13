@@ -30,7 +30,7 @@ def iter_iqMC(G, S, M, delta=0.75):
             for d in Xlist:
                     d.randomCPT(setCPT=True)
                     # apply the policy to each copy of that decision node
-                    for n in G.basename_partition[d.basename][tout::]:
+                    for n in G.bn_part[d.basename][tout::]:
                         n.CPT = d.CPT
             # Find the intelligence of each player's policy in turn
             for p in G.players:
@@ -54,7 +54,7 @@ def iter_iqcalc(player, Game, X, M, d, start=0):
         for d in Ylist:
             d.randomCPT(setCPT=True)
             # apply the altpolicy to each copy of that decision node
-            for n in G1.basename_partition[d.basename][start::]:
+            for n in G1.bn_part[d.basename][start::]:
                 n.CPT = d.CPT
         # sample from tout to the end of the net using the alt profile
         G1.sample_timesteps(start)

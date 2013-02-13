@@ -149,16 +149,15 @@ def reward2(F=np.array([[1,0],[0,1]])):
 rfuncs = {'seeker': reward1, 'hider': reward2}
 G = iterSemiNFG(nodeset, rfuncs)
 
-G.basename_partition['D2'][0].randomCPT(mixed=True)
-for n in G.basename_partition['D2'][1:]:
-    n.CPT = G.basename_partition['D2'][0].CPT
+G.bn_part['D2'][0].randomCPT(mixed=True)
+for n in G.bn_part['D2'][1:]:
+    n.CPT = G.bn_part['D2'][0].CPT
 
-G.basename_partition['D1'][0].uniformCPT()
-G.draw_graph()
-NN = 100
+G.bn_part['D1'][0].uniformCPT()
+#G.draw_graph()
+NN = 60
 #        
-G1, Rseries = ewma_mcrl(G, 'D1', J=20, N=NN, \
-                            alpha=0.7, delta=0.8, eps=0.5)
+G1, Rseries = ewma_mcrl(G, 'D1', J=50, N=NN, alpha=0.7, delta=0.8, eps=0.1)
 
 #G1.sample_timesteps(G1.starttime)
 #
