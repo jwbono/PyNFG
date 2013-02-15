@@ -17,7 +17,7 @@ import numpy as np
 import matplotlib.pylab as plt
 from nodes import get_CPTindex, dict2list_vals
 
-def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
+def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     """ Use EWMA MC RL to approximate the optimal CPT at bn given G
     
     :arg G: The iterated semi-NFG on which to perform the RL
@@ -57,7 +57,8 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
     player = G.bn_part[bn][T0].player
     shape = G.bn_part[bn][T0].CPT.shape
     shape_last = shape[-1]
-    G.bn_part[bn][T0].uniformCPT() #starting with a uniform CPT
+    if uni:
+        G.bn_part[bn][T0].uniformCPT() #starting with a uniform CPT
     visit = set() #dict of the messages and mapairs visited throughout training
     R = 0 #average reward
     A = 0 #normalizing constant for average reward
@@ -166,6 +167,13 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps):
         timepassed[n] = time.time()-go
         if np.any(G.bn_part[bn][T0].CPT<0):
             raise AssertionError('Negative values detected in the CPT')
+#    messages = set()
+#    for mapair in visit:
+#        if mapair[:-1] not in messages:
+#            ind = G.bn_part[bn][T0].CPT[mapair[:-1],:].argmax()
+#            G.bn_part[bn][T0].CPT[mapair[:-1],:] = 0
+#            G.bn_part[bn][T0].CPT[mapair[:-1],ind]=1
+#            messages.add(mapair[:-1])
     # before exiting, match all of the timesteps to the updated policy
     for tau in xrange(T0+1, T):
             G.bn_part[bn][tau].CPT = G.bn_part[bn][T0].CPT

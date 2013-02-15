@@ -14,11 +14,10 @@ GNU Affero General Public License
 from __future__ import division
 
 import numpy as np
-import pynfg
-from pynfg.nodes import *
-from pynfg.seminfg import SemiNFG, iterSemiNFG
+from nodes import *
+from seminfg import SemiNFG, iterSemiNFG
 import scipy.stats.distributions as randvars
-from pynfg.rlsolutions import *
+from rlsolutions import *
 
 # boundaries of the grid
 west = 0

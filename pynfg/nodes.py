@@ -13,11 +13,12 @@ GNU Affero General Public License
 """
 
 from __future__ import division
+
+import inspect
 import numpy as np
 import scipy as sp
 import scipy.stats.distributions as randvars
 from collections import OrderedDict
-import inspect
 
 class ChanceNode(object):
     """Implements a chance node of the semi-NFG formalism created by D. Wolpert
@@ -202,7 +203,7 @@ class ChanceNode(object):
             idx = np.nonzero( cdf >= cutoff )[0][0]
             r = self.space[idx]
         if setvalue:
-            self.set_value(r)
+            self.value = r
             return self.value
         else:
             return r
@@ -309,6 +310,12 @@ class ChanceNode(object):
         """
         if self.continuous:
             self.value = newvalue
+        elif type(newvalue==self.space[0]) is bool:
+            if newvalue in self.space:
+                self.value = newvalue
+            else:
+                errorstring = "the new value is not in "+self.name+"'s space"
+                raise ValueError(errorstring)
         elif any((newvalue==y).all() for y in self.space):
             self.value = newvalue
         else:
@@ -458,9 +465,11 @@ class DeterNode(object):
                     funinput[par] = pareninput[par].value
                 else:
                     funinput[par] = self.params[par].value
+            else:
+                funinput[par] = self.params[par]
         r = self.dfunction(**funinput)
         if setvalue:
-            self.set_value(r)
+            self.value = r
             return self.value
         else:
             return r
@@ -563,6 +572,12 @@ class DeterNode(object):
         """
         if self.continuous:
             self.value = newvalue
+        elif type(newvalue==self.space[0]) is bool:
+            if newvalue in self.space:
+                self.value = newvalue
+            else:
+                errorstring = "the new value is not in "+self.name+"'s space"
+                raise ValueError(errorstring)
         elif any((newvalue==y).all() for y in self.space):
             self.value = newvalue
         else:
@@ -688,6 +703,8 @@ class DecisionNode(object):
         :arg setvalue: (Optional) determines if the random draw replaces
            :py:attr:`nodes.DecisionNode.value`. True by default.
         :type setvalue: bool
+        :arg mode: draws the modal action
+        :type mode: bool
         :returns: an element of :py:attr:`nodes.DecisionNode.space`.
         
         .. note::
@@ -712,7 +729,7 @@ class DecisionNode(object):
 #                ind.append(par.space.index(parentinput[par.name])) 
 #            else:               
 #                ind.append(par.space.index(par.value)) 
-        indo = tuple(ind)
+#        indo = tuple(ind)
         if not mode:
             cdf = np.cumsum(self.CPT[indo])
             cutoff = np.random.rand()
@@ -721,7 +738,7 @@ class DecisionNode(object):
             idx = self.CPT[indo].argmax()
         r = self.space[idx]
         if setvalue:
-            self.set_value(r)
+            self.value = r
             return self.value
         else:
             return r
@@ -779,7 +796,7 @@ class DecisionNode(object):
         else:
             return z
         
-    def perturbCPT(self, noise, mixed=True, sliver=None):
+    def perturbCPT(self, noise, mixed=True, sliver=None, setCPT=True):
         """Create a perturbation of the CPT attribute.
         
         :arg noise: The noise determines the mixture between the current CPT 
@@ -809,7 +826,7 @@ class DecisionNode(object):
 #                other_dims = self.CPT.shape[0:-1]
 #                y = randvars.randint.rvs(0, shape_last, size=other_dims)
 #        else:
-        randCPT = self.randomCPT(mixed=False)
+        randCPT = self.uniformCPT(setCPT=False)
         if not sliver:
             z = self.CPT*(1-noise) + randCPT*noise
         else:
@@ -827,7 +844,10 @@ class DecisionNode(object):
             indo = tuple(ind)
             z = self.CPT
             z[indo] = z[indo]*(1-noise) + randCPT[indo]*noise
-        return z
+        if setCPT:
+            self.CPT = z
+        else:
+            return z
         
     def prob(self, parentinput={}, valueinput=None):
         """Compute the conditional probability of the current or specified value
@@ -913,10 +933,17 @@ class DecisionNode(object):
            divide by zero error.
         
         """
-        if any((newvalue==x).all() for x in self.space):
+        if type(newvalue==self.space[0]) is bool:
+            if newvalue in self.space:
+                self.value = newvalue
+            else:
+                errorstring = "the new value is not in "+self.name+"'s space"
+                raise ValueError(errorstring)
+        elif any((newvalue==y).all() for y in self.space):
             self.value = newvalue
         else:
-            raise ValueError("the new value is not in "+self.name+"'s space")  
+            errorstring = "the new value is not in "+self.name+"'s space"
+            raise ValueError(errorstring)  
         
     def _set_parent_dict(self, parents):
         """Set the parent OrderedDict based on the parents list entered by user
@@ -943,11 +970,11 @@ class DecisionNode(object):
         appropriate size and shape.
         
         """
-        CPT_size = []
+        CPT_shape = []
         for par in self.parents:
-            CPT_size.append(len(self.parents[par].space))
-        CPT_size.append(len(self.space))
-        self.CPT = np.zeros(CPT_size)
+            CPT_shape.append(len(self.parents[par].space))
+        CPT_shape.append(len(self.space))
+        self.CPT = np.zeros(CPT_shape)
 
         
 def _check_parents(parents):
@@ -1006,12 +1033,18 @@ def get_CPTindex(node, values, onlyparents=False):
     ind = []
     i = 0
     for par in node.parents.values():
-        truth = [(x==values[i]).all() for x in par.space]
-        ind.append(truth.index(True))
+        if type(par.space[0]==values[i]) is bool:
+            ind.append(par.space.index(values[i]))
+        else:
+            truth = [(x==values[i]).all() for x in par.space]
+            ind.append(truth.index(True))
         i += 1
     if not onlyparents:
-        truth = [(x==values[-1]).all() for x in node.space]
-        ind.append(truth.index(True))
+        if type(node.space[0]==values[-1]) is bool:
+            ind.append(node.space.index(values[-1]))
+        else:
+            truth = [(x==values[-1]).all() for x in node.space]
+            ind.append(truth.index(True))
     indo = tuple(ind)
     return indo
     
