@@ -36,17 +36,17 @@ goal = [np.array([5,5]), np.array([0,5]), np.array([2.5,4.33-7.07])]
 #Euclidian distance covered per time step by each aircraft
 speed = [.5, .5, .5]
 #defining safe distances from aircraft
-redzone = 1
-orangezone = 2
+redzone = .5
+orangezone = 1
 #penalties for not maintaining safe distance
 redpen = -100
-orangepen = -10
+orangepen = -50
 #defining distance markers from terminal airport
 termzone = 1.5 #getting close
 landzone = .5 #within this dist., aircraft are considered landed
 #reward for getting close/landing
 termrew = 10 
-landrew = 50
+landrew = 75
 #functions used
 def frootfunc(locvec):
     #a dummy function that just spits out the starting loc & vec
@@ -228,7 +228,7 @@ for t in range(G.starttime, G.endtime+1):
 #perturbing DA for the MC RL training
 G.bn_part['DA'][0].perturbCPT(0.2, mixed=True)
 
-G1, Rseries = ewma_mcrl(G, 'DA', 40, 100, .7, 1, 0.1)
+G1, returnfig = ewma_mcrl(G, 'DA', 40, 100, .7, 1, 0.1, pureout=True)
 
-adict = G.sample_timesteps(G.starttime, basenames=['F'])
-plotroutes(adict['F'], [loca, locb, locc], goal)
+adict = G1.sample_timesteps(G1.starttime, basenames=['F'])
+routefig = plotroutes(adict['F'], [loca, locb, locc], goal)

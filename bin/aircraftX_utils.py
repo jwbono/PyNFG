@@ -37,7 +37,9 @@ def plotroutes(routes, origin, goal):
         pylab.plot(x[i],y[i], colors[i]+'--')
         pylab.plot(goal[i][0],goal[i][1], colors[i]+'x') #goal marked with x
         pylab.plot(origin[i][0], origin[i][1], colors[i]+'o') #origin marked with o
+    x = pylab.gcf()
     pylab.show()
+    return x
         
 def org_routes(routes):
     #routes is the output of G.sample_timesteps(0, basename=['F'])-->adict['F']
