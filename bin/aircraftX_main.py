@@ -39,14 +39,14 @@ speed = [.5, .5, .5]
 redzone = .5
 orangezone = 1
 #penalties for not maintaining safe distance
-redpen = -100
-orangepen = -50
+redpen = -200
+orangepen = -75
 #defining distance markers from terminal airport
 termzone = 1.5 #getting close
 landzone = .5 #within this dist., aircraft are considered landed
 #reward for getting close/landing
-termrew = 10 
-landrew = 75
+termrew = 25 
+landrew = 50
 #functions used
 def frootfunc(locvec):
     #a dummy function that just spits out the starting loc & vec
@@ -226,9 +226,10 @@ for t in range(G.starttime, G.endtime+1):
     G.bn_part['DB'][t].CPT = G.bn_part['DB'][0].CPT
     G.bn_part['DC'][t].CPT = G.bn_part['DC'][0].CPT
 #perturbing DA for the MC RL training
-G.bn_part['DA'][0].perturbCPT(0.2, mixed=True)
+G.bn_part['DB'][0].perturbCPT(0.2, mixed=True)
 
-G1, returnfig = ewma_mcrl(G, 'DA', 40, 100, .7, 1, 0.1, pureout=True)
+G1, returnfig = ewma_mcrl(G, 'DB', 40, 100, .7, 1, 0.1, pureout=False)
 
 adict = G1.sample_timesteps(G1.starttime, basenames=['F'])
 routefig = plotroutes(adict['F'], [loca, locb, locc], goal)
+find_collisions(G1, redpen, orangepen, verbose=True)

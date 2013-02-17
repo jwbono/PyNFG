@@ -50,5 +50,19 @@ def org_routes(routes):
         x[i] = [routes[t][0][i][0] for t in range(len(routes))]
         y[i] = [routes[t][0][i][1] for t in range(len(routes))]
     return x, y
-            
+    
+def find_collisions(G, collpen, closepen, verbose=False):
+    collisions = {}
+    closecalls = {}
+    for p in G.players:
+        collisions[p] = []
+        closecalls[p] = []
+        for t in range(G.endtime):
+            if G.reward(p, t)<=collpen:
+                collisions[p].append(t)
+            elif G.reward(p, t)<=closepen:
+                closecalls[p].append(t)
+        print p, 'had collisions at times: ', collisions[p]
+        print p, 'had closecalls at times: ', closecalls[p]
+    return collisions, closecalls
         

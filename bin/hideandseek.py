@@ -21,8 +21,8 @@ from rlsolutions import *
 
 # boundaries of the grid
 west = 0
-east = 1
-north = 1
+east = 2
+north = 2
 south = 0
 
 # moves of the players
@@ -154,9 +154,9 @@ for n in G.bn_part['D2'][1:]:
 
 G.bn_part['D1'][0].uniformCPT()
 #G.draw_graph()
-NN = 60
+NN = 100
 #        
-#G1, Rseries = ewma_mcrl(G, 'D1', J=50, N=NN, alpha=0.7, delta=0.8, eps=0.1)
+G1, returnfig = ewma_mcrl(G, 'D1', J=20, N=NN, alpha=0.7, delta=0.8, eps=0.1)
 
 #G1.sample_timesteps(G1.starttime)
 #
