@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Implements PGT solutions for SemiNFG and iterSemiNFG objects
+Implements PGT intelligence for iterSemiNFG objects
 
 Part of: PyNFG - a Python package for modeling and solving Network Form Games
 
