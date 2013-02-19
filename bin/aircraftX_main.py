@@ -16,8 +16,9 @@ from math import acos
 from classes import *
 from aircraftX_utils import *
 from rlsolutions import *
+from pgtsolutions.intelligence import *
 
-#parameters
+# PARAMETERS
 #number of time steps
 T = 18
 #action spaces for aircraft
@@ -46,7 +47,8 @@ landzone = .5 #within this dist., aircraft are considered landed
 #reward for getting close/landing
 termrew = 25 
 landrew = 50
-#functions used
+
+# FUNCTIONS USED
 def frootfunc(locvec):
     #a dummy function that just spits out the starting loc & vec
     return locvec
@@ -118,7 +120,7 @@ def updateloc(acta,actb,actc, locvec=[[loca, locb, locc],[veca, vecb, vecc]]):
             newvec.append((newloc[p]-loc[p])/norm(newloc[p]-loc[p]))
     return [newloc, newvec]
     
-# The Nodes
+# THE NODES
 paramsf = {'locvec': [[loca, locb, locc], [veca, vecb, vecc]]}
 continuousf = True
 Fr = DeterNode('Froot0', frootfunc, paramsf, continuousf, basename='Froot', \
@@ -149,7 +151,8 @@ F = DeterNode('F0', updateloc, paramsf, continuousf, basename='F', \
                 time=0)
 #collecting nodes in a set
 nodes = set([Fr,FA,FB,FC,DA,DB,DC,F])
-#Building up the net
+
+# BUILDING THE NET
 for t in range(1,T):
     
     paramsfa = {'locvec': F, 'p': 0}
@@ -172,7 +175,8 @@ for t in range(1,T):
     F = DeterNode('F%s' %t, updateloc, paramsf, continuousf, basename='F', \
                     time=t)
     nodes.update([FA,FB,FC,DA,DB,DC,F])#updating the node set
-#rewards
+
+# REWARD FUNCTIONS
 def distrew(goaldist, oppdist):
     if oppdist>orangezone or goaldist<landzone: #no penalty assessed in landzone
         pen = 0
@@ -216,19 +220,21 @@ r_funcs = {'A': rewardA, 'B': rewardB, 'C': rewardC}
 #initializing the iterSemiNFG    
 G = iterSemiNFG(nodes, r_funcs)
 #G.draw_graph()
-#setting A, B and C to level 0.
-G.bn_part['DA'][0].CPT = calc_level0(G.bn_part['DA'][0])
-G.bn_part['DB'][0].CPT = calc_level0(G.bn_part['DB'][0])
-G.bn_part['DC'][0].CPT = calc_level0(G.bn_part['DC'][0])
-for t in range(G.starttime, G.endtime+1):
-    G.bn_part['DA'][t].CPT = G.bn_part['DA'][0].CPT
-    G.bn_part['DB'][t].CPT = G.bn_part['DB'][0].CPT
-    G.bn_part['DC'][t].CPT = G.bn_part['DC'][0].CPT
-#perturbing DA for the MC RL training
-G.bn_part['DB'][0].perturbCPT(0.2, mixed=True)
+##setting A, B and C to level 0.
+#G.bn_part['DA'][0].CPT = calc_level0(G.bn_part['DA'][0])
+#G.bn_part['DB'][0].CPT = calc_level0(G.bn_part['DB'][0])
+#G.bn_part['DC'][0].CPT = calc_level0(G.bn_part['DC'][0])
+#for t in range(G.starttime, G.endtime+1):
+#    G.bn_part['DA'][t].CPT = G.bn_part['DA'][0].CPT
+#    G.bn_part['DB'][t].CPT = G.bn_part['DB'][0].CPT
+#    G.bn_part['DC'][t].CPT = G.bn_part['DC'][0].CPT
+##perturbing DA for the MC RL training
+#G.bn_part['DB'][0].perturbCPT(0.2, mixed=True)
+#
+#G1, returnfig = ewma_mcrl(G, 'DB', 40, 100, .7, 1, 0.1, pureout=False)
+#
+#adict = G1.sample_timesteps(G1.starttime, basenames=['F'])
+#routefig = plotroutes(adict['F'], [loca, locb, locc], goal)
+#find_collisions(G1, redpen, orangepen, verbose=True)
 
-G1, returnfig = ewma_mcrl(G, 'DB', 40, 100, .7, 1, 0.1, pureout=False)
-
-adict = G1.sample_timesteps(G1.starttime, basenames=['F'])
-routefig = plotroutes(adict['F'], [loca, locb, locc], goal)
-find_collisions(G1, redpen, orangepen, verbose=True)
+intel, funcout = iq_MC_iter(G, 10, 1, 5, 1)

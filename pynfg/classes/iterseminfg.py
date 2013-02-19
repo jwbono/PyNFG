@@ -203,7 +203,7 @@ class iterSemiNFG(SemiNFG):
         for bn in self.bn_part.keys():
             self.bn_part[bn].sort(key=lambda nod: nod.time)
 
-    def reward(self, player, time, nodeinput={}):
+    def reward(self, player, t, nodeinput={}):
         """Evaluate the reward of the specified player in the specified time.
 
         :arg player: The name of a player with a reward function specified.
@@ -223,16 +223,27 @@ class iterSemiNFG(SemiNFG):
             if nam in nodeinput:
                 kw[nam] = nodeinput[nam]
             else:
-                kw[nam] = self.bn_part[nam][time].value
+                kw[nam] = self.bn_part[nam][t].value
         r = self.r_functions[player](**kw)
         return r
     
     def npv_reward(self, player, start, delta, nodeinput={}):
+        """Return the npv of rewards from start using delta discount factor
+        
+        :arg player: the name of the player to evaluate
+        :type player: str
+        :arg start: the starting time step
+        :type start: int
+        :arg delta: the discount factor for the npv calculation
+        :type delta: float
+        :arg nodeinput: Optional dict of node name, node values for use in 
+           calculating the rewards
+        """
         count = 0
         npvreward = 0
-        for tin in range(start, self.endtime+1):
+        for t in range(start, self.endtime+1):
             count += 1
-            npvreward += (delta**count)*self.reward(player, tin)
+            npvreward += (delta**count)*self.reward(player, t, nodeinput)
         return npvreward
             
     def sample_timesteps(self, start, stop=None, basenames=None):

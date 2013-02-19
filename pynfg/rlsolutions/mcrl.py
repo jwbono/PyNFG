@@ -35,6 +35,12 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     :type delta: float
     :arg eps: The maximum step-size for policy improvements
     :type eps: float
+    :arg uni: if True, training is initialized with a uniform policy. Default 
+       False to allow "seeding" with different policies, e.g. level k-1
+    :type uni: bool
+    :arg pureout: if True, the policy is turned into a pure policy at the end 
+       of training by assigning argmax actions prob 1. Default is False
+    :type pureout: bool
     
     Example::
         
@@ -82,37 +88,30 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                                                         G.bn_part[bn][t].value)
                 # CPT index of messages and actions
                 mapair = G.bn_part[bn][t].get_CPTindex(malist)
-                # updating scalar dynamics
-                a = A
+                a = A #updating scalar dynamics
                 A = 1+a
                 r = R
                 R = (1/A)*(a*r+rew)
                 xm = set() #used below to keep track of updated messages
                 for values in visitj:
-                    # past values
-                    b = B[values]
+                    b = B[values] #past values
                     d = D[values]
                     q = Q[values]
-                    # update equations double letters are time t
-                    bb = (b+1)
+                    bb = (b+1) #update equations double letters are time t
                     dd = d+1
-                    qq = (1/dd)*(d*q+(delta**(bb-1))*(rew))    
-                    # update dictionaries
-                    B[values] = bb
+                    qq = (1/dd)*(d*q+(delta**(bb-1))*(rew))
+                    B[values] = bb #update dictionaries
                     D[values] = dd
                     Q[values] = qq
                     message = values[:-1] #V indexed by message only
                     if message not in xm: #updating message only once
-                        # past values
-                        b = B[message]
+                        b = B[message] #past values
                         d = D[message]
                         v = V[message]
-                        # update equations double letters are time t
-                        bb = (b+1)
+                        bb = (b+1) #update equations double letters are time t
                         dd = d+1
                         vv = (1/dd)*(d*v+(delta**(bb-1))*(rew))    
-                        # update dictionaries
-                        B[message] = bb
+                        B[message] = bb #update dictionaries
                         D[message] = dd
                         V[message] = vv
                         xm.add(message) #so that message isn't updated again
@@ -144,12 +143,10 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                                         V[message]+(rew))
                     if messtrue:
                         B[message] = 1
-                    # mapair gets added to visit sets the first time it appears
-                    visit.add(mapair)
+                    visit.add(mapair)#mapair added to visit sets the first time
                     visitn.add(mapair)
                     visitj.add(mapair)
-                    # only visited actions are updated 
-                    indicaten[mapair] = 1
+                    indicaten[mapair] = 1 #only visited actions are updated 
         go = time.time()
         # update CPT with shift towards Qtable argmax actions.
         shift = Q-V[...,np.newaxis]
@@ -166,7 +163,7 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         timepassed[n] = time.time()-go
         if np.any(G.bn_part[bn][T0].CPT<0):
             raise AssertionError('Negative values detected in the CPT')
-    if pureout:
+    if pureout: #if True, output is a pure policy
         messages = set()
         for mapair in visit:
             if mapair[:-1] not in messages:
@@ -174,11 +171,11 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                 G.bn_part[bn][T0].CPT[mapair[:-1],:] = 0
                 G.bn_part[bn][T0].CPT[mapair[:-1],ind]=1
                 messages.add(mapair[:-1])
-#     before exiting, match all of the timesteps to the updated policy
+    # before exiting, match all of the timesteps to the final updated policy
     for tau in xrange(T0+1, T):
             G.bn_part[bn][tau].CPT = G.bn_part[bn][T0].CPT
-    plt.plot(Rseries)
-    fig = plt.gcf()
+    plt.plot(Rseries) #plotting Rseries to gauge convergence
+    fig = plt.gcf() 
     plt.show()
-    print np.mean(timepassed)
+    print 'average time per update: ',np.mean(timepassed)
     return G, fig
