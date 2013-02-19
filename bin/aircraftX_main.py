@@ -13,8 +13,7 @@ from __future__ import division
 
 from numpy.linalg import norm
 from math import acos
-from nodes import *
-from seminfg import SemiNFG, iterSemiNFG
+from classes import *
 from aircraftX_utils import *
 from rlsolutions import *
 
@@ -39,8 +38,8 @@ speed = [.5, .5, .5]
 redzone = .5
 orangezone = 1
 #penalties for not maintaining safe distance
-redpen = -200
-orangepen = -75
+redpen = -500
+orangepen = -25
 #defining distance markers from terminal airport
 termzone = 1.5 #getting close
 landzone = .5 #within this dist., aircraft are considered landed

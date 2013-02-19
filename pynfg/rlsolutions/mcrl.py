@@ -15,7 +15,6 @@ from __future__ import division
 import time
 import numpy as np
 import matplotlib.pylab as plt
-from nodes import get_CPTindex, dict2list_vals
 
 def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     """ Use EWMA MC RL to approximate the optimal CPT at bn given G
@@ -79,10 +78,10 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                 G.bn_part[bn][t].CPT = G.bn_part[bn][T0].CPT
                 G.sample_timesteps(t, t) #sampling the timestep
                 rew = G.reward(player, t) #getting the reward
-                malist = dict2list_vals(G.bn_part[bn][t].parents, \
-                                valueinput=G.bn_part[bn][t].value)
+                malist = G.bn_part[bn][t].dict2list_vals(valueinput= \
+                                                        G.bn_part[bn][t].value)
                 # CPT index of messages and actions
-                mapair = get_CPTindex(G.bn_part[bn][t], malist)
+                mapair = G.bn_part[bn][t].get_CPTindex(malist)
                 # updating scalar dynamics
                 a = A
                 A = 1+a

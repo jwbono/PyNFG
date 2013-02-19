@@ -10,7 +10,7 @@ GNU Affero General Public License
 
 """
 import numpy as np
-from nodes import get_CPTindex
+from classes import *
 from matplotlib import pylab
 
 def calc_level0(DN):
@@ -21,7 +21,7 @@ def calc_level0(DN):
         spacefa = [[w,x,y,z] for w in range(5) for x in [1,2,3] \
                                         for y in range(i,i+1) for z in [1,2]]
         for x in spacefa:
-            ind = get_CPTindex(DN, [x], onlyparents=True)
+            ind = DN.get_CPTindex([x], onlyparents=True)
             indo = list(ind)
             indo.append(head[x[2]])
             ind = tuple(indo)
