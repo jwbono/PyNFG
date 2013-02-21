@@ -22,7 +22,7 @@ from node import *
 class ChanceNode(Node):
     """Implements a chance node of the semi-NFG formalism created by D. Wolpert
 
-    The :class:`nodes.ChanceNode` can be initialized with either a 
+    The :class:`classes.ChanceNode` can be initialized with either a 
     conditional probability distribution (CPT) or a distribution object 
     from :py:mod:`scipy.stats.distributions` (discrete and continuous types 
     are both supported).
@@ -61,7 +61,7 @@ class ChanceNode(Node):
     
     .. note::
        
-       For a :class:`nodes.ChanceNode` based on a CPT, the parents 
+       For a :class:`classes.ChanceNode` based on a CPT, the parents 
        must be discrete valued nodes. The dimensions of the CPT must 
        correspond to the order of the parents. The order of the CPT in each 
        dimension must correspond to the order of the parent space for that 
@@ -72,8 +72,8 @@ class ChanceNode(Node):
     * belongs to the *nature* player
     * has a space of possible values
     * has a conditional probability distribution from the values of its 
-      parents - given by :py:meth:`nodes.DecisionNode.prob()` or
-      :py:meth:`nodes.ChanceNode.prob()`.
+      parents - given by :py:meth:`classes.DecisionNode.prob()` or
+      :py:meth:`classes.ChanceNode.prob()`.
     
     Example::
         
@@ -102,13 +102,13 @@ class ChanceNode(Node):
         C2 = ChanceNode('C2', distip=distip1, description='CN hypergeom M=C1, n=3, N=3')
                         
     Upon initialization, the following private method is called: 
-    :py:meth:`nodes.ChanceNode._set_parent_dict()`
+    :py:meth:`classes.ChanceNode._set_parent_dict()`
     
     Some useful methods are:
        
-    * :py:meth:`nodes.ChanceNode.draw_value()` 
-    * :py:meth:`nodes.ChanceNode.prob()`
-    * :py:meth:`nodes.ChanceNode.logprob()` 
+    * :py:meth:`classes.ChanceNode.draw_value()` 
+    * :py:meth:`classes.ChanceNode.prob()`
+    * :py:meth:`classes.ChanceNode.logprob()` 
         
     """
     def __init__(self, name, CPTip=None, distip=None, \
@@ -151,7 +151,7 @@ class ChanceNode(Node):
         return self.name
         
     def draw_value(self, parentinput={}, setvalue=True):
-        """Draw a value from the :class:`nodes.ChanceNode` object
+        """Draw a value from the :class:`classes.ChanceNode` object
         
         :arg parentinput: Optional. Specify values of the parents at which to 
            draw values from the conditional probability distribution. Keys are 
@@ -161,9 +161,9 @@ class ChanceNode(Node):
            parents are used. 
         :type parentinput: dict
         :arg setvalue: (Optional) determines if the random draw replaces
-           :py:attr:`nodes.ChanceNode.value`. True by default.
+           :py:attr:`classes.ChanceNode.value`. True by default.
         :type setvalue: bool
-        :returns: an element of :py:attr:`nodes.ChanceNode.space` if the 
+        :returns: an element of :py:attr:`classes.ChanceNode.space` if the 
            ChanceNode object is discrete. For continuous ChanceNode objects, it 
            returns a value at which the pdf is nonzero. 
         
@@ -276,7 +276,7 @@ class ChanceNode(Node):
         
         :arg newvalue: a legitimate value of the ChanceNode object. If the 
            ChanceNode object is discrete, then newvalue must be in 
-           :py:attr:`nodes.ChanceNode.space`. If the ChanceNode object is 
+           :py:attr:`classes.ChanceNode.space`. If the ChanceNode object is 
            continuous, no corrections are made for values at which the pdf is 0.
         
         .. warning::

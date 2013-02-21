@@ -21,7 +21,7 @@ from node import *
 class DecisionNode(Node):
     """Implements a decision node of the semi-NFG formalism by D. Wolpert
     
-    The :class:`nodes.DecisionNode` can be initialized with either a 
+    The :class:`classes.DecisionNode` can be initialized with either a 
     conditional probability distribution (CPT) or a distribution object 
     from :py:mod:`scipy.stats.distributions` (discrete and continuous types 
     are both supported).
@@ -36,8 +36,8 @@ class DecisionNode(Node):
        order determines the order of the CPT when generated.
     :type space: list
     :arg parents: the list of the parents of the decision node. All entries 
-       must be a :class:`nodes.DecisionNode` or a discrete 
-       :class:`nodes.ChanceNode` or :class:`nodes.DeterNode`. The order of the 
+       must be a :class:`classes.DecisionNode` or a discrete 
+       :class:`classes.ChanceNode` or :class:`nodes.DeterNode`. The order of the 
        parents in the list determinesthe rder of the CPT when generated.
     :type parents: list
     :arg description: a description of the decision node, usually including 
@@ -54,15 +54,15 @@ class DecisionNode(Node):
        * belongs to a human player
        * has a space of possible values.
        * the conditional probability distribution from the values of its 
-          parents - given by :py:meth:`nodes.DecisionNode.prob()` or
-          :py:meth:`nodes.ChanceNode.prob()`, is not specified in the game. That
-          distribution is given by the solution concept applied to the semi-NFG. 
-          This lack of CPDs at decision nodes is the reason the semi-NFG is 
-          said to be based on a semi-Bayes net.
+          parents - given by :py:meth:`classes.DecisionNode.prob()` or
+          :py:meth:`classes.ChanceNode.prob()`, is not specified in the game. 
+          That distribution is given by the solution concept applied to the 
+          semi-NFG. This lack of CPDs at decision nodes is the reason the 
+          semi-NFG is said to be based on a semi-Bayes net.
 
     .. note::
            
-       For a :class:`nodes.DecisionNode`, the parents nodes must be 
+       For a :class:`classes.DecisionNode`, the parents nodes must be 
        discrete.
     
     Example::
@@ -78,15 +78,15 @@ class DecisionNode(Node):
         D1 = DecisionNode('D1', '1', [-1, 0, 1], parents=[C1], description='This is a child node of C1')
                             
     Upon initialization, the following private method is called: 
-    :py:meth:`nodes.DecisionNode._set_parent_dict()`
+    :py:meth:`classes.DecisionNode._set_parent_dict()`
     
     Some useful methods are:
        
-    * :py:meth:`nodes.DecisionNode.draw_value()` 
-    * :py:meth:`nodes.DecisionNode.prob()`
-    * :py:meth:`nodes.DecisionNode.logprob()`
-    * :py:meth:`nodes.DecisionNode.randomCPT()`
-    * :py:meth:`nodes.DecisionNode.perturbCPT()`
+    * :py:meth:`classes.DecisionNode.draw_value()` 
+    * :py:meth:`classes.DecisionNode.prob()`
+    * :py:meth:`classes.DecisionNode.logprob()`
+    * :py:meth:`classes.DecisionNode.randomCPT()`
+    * :py:meth:`classes.DecisionNode.perturbCPT()`
         
     """
     def __init__(self, name, player, space, parents=[], \
@@ -129,7 +129,7 @@ class DecisionNode(Node):
         self.CPT = np.zeros(CPT_shape)
         
     def draw_value(self, parentinput={}, setvalue=True, mode=False):
-        """Draw a value from the :class:`nodes.DecisionNode` object
+        """Draw a value from the :class:`classes.DecisionNode` object
         
         :arg parentinput: Optional. Specify values of the parents at which to 
            draw values using the CPT. Keys are parent names. Values are parent 
@@ -138,11 +138,11 @@ class DecisionNode(Node):
            specified, then the current values of the parents are used. 
         :type parentinput: dict
         :arg setvalue: (Optional) determines if the random draw replaces
-           :py:attr:`nodes.DecisionNode.value`. True by default.
+           :py:attr:`classes.DecisionNode.value`. True by default.
         :type setvalue: bool
         :arg mode: draws the modal action
         :type mode: bool
-        :returns: an element of :py:attr:`nodes.DecisionNode.space`.
+        :returns: an element of :py:attr:`classes.DecisionNode.space`.
         
         .. note::
         
@@ -152,7 +152,7 @@ class DecisionNode(Node):
         .. warning::
             
            The CPT is an np.zero array upon initialization. Therefore, one must 
-           set the CPT wih :py:meth:`nodes.DecisionNode.randomCPT()` or 
+           set the CPT wih :py:meth:`classes.DecisionNode.randomCPT()` or 
            manually before calling this method.
         
         """
@@ -175,16 +175,16 @@ class DecisionNode(Node):
             return r
         
     def randomCPT(self, mixed=False, setCPT=True):
-        """Create a random CPT for the :class:`nodes.DecisionNode` object
+        """Create a random CPT for the :class:`classes.DecisionNode` object
         
         :arg mixed: Optional. Determines whether a mixed CPT, i.e. a CPT that 
            assigns nonzero weight to every value in 
-           :py:attr:`nodes.DecisionNode.space`, or a pure CPT, i.e. a CPT that 
+           :py:attr:`classes.DecisionNode.space`, or a pure CPT, i.e. a CPT that 
            assigns probability 1 to a single value in 
-           :py:attr:`nodes.DecisionNode.space` for each of the parent values.
+           :py:attr:`classes.DecisionNode.space` for each of the parent values.
         :type mixed: bool
         :arg setCPT: Optional. Default is True. Determines whether the 
-           :py:attr:`nodes.DecisionNode.CPT` attribut is set by the function
+           :py:attr:`classes.DecisionNode.CPT` attribut is set by the function
         :type setCPT: bool
         :returns: a mixed or pure CPT.
         
@@ -212,10 +212,10 @@ class DecisionNode(Node):
             return z
             
     def uniformCPT(self, setCPT=True):
-        """Create a uniform CPT for the :class:`nodes.DecisionNode` object
+        """Create a uniform CPT for the :class:`classes.DecisionNode` object
         
         :arg setCPT: Optional. Default is True. Determines whether the 
-           :py:attr:`nodes.DecisionNode.CPT` attribute is set by the function
+           :py:attr:`classes.DecisionNode.CPT` attribute is set by the function
         :type setCPT: bool
         :returns: a uniform mixed CPT.
         
@@ -305,7 +305,7 @@ class DecisionNode(Node):
         .. warning::
             
            The CPT is an np.zero array upon initialization. Therefore, one must 
-           set the CPT wih :py:meth:`nodes.DecisionNode.randomCPT()` or 
+           set the CPT wih :py:meth:`classes.DecisionNode.randomCPT()` or 
            manually before calling this method.
         
         """        
@@ -343,7 +343,7 @@ class DecisionNode(Node):
         .. warning::
             
            The CPT is an np.zero array upon initialization. Therefore, one must 
-           set the CPT wih :py:meth:`nodes.DecisionNode.randomCPT()` or 
+           set the CPT wih :py:meth:`classes.DecisionNode.randomCPT()` or 
            manually before calling this method.
         
         """        
@@ -354,7 +354,7 @@ class DecisionNode(Node):
         """Set the current value of the DecisionNode object
         
         :arg newvalue: a legitimate value of the DecisionNode object, i.e. the 
-           value must be in :py:attr:`nodes.ChanceNode.space`.
+           value must be in :py:attr:`classes.ChanceNode.space`.
         
         .. warning::
             

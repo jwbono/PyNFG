@@ -11,6 +11,32 @@ GNU Affero General Public License
 from collections import OrderedDict
 
 class Node(object):
+    """Implements a generic node of the semi-NFG formalism created by D. Wolpert
+    
+    .. note::
+        
+       This is the superclass. Nodes are generally instantiated in one of the 
+       subclasses, ChanceNode, DecisionNode or DeterNode.
+    
+    :arg name: the name of the Node, usually descriptive, e.g. C5 for
+       the fifth chance node (C for chance), or C21 for the second chance node 
+       in the first time step, etc.
+    :type name: str
+    :arg parents: a list of the Node's parents
+    :type parents: list
+    :arg continuous: True if Node takes on continuous values. False if
+       discrete.
+    :type continuous: bool 
+    
+    Upon initialization, the following private method is called: 
+    :py:meth:`nodes.DeterNode._set_parent_dict()`
+    
+    Some useful methods are:
+       
+    * :py:meth:`classes.Nodes.dict2list_vals()` 
+    * :py:meth:`classes.Nodes.get_CPTindex()`
+        
+    """
     def __init__(self, name, parents, continuous):
         self.name = name
         self.parents = self._set_parent_dict(parents)

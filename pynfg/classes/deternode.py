@@ -49,8 +49,8 @@ class DeterNode(Node):
         
        * belongs to the *nature* player
        * has deterministic function from the values of its parents - given by 
-          :py:meth:`nodes.DecisionNode.prob()` or
-          :py:meth:`nodes.ChanceNode.prob()`.
+          :py:meth:`classes.DecisionNode.prob()` or
+          :py:meth:`classes.ChanceNode.prob()`.
        
     .. note::
         
@@ -79,13 +79,13 @@ class DeterNode(Node):
         F2 = DeterNode('F2', func2, params2, continuous2, space=space2, description='a disc. DeterNode child of C1')
     
     Upon initialization, the following private method is called: 
-    :py:meth:`nodes.DeterNode._set_parent_dict()`
+    :py:meth:`classes.DeterNode._set_parent_dict()`
     
     Some useful methods are:
        
-    * :py:meth:`nodes.DeterNode.draw_value()` 
-    * :py:meth:`nodes.DeterNode.prob()`
-    * :py:meth:`nodes.DeterNode.logprob()`
+    * :py:meth:`classes.DeterNode.draw_value()` 
+    * :py:meth:`classes.DeterNode.prob()`
+    * :py:meth:`classes.DeterNode.logprob()`
         
     """
     def __init__(self, name, func, params, continuous, space=[], \
@@ -112,7 +112,7 @@ class DeterNode(Node):
         return self.name
     
     def draw_value(self, parentinput={}, setvalue=True):
-        """Draw a value from the :class:`nodes.DeterNode` object
+        """Draw a value from the :class:`classes.DeterNode` object
         
         This function computes the value of the deterministic node given the
         current values of the parents or with the values provided in pareninput
@@ -125,7 +125,7 @@ class DeterNode(Node):
            parents are used. 
         :type parentinput: dict
         :arg setvalue: (Optional) determines if the random draw replaces
-           :py:attr:`nodes.DeterNode.value`. True by default.
+           :py:attr:`classes.DeterNode.value`. True by default.
         :type setvalue: bool
         :returns: the value of the deterministic node that corresponds to the 
            parent values.
@@ -238,7 +238,7 @@ class DeterNode(Node):
         
         :arg newvalue: a legitimate value of the DeterNode object. If the 
            DeterNode object is discrete, then newvalue must be in 
-           :py:attr:`nodes.DeterNode.space`. If the DeterNode object is 
+           :py:attr:`classes.DeterNode.space`. If the DeterNode object is 
            continuous, no corrections are made for unattainable values.
         
         .. warning::
