@@ -11,16 +11,17 @@ GNU Affero General Public License
 """
 from __future__ import division
 
+import time
 from numpy.linalg import norm
 from math import acos
 from classes import *
 from aircraftX_utils import *
 from rlsolutions import *
-from pgtsolutions.intelligence import *
+from pgtsolutions.intelligence import iq_MC_iter
 
 # PARAMETERS
 #number of time steps
-T = 18
+T = 10
 #action spaces for aircraft
 actions = [pi/2, pi/4, 0, -pi/4, -pi/2]
 #starting locations
@@ -236,5 +237,6 @@ G = iterSemiNFG(nodes, r_funcs)
 #adict = G1.sample_timesteps(G1.starttime, basenames=['F'])
 #routefig = plotroutes(adict['F'], [loca, locb, locc], goal)
 #find_collisions(G1, redpen, orangepen, verbose=True)
-
-intel, funcout = iq_MC_iter(G, 10, 1, 5, 1)
+go = time.time()
+intel, funcout = iq_MC_iter(G, 10, 1, 10, 1)
+print time.time()-go

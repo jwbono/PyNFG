@@ -147,7 +147,6 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                     visitn.add(mapair)
                     visitj.add(mapair)
                     indicaten[mapair] = 1 #only visited actions are updated 
-        go = time.time()
         # update CPT with shift towards Qtable argmax actions.
         shift = Q-V[...,np.newaxis]
         idx = np.nonzero(shift) # indices of nonzero shifts (avoid divide by 0)
@@ -160,7 +159,6 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         # normalize after the shift
         CPTsum = G.bn_part[bn][T0].CPT.sum(axis=-1)
         G.bn_part[bn][T0].CPT /= CPTsum[...,np.newaxis]
-        timepassed[n] = time.time()-go
         if np.any(G.bn_part[bn][T0].CPT<0):
             raise AssertionError('Negative values detected in the CPT')
     if pureout: #if True, output is a pure policy
@@ -177,5 +175,4 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     plt.plot(Rseries) #plotting Rseries to gauge convergence
     fig = plt.gcf() 
     plt.show()
-    print 'average time per update: ',np.mean(timepassed)
     return G, fig

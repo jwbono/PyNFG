@@ -99,12 +99,12 @@ def iq_MH_iter(G, S, noise, dens, X, M, delta, integrand=None):
                             mixed=False, setCPT=False) #drawing current policy
                 for dd in GG.bn_part[bn][t-T0::]: 
                     dd.CPT = GG.bn_part[bn][t-T0].CPT #apply policy to future 
-            for bn in Xlist: #find the iq of each DN's policy in turn
-                propiq[bn] = iq_calc_iter(bn, GG, X, M, delta, t)
+            for bn in Xlist: 
+                propiq[bn] = iq_calc_iter(bn, GG, X, M, delta, t) #getting iq
                 # The MH decision
-                verdict = mh_decision(dens(propiq[bn]), dens(iq[s-1][bn][t-T0])
-                if verdict=='new': #accepting new CPT
-                    iq[bn][t-T0]=propiq[bn]
+                verdict = mh_decision(dens(propiq[bn]), dens(iq[s-1][bn][t-T0]))
+                if verdict: #accepting new CPT
+                    iq[bn][t-T0] = propiq[bn]
                     G.bn_part[bn][t-T0].CPT = GG.bn_part[bn][t-T0].CPT
         if integrand is not None:
             funcout[s] = integrand(G) #eval integrand G(s), assign to funcout
@@ -129,6 +129,7 @@ def iq_calc_iter(bn, G, X, M, delta, start):
     
     """
     npvreward = 0
+    p = G.bn_part[bn][start].player
     for x in range(1,X):
         G.sample_timesteps(start) #sample from start to the end of the net
         #npv reward for the player's real policy
@@ -139,8 +140,8 @@ def iq_calc_iter(bn, G, X, M, delta, start):
     for m in range(0,M): #Sample M alt policies for the player
 #        for d in Ylist: 
         G1.bn_part[bn][start].randomCPT(setCPT=True) #rand altpolicy for each DN in time start
-            for n in G1.bn_part[bn][start::]:
-                n.CPT = G1.bn_part[bn][start].CPT #apply altpolicy to future copies of current DN
+        for n in G1.bn_part[bn][start::]:
+            n.CPT = G1.bn_part[bn][start].CPT #apply altpolicy to future copies of current DN
         G1.sample_timesteps(start) #sample altpolicy prof. to end of net
         altnpv[m] = G1.npv_reward(p, start, delta) #get alt npvreward
     worse = [j for j in altnpv if j<=npvreward] #alts worse than G
@@ -157,8 +158,8 @@ def mh_decision(p,q):
     """
     a = min([p/q, 1])
     u = np.random.rand()
-    if a > u
-        verdict = 'new'
+    if a > u:
+        verdict = True
     else:
-        verdict = 'old'
+        verdict = False
     return verdict
