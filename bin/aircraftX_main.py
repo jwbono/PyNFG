@@ -237,6 +237,6 @@ G = iterSemiNFG(nodes, r_funcs)
 #adict = G1.sample_timesteps(G1.starttime, basenames=['F'])
 #routefig = plotroutes(adict['F'], [loca, locb, locc], goal)
 #find_collisions(G1, redpen, orangepen, verbose=True)
-go = time.time()
-intel, funcout = iq_MC_iter(G, 10, 1, 10, 1)
-print time.time()-go
+#go = time.time()
+#intel, funcout = iq_MH_iter(G, 10, 1, 10, 1)
+#print time.time()-go

@@ -1,11 +1,12 @@
 from distutils.core import setup
+from setuptools import find_packages
 
 setup(
     name='PyNFG',
     version='0.1.0',
     author='James Bono',
     author_email='jwbono@gmail.com',
-    packages=['pynfg', 'pynfg.test'],
+    packages= find_packages(),
     scripts=['bin/hideandseek.py'],
     url='http://pypi.python.org/pypi/PyNFG/',
     license='LICENSE.txt',
@@ -16,6 +17,6 @@ setup(
         "networkx",
         "scipy",
         "numpy",
-        
+
     ],
 )

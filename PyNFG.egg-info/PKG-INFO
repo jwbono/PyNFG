@@ -1,0 +1,13 @@
+Metadata-Version: 1.0
+Name: PyNFG
+Version: 0.1.0
+Summary: A Python package for implementing and solving Network form games.
+Home-page: http://pypi.python.org/pypi/PyNFG/
+Author: James Bono
+Author-email: jwbono@gmail.com
+License: LICENSE.txt
+Description: PyNFG
+        =====
+        
+        A Python package for modeling and solving Network Form Games
+Platform: UNKNOWN
