@@ -246,19 +246,15 @@ class DecisionNode(Node):
            are used for the remaining parents.
         :type sliver: dict
         
-        .. warning::
-            
-           Functionality for pure perturbations is not yet implemented!
-        
         """
         if not mixed: #pure CPT
             if not sliver: #perturbing the whole CPT
-                shape_last = self.CPT.shape[-1]
-                altCPT = self.randomCPT(mixed=False, setCPT=False)
-                flat = self.CPT.flatten()
+                shape_last = self.CPT.shape[-1] #number of actions
+                altCPT = self.randomCPT(mixed=False, setCPT=False) #alt pure CPT
+                flat = self.CPT.flatten() #flattening both along last axis
                 flatalt = altCPT.flatten()
-                for j in xrange(0,len(flat),shape_last):
-                    if np.random.rand() < noise:
+                for j in xrange(0,len(flat),shape_last): #step through par values 
+                    if np.random.rand() < noise: #prob of using altCPT
                         flat[j:j+shape_last] = flatalt[j:j+shape_last]
                 z = flat.reshape(self.CPT.shape)
         else: #mixed CPT

@@ -57,7 +57,8 @@ def iq_MC_iter(G, S, X, M, delta, integrand=None, mix=False):
             funcout[s] = integrand(G) #eval integrand G(s), assign to funcout
     return intel, funcout
     
-def iq_MH_iter(G, S, noise, dens, X, M, delta, integrand=None, mix=False):
+def iq_MH_iter(G, S, X, M, noise, dens, delta, integrand=None, mix=False, \
+                seed=False):
     """Run MH for iterSemiNFG IQ calcs
     
     :arg G: the iterated semiNFG to be evaluated
@@ -89,6 +90,9 @@ def iq_MH_iter(G, S, noise, dens, X, M, delta, integrand=None, mix=False):
     # gather list of decision nodes in base game
     Xlist = [d.basename for d in G.time_partition[T0] if \
                                                 isinstance(d, DecisionNode)]
+    if not seed: #if not seeded, DNs start uniform
+        for bn in Xlist:
+            G.bn_part[bn].uniformCPT()
     for bn in Xlist: #preallocating iq dict entries
         iq[bn] = [0]*(T-T0+1) 
     for s in xrange(1,S+1): #sampling S sequences of policy profiles
@@ -155,7 +159,10 @@ def mh_decision(p,q):
     :type q: float
     
     """
-    a = min([p/q, 1])
+    if q<=0:
+        a = 1
+    else:
+        a = min([p/q, 1])
     u = np.random.rand()
     if a > u:
         verdict = True
