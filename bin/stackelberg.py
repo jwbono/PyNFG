@@ -61,6 +61,7 @@ G = SemiNFG(nodeset, u_funcs)
 
 G.node_dict['Q1'].randomCPT(mixed=False)
 G.node_dict['Q2'].randomCPT(mixed=False)
+G.node_dict['Q2'].perturbCPT(0.5, mixed=False)
 
 G.sample()
 print 
@@ -69,10 +70,10 @@ def welfare(G):
     w = G.utility('1')+G.utility('2')
     return w
 
-go = time.time()
-intel, funcout = iq_MC(G, 10000, 10, 20, integrand=welfare)
-print time.time()-go
-
-plt.hist(intel['Q1'], normed=True)
-plt.hist(intel['Q2'], normed=True)
+#go = time.time()
+#intel, funcout = iq_MC(G, 10000, 10, 20, integrand=welfare)
+#print time.time()-go
+#
+#plt.hist(intel['Q1'], normed=True)
+#plt.hist(intel['Q2'], normed=True)
 #plt.hist(funcout.values(), normed=True)

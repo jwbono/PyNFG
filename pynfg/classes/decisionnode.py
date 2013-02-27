@@ -254,8 +254,13 @@ class DecisionNode(Node):
         if not mixed: #pure CPT
             if not sliver: #perturbing the whole CPT
                 shape_last = self.CPT.shape[-1]
-                other_dims = self.CPT.shape[0:-1]
-                y = randvars.randint.rvs(0, shape_last, size=other_dims)
+                altCPT = self.randomCPT(mixed=False, setCPT=False)
+                flat = self.CPT.flatten()
+                flatalt = altCPT.flatten()
+                for j in xrange(0,len(flat),shape_last):
+                    if np.random.rand() < noise:
+                        flat[j:j+shape_last] = flatalt[j:j+shape_last]
+                z = flat.reshape(self.CPT.shape)
         else: #mixed CPT
             randCPT = self.randomCPT(mixed=True, setCPT=False)
             if not sliver: #perturbing the whole thing
