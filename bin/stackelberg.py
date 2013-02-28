@@ -22,7 +22,7 @@ markets = [(20,2), (10,1), (5,1/2)] #demand (intercept,slope)
 c1 = 2 #marginal costs
 c2 = 2 
 
-MCPT = np.array([1/3, 1/3, 1/3])
+MCPT = np.ones(len(markets))/len(markets)
 Mparents = []
 Mspace = markets
 Mip = (MCPT, Mparents, Mspace)
@@ -73,10 +73,10 @@ def welfare(G):
 def dens(i):
     return np.power(i,2)
 
-S = 2000
+S = 20000
 X = 10
-M = 20
-burn = 500
+M = 40
+burn = 1000
 
 tipoff = time.time()
 intelMC, funcoutMC = iq_MC(G, S, X, M, integrand=welfare)

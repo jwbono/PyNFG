@@ -13,6 +13,7 @@ GNU Affero General Public License
 """
 
 from __future__ import division
+import time
 import numpy as np
 import scipy as sp
 import scipy.stats.distributions as randvars
@@ -249,14 +250,17 @@ class DecisionNode(Node):
         """
         if not mixed: #pure CPT
             if not sliver: #perturbing the whole CPT
-                shape_last = self.CPT.shape[-1] #number of actions
-                altCPT = self.randomCPT(mixed=False, setCPT=False) #alt pure CPT
-                flat = self.CPT.flatten() #flattening both along last axis
-                flatalt = altCPT.flatten()
-                for j in xrange(0,len(flat),shape_last): #step through par values 
-                    if np.random.rand() < noise: #prob of using altCPT
-                        flat[j:j+shape_last] = flatalt[j:j+shape_last]
-                z = flat.reshape(self.CPT.shape)
+#                go = time.time()
+#                shape_last = self.CPT.shape[-1] #number of actions
+#                altCPT = self.randomCPT(mixed=False, setCPT=False) #alt pure CPT
+#                flat = self.CPT.flatten() #flattening both along last axis
+#                flatalt = altCPT.flatten()
+#                for j in xrange(0,len(flat),shape_last): #step through par values 
+#                    if np.random.rand() < noise: #prob of using altCPT
+#                        flat[j:j+shape_last] = flatalt[j:j+shape_last]
+#                z = flat.reshape(self.CPT.shape)
+                z = perturbpure(self.CPT, noise)
+#                print time.time()-go
         else: #mixed CPT
             randCPT = self.randomCPT(mixed=True, setCPT=False)
             if not sliver: #perturbing the whole thing
@@ -377,3 +381,15 @@ class DecisionNode(Node):
             errorstring = "the new value is not in "+self.name+"'s space"
             raise ValueError(errorstring)  
         
+def perturbpure(CPT, noise):
+    # Generate noise for each possible combination of parent node values and reshape
+    noises = np.random.random((np.prod(CPT.shape[:-1])))
+    noises = noises.reshape(CPT.shape[:-1])
+    # Which ones should we switch?
+    switch = noises <noise
+    randcpt = np.zeros((np.sum(switch), CPT.shape[-1]))
+    # Pick the pure strategy for switching rows
+    randcpt[np.arange(np.sum(switch)),
+            np.random.randint(0, CPT.shape[-1],np.sum(switch))]=1
+    CPT[switch,:]=randcpt
+    return CPT
