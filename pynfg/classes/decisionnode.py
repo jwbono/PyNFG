@@ -11,9 +11,8 @@ Copyright (C) 2013 James Bono (jwbono@gmail.com)
 GNU Affero General Public License
 
 """
-
 from __future__ import division
-import time
+
 import numpy as np
 import scipy as sp
 import scipy.stats.distributions as randvars
@@ -250,7 +249,6 @@ class DecisionNode(Node):
         """
         if not mixed: #pure CPT
             if not sliver: #perturbing the whole CPT
-#                go = time.time()
 #                shape_last = self.CPT.shape[-1] #number of actions
 #                altCPT = self.randomCPT(mixed=False, setCPT=False) #alt pure CPT
 #                flat = self.CPT.flatten() #flattening both along last axis
@@ -260,7 +258,6 @@ class DecisionNode(Node):
 #                        flat[j:j+shape_last] = flatalt[j:j+shape_last]
 #                z = flat.reshape(self.CPT.shape)
                 z = perturbpure(self.CPT, noise)
-#                print time.time()-go
         else: #mixed CPT
             randCPT = self.randomCPT(mixed=True, setCPT=False)
             if not sliver: #perturbing the whole thing

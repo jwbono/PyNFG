@@ -1,0 +1,8 @@
+.. _ChanceNode:
+
+*****************
+Chance Node
+*****************
+
+.. automodule:: pynfg.classes.chancenode
+   :members:

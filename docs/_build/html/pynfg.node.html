@@ -1,0 +1,209 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Node &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="index.html" />
+    <link rel="next" title="Chance Node" href="pynfg.chancenode.html" />
+    <link rel="prev" title="Welcome to PyNFG’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pynfg.chancenode.html" title="Chance Node"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to PyNFG’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="node">
+<span id="id1"></span><h1>Node<a class="headerlink" href="#node" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-pynfg.classes.node"></span><p>Created on Mon Feb 18 10:42:34 2013</p>
+<p>Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)</p>
+<p>GNU Affero General Public License</p>
+<dl class="class">
+<dt id="pynfg.classes.node.Node">
+<em class="property">class </em><tt class="descclassname">pynfg.classes.node.</tt><tt class="descname">Node</tt><big>(</big><em>name</em>, <em>parents</em>, <em>continuous</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/node.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.node.Node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements a generic node of the semi-NFG formalism created by D. Wolpert</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is the superclass. Nodes are generally instantiated in one of the 
+subclasses, ChanceNode, DecisionNode or DeterNode.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name of the Node, usually descriptive, e.g. C5 for
+the fifth chance node (C for chance), or C21 for the second chance node 
+in the first time step, etc.</li>
+<li><strong>parents</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; a list of the Node&#8217;s parents</li>
+<li><strong>continuous</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True if Node takes on continuous values. False if
+discrete.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Upon initialization, the following private method is called: 
+<tt class="xref py py-meth docutils literal"><span class="pre">nodes.DeterNode._set_parent_dict()</span></tt></p>
+<p>Some useful methods are:</p>
+<ul class="simple">
+<li><tt class="xref py py-meth docutils literal"><span class="pre">classes.Nodes.dict2list_vals()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">classes.Nodes.get_CPTindex()</span></tt></li>
+</ul>
+<dl class="method">
+<dt id="pynfg.classes.node.Node.dict2list_vals">
+<tt class="descname">dict2list_vals</tt><big>(</big><em>parentinput={}</em>, <em>valueinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/node.html#Node.dict2list_vals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.node.Node.dict2list_vals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert parent/value dict entered by user to a list of values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parentdict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; the parents OrderedDict attribute for the node, e.g.
+<cite>:py:attr:DecisionNode.parents</cite> or <cite>:py:attr:ChanceNode.parents</cite></li>
+<li><strong>parentinput</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Optional. Specify values of the parents. Keys are 
+parent names. Values are parent values. To specify values for only a 
+subset of the parents, only enter those parents in the dictionary. 
+If only a subset of parent values are specified, then the current 
+values are used for the remaining parents.</li>
+<li><strong>valueinput</strong> &#8211; Optional. A legitimate value of the decision node 
+object. If no valueinput is specified, then the output does not include a 
+value for the node itself.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of the values for the parents and the decision node 
+itself in the order determine by the :py:attr:DecisionNode.parents` 
+OrderedDict.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.node.Node.get_CPTindex">
+<tt class="descname">get_CPTindex</tt><big>(</big><em>values</em>, <em>onlyparents=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/node.html#Node.get_CPTindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.node.Node.get_CPTindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the CPT index that corresponds to the (parent, node) values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>parentdict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; the parents OrderedDict attribute for the node, e.g.
+<cite>:py:attr:DecisionNode.parents</cite> or <cite>:py:attr:ChanceNode.parents</cite></li>
+<li><strong>onlyparents</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; set to true if</li>
+<li><strong>values</strong> &#8211; a list whose members are values for the parents of the 
+decision node and the decision node itself, in the order given by 
+the <cite>:py:attr:DecisionNode.parents</cite> OrderedDict</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to PyNFG&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pynfg.chancenode.html"
+                        title="next chapter">Chance Node</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pynfg.node.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pynfg.chancenode.html" title="Chance Node"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to PyNFG’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

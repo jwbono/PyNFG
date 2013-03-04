@@ -1,0 +1,8 @@
+.. _SemiNFG:
+
+*****************
+Semi-NFG
+*****************
+
+.. automodule:: pynfg.classes.seminfg
+   :members:

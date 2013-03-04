@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Iterated Semi-NFG &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="index.html" />
+    <link rel="prev" title="Semi-NFG" href="pynfg.seminfg.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pynfg.seminfg.html" title="Semi-NFG"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pynfg.classes.iterseminfg">
+<span id="iterated-semi-nfg"></span><span id="iteratedseminfg"></span><h1>Iterated Semi-NFG<a class="headerlink" href="#module-pynfg.classes.iterseminfg" title="Permalink to this headline">¶</a></h1>
+<p>Implements the iterSemiNFG class</p>
+<p>Part of: PyNFG - a Python package for modeling and solving Network Form Games</p>
+<p>Created on Mon Feb 18 10:37:29 2013</p>
+<p>Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)</p>
+<p>GNU Affero General Public License</p>
+<dl class="class">
+<dt id="pynfg.classes.iterseminfg.iterSemiNFG">
+<em class="property">class </em><tt class="descclassname">pynfg.classes.iterseminfg.</tt><tt class="descname">iterSemiNFG</tt><big>(</big><em>nodes</em>, <em>r_functions=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/iterseminfg.html#iterSemiNFG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.iterseminfg.iterSemiNFG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the iterated semi-NFG formalism created by D. Wolpert</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nodes</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#set" title="(in Python v2.7)"><em>set</em></a>) &#8211; members are <tt class="xref py py-class docutils literal"><span class="pre">nodes.ChanceNode</span></tt>, 
+<tt class="xref py py-class docutils literal"><span class="pre">nodes.DecisionNode</span></tt>, or <tt class="xref py py-class docutils literal"><span class="pre">nodes.DeterNode</span></tt>. The basename 
+and time attributes must be set for all nodes used in an iterSemiNFG.</li>
+<li><strong>r_functions</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; One entry for each player. Keys are player names. 
+Values are keyword functions from the basename variables to real 
+numbers.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>An iterated semi-NFG is a semi-NFG created from iteratively gluing a kernel 
+to a base. It is a Markov iterated semi-NFG if the t&#8217;th copy of the kernel 
+is conditionally independent of all nodes in the t-2&#8217;th copy and earlier. 
+Instead of utility functions, iterated semi-NFGs use reward functions.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This class is a subclass of <tt class="xref py py-class docutils literal"><span class="pre">seminfg.SemiNFG</span></tt>. It inherits all 
+of the SemiNFG functionality except <tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG.utiity()</span></tt> 
+is replaced by <tt class="xref py py-meth docutils literal"><span class="pre">seminfg.iterSemiNFG.reward()</span></tt>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">An object that consists of all of these elements except the reward
+functions is called a iterated semi-Bayes net.  When initialized with 
+<cite>r_functions=None</cite>, the result is an iterated semi-Bayes net.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For a node in nodes, the parent attribute, e.g. 
+<tt class="xref py py-attr docutils literal"><span class="pre">nodes.ChanceNode.parents</span></tt>, must not have parents that are not 
+in the set of nodes passed to <tt class="xref py py-class docutils literal"><span class="pre">seminfg.SemiNFG</span></tt>.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">scipy.stats.distributions</span> <span class="kn">as</span> <span class="nn">randvars</span>
+
+<span class="n">dist1</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">randint</span>
+<span class="n">params1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="n">space1</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">distip1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist1</span><span class="p">,</span> <span class="n">params1</span><span class="p">,</span> <span class="n">space1</span><span class="p">)</span>
+<span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C10&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;root CN randint from 0 to 3&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">D1</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D10&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">C1</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;child node of C1. belongs to p1&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;D1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    
+<span class="n">D2</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D20&#39;</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">C1</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;child node of C1. belongs to p2&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;D2&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">funcf</span><span class="p">(</span><span class="n">var1</span><span class="p">,</span> <span class="n">var2</span><span class="p">,</span> <span class="n">var3</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">var1</span><span class="o">+</span><span class="n">var2</span><span class="o">+</span><span class="n">var3</span>
+    <span class="k">if</span> <span class="n">total</span><span class="o">&gt;</span><span class="mi">10</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">total</span><span class="o">-</span><span class="mi">8</span>
+    <span class="k">elif</span> <span class="n">total</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">total</span><span class="o">+</span><span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">total</span>                    
+
+<span class="n">paramsf</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;var1&#39;</span><span class="p">:</span> <span class="n">D1</span><span class="p">,</span> <span class="s">&#39;var2&#39;</span><span class="p">:</span> <span class="n">D2</span><span class="p">,</span> <span class="s">&#39;var3&#39;</span><span class="p">:</span> <span class="n">C1</span><span class="p">}</span>
+<span class="n">continuousf</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">spacef</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">F1</span> <span class="o">=</span> <span class="n">DeterNode</span><span class="p">(</span><span class="s">&#39;F10&#39;</span><span class="p">,</span> <span class="n">funcf</span><span class="p">,</span> <span class="n">paramsf</span><span class="p">,</span> <span class="n">continuousf</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">spacef</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;a disc. DeterNode child of D1, D2, C1&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;F1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">nodeset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">C1</span><span class="p">,</span><span class="n">D1</span><span class="p">,</span><span class="n">D2</span><span class="p">,</span><span class="n">F1</span><span class="p">])</span>
+               
+<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">):</span>
+    
+    <span class="n">params1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">F1</span><span class="p">]</span>
+    <span class="n">distip1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist1</span><span class="p">,</span> <span class="n">params1</span><span class="p">,</span> <span class="n">space1</span><span class="p">)</span>
+    <span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C1</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span><span class="n">t</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;CN randint from 0 to 3&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">nodeset</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">C1</span><span class="p">)</span>
+                    
+    <span class="n">D1</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D1</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span><span class="n">t</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">C1</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;child node of C1. belongs to p1&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;D1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>     
+    <span class="n">nodeset</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">D1</span><span class="p">)</span>
+                    
+    <span class="n">D2</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D2</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span><span class="n">t</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">C1</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;child node of C1. belongs to p2&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;D2&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">)</span> 
+    <span class="n">nodeset</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">D2</span><span class="p">)</span>
+
+    <span class="n">D2</span><span class="o">.</span><span class="n">randomCPT</span><span class="p">(</span><span class="n">setCPT</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">D2</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>
+    <span class="n">D1</span><span class="o">.</span><span class="n">randomCPT</span><span class="p">(</span><span class="n">setCPT</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">D1</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>
+    
+    <span class="n">paramsf</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;var1&#39;</span><span class="p">:</span> <span class="n">D1</span><span class="p">,</span> <span class="s">&#39;var2&#39;</span><span class="p">:</span> <span class="n">D2</span><span class="p">,</span> <span class="s">&#39;var3&#39;</span><span class="p">:</span> <span class="n">C1</span><span class="p">}</span>
+    <span class="n">F1</span> <span class="o">=</span> <span class="n">DeterNode</span><span class="p">(</span><span class="s">&#39;F1</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span><span class="n">t</span><span class="p">,</span> <span class="n">funcf</span><span class="p">,</span> <span class="n">paramsf</span><span class="p">,</span> <span class="n">continuousf</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">spacef</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;a disc. DeterNode child of D1, D2, C1&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;F1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">nodeset</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">F1</span><span class="p">)</span>
+    
+<span class="k">def</span> <span class="nf">reward1</span><span class="p">(</span><span class="n">F1</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">F1</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">F1</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">x</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">x</span><span class="o">=-</span><span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">F1</span><span class="o">&lt;=</span><span class="mi">7</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">F1</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span><span class="o">=-</span><span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">F1</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">x</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span><span class="o">=-</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="n">x</span>
+    
+<span class="k">def</span> <span class="nf">reward2</span><span class="p">(</span><span class="n">F1</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">reward1</span><span class="p">(</span><span class="n">F1</span><span class="p">)</span>
+
+<span class="n">rfuncs</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;1&#39;</span><span class="p">:</span> <span class="n">reward1</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">:</span> <span class="n">reward2</span><span class="p">}</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">iterSemiNFG</span><span class="p">(</span><span class="n">nodeset</span><span class="p">,</span> <span class="n">rfuncs</span><span class="p">)</span>
+<span class="n">G</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Some useful methods:</p>
+<ul class="simple">
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG.ancestors()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG.descendants()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG.children()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG.loglike()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG.sample()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG.draw_graph()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.iterSemiNFG.reward()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.iterSemiNFG.sample_timesteps()</span></tt></li>
+</ul>
+<p>Upon initialization, the following private methods are called:</p>
+<ul class="simple">
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG._set_node_dict()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG._set_partition()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG._set_edges()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG._topological_sort()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.iterSemiNFG._set_time_partition()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">seminfg.iterSemiNFG.self._set_bn_part()</span></tt></li>
+</ul>
+<dl class="method">
+<dt id="pynfg.classes.iterseminfg.iterSemiNFG.npv_reward">
+<tt class="descname">npv_reward</tt><big>(</big><em>player</em>, <em>start</em>, <em>delta</em>, <em>nodeinput={}</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/iterseminfg.html#iterSemiNFG.npv_reward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.iterseminfg.iterSemiNFG.npv_reward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the npv of rewards from start using delta discount factor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>player</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name of the player to evaluate</li>
+<li><strong>start</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; the starting time step</li>
+<li><strong>delta</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the discount factor for the npv calculation</li>
+<li><strong>nodeinput</strong> &#8211; Optional dict of node name, node values for use in 
+calculating the rewards</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.iterseminfg.iterSemiNFG.reward">
+<tt class="descname">reward</tt><big>(</big><em>player</em>, <em>t</em>, <em>nodeinput={}</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/iterseminfg.html#iterSemiNFG.reward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.iterseminfg.iterSemiNFG.reward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the reward of the specified player in the specified time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>player</strong> (<em>str.</em>) &#8211; The name of a player with a reward function specified.</li>
+<li><strong>nodeinput</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Optional. Keys are node names. Values are node values. 
+The values in nodeinput merely override the current node values, so 
+nodeinput does not need to specify values for every argument to a 
+player&#8217;s reward function.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.iterseminfg.iterSemiNFG.sample_timesteps">
+<tt class="descname">sample_timesteps</tt><big>(</big><em>start</em>, <em>stop=None</em>, <em>basenames=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/iterseminfg.html#iterSemiNFG.sample_timesteps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.iterseminfg.iterSemiNFG.sample_timesteps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample the nodes from a starting time through a stopping time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> (<em>integer</em>) &#8211; the first timestep to be sampled</li>
+<li><strong>stop</strong> (<em>integer</em>) &#8211; (Optional) the last timestep to be sampled. If unspecified, 
+the net will be sampled to completion.</li>
+<li><strong>basenames</strong> &#8211; (Optional) a list of strings that give the basenames 
+the user wants to collect as output. If omitted, there is no output.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of lists of values drawn from the joint distribution 
+given by the net. The order of the lists in the return list is given 
+by the time step, and the order of the values in the list is given 
+by the order of the nodes in the attribute list 
+<tt class="xref py py-attr docutils literal"><span class="pre">seminfg.iterSemiNFG.iterator</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The decision nodes must have CPTs before using this function.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pynfg.seminfg.html"
+                        title="previous chapter">Semi-NFG</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pynfg.iterseminfg.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pynfg.seminfg.html" title="Semi-NFG"
+             >previous</a> |</li>
+        <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

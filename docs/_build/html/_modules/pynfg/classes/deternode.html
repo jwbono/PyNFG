@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pynfg.classes.deternode &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pynfg.classes.deternode</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implements the DeterNode class</span>
+
+<span class="sd">Part of: PyNFG - a Python package for modeling and solving Network Form Games</span>
+
+<span class="sd">Created on Mon Feb 18 10:34:13 2013</span>
+
+<span class="sd">Copyright (C) 2013 James Bono (jwbono@gmail.com)</span>
+
+<span class="sd">GNU Affero General Public License</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">node</span> <span class="kn">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="DeterNode"><a class="viewcode-back" href="../../../pynfg.deternode.html#pynfg.classes.deternode.DeterNode">[docs]</a><span class="k">class</span> <span class="nc">DeterNode</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements a deterministic node for the semi-NFG formalism created </span>
+<span class="sd">    by D. Wolpert</span>
+<span class="sd">    </span>
+<span class="sd">    :arg name: the name of the DeterNode, usually descriptive, e.g. F5 for</span>
+<span class="sd">       the fifth deterministic node (F for fixed), or F21 for the second </span>
+<span class="sd">       deterministic node in the first time step, etc.</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :arg func: a deterministic function - defined with defaults for each of </span>
+<span class="sd">       its inputs.</span>
+<span class="sd">    :type func: function</span>
+<span class="sd">    :arg params: keys are input keywords for func, values are parents or </span>
+<span class="sd">       fixed values if something other than defaults for non-parent inputs is</span>
+<span class="sd">       desired.</span>
+<span class="sd">    :type params: dict</span>
+<span class="sd">    :arg continuous: True if function takes on continuous values. False if</span>
+<span class="sd">       discrete.</span>
+<span class="sd">    :type continuous: bool </span>
+<span class="sd">    :arg space: The list of elements in space if discrete. Empty list if </span>
+<span class="sd">       continuous </span>
+<span class="sd">    :type space: list</span>
+<span class="sd">    :arg description: a description of the DeterNode, usually including a</span>
+<span class="sd">       summary description of the function, space, parents and children.</span>
+<span class="sd">    :type description: str.</span>
+<span class="sd">    :arg time: the timestep to which the node belongs. This is generally </span>
+<span class="sd">       only used for :class:`seminfg.iterSemiNFG` objects.</span>
+<span class="sd">    :type time: integer</span>
+<span class="sd">    :arg basename: a reference to a theoretical node in the base or kernel.</span>
+<span class="sd">    :type basename: str.</span>
+<span class="sd">    </span>
+<span class="sd">    Formally, a deterministic node has the following properties:</span>
+<span class="sd">        </span>
+<span class="sd">       * belongs to the *nature* player</span>
+<span class="sd">       * has deterministic function from the values of its parents - given by </span>
+<span class="sd">          :py:meth:`classes.DecisionNode.prob()` or</span>
+<span class="sd">          :py:meth:`classes.ChanceNode.prob()`.</span>
+<span class="sd">       </span>
+<span class="sd">    .. note::</span>
+<span class="sd">        </span>
+<span class="sd">       Deterministic nodes are not a part of the Semi-NFG formalism. Their </span>
+<span class="sd">       functionality is implicit in the relationship between stochastic parent</span>
+<span class="sd">       nodes and their stochastic children, as is the convention in Bayesian </span>
+<span class="sd">       Networks. They can be seen as deterministically *transforming* the </span>
+<span class="sd">       values of parents into the parameters that are used by their children.</span>
+<span class="sd">    </span>
+<span class="sd">    Example::</span>
+<span class="sd">            </span>
+<span class="sd">        import scipy.stats.distributions as randvars</span>
+<span class="sd">        </span>
+<span class="sd">        dist1 = randvars.norm</span>
+<span class="sd">        params1 = [0.5, 1]</span>
+<span class="sd">        distip1 = (dist1, params1)</span>
+<span class="sd">        C1 = ChanceNode(&#39;C1&#39;, distip=distip1, description=&#39;CN given by norm loc=0.5, scale=1&#39;)</span>
+<span class="sd">       </span>
+<span class="sd">        def func2(var1=1, var2=0):</span>
+<span class="sd">            r = np.sign(var1+var2)</span>
+<span class="sd">            return r</span>
+<span class="sd">            </span>
+<span class="sd">        params2 = {&#39;var1&#39;: C1}</span>
+<span class="sd">        continuous2 = False</span>
+<span class="sd">        space2 = [-1, 0, 1]</span>
+<span class="sd">        F2 = DeterNode(&#39;F2&#39;, func2, params2, continuous2, space=space2, description=&#39;a disc. DeterNode child of C1&#39;)</span>
+<span class="sd">    </span>
+<span class="sd">    Upon initialization, the following private method is called: </span>
+<span class="sd">    :py:meth:`classes.DeterNode._set_parent_dict()`</span>
+<span class="sd">    </span>
+<span class="sd">    Some useful methods are:</span>
+<span class="sd">       </span>
+<span class="sd">    * :py:meth:`classes.DeterNode.draw_value()` </span>
+<span class="sd">    * :py:meth:`classes.DeterNode.prob()`</span>
+<span class="sd">    * :py:meth:`classes.DeterNode.logprob()`</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">continuous</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="p">[],</span> \
+                 <span class="n">description</span><span class="o">=</span><span class="s">&#39;no description&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> \
+                 <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Name: &#39;</span><span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Description: &#39;</span><span class="o">+</span> <span class="n">description</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;name and description should be strings&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">player</span> <span class="o">=</span> <span class="s">&#39;nature&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dfunction</span> <span class="o">=</span> <span class="n">func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="n">space</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_parent_dict</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span> <span class="o">=</span> <span class="n">continuous</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basename</span> <span class="o">=</span> <span class="n">basename</span>
+        
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+    
+<div class="viewcode-block" id="DeterNode.draw_value"><a class="viewcode-back" href="../../../pynfg.deternode.html#pynfg.classes.deternode.DeterNode.draw_value">[docs]</a>    <span class="k">def</span> <span class="nf">draw_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">setvalue</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Draw a value from the :class:`classes.DeterNode` object</span>
+<span class="sd">        </span>
+<span class="sd">        This function computes the value of the deterministic node given the</span>
+<span class="sd">        current values of the parents or with the values provided in pareninput</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           compute values from the function governing the DeterNode. Keys are </span>
+<span class="sd">           parent names. Values are parent values. To specify values for only a </span>
+<span class="sd">           subset of the parents, only enter those parents in the dictionary. </span>
+<span class="sd">           If no parent values are specified, then the current values of the </span>
+<span class="sd">           parents are used. </span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg setvalue: (Optional) determines if the random draw replaces</span>
+<span class="sd">           :py:attr:`classes.DeterNode.value`. True by default.</span>
+<span class="sd">        :type setvalue: bool</span>
+<span class="sd">        :returns: the value of the deterministic node that corresponds to the </span>
+<span class="sd">           parent values.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must be </span>
+<span class="sd">           legitimate values of the parent. For discrete parents, the values </span>
+<span class="sd">           must correspond to an item in the parent&#39;s space attribute. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">funinput</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">parentinput</span><span class="p">:</span>
+                    <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="n">pareninput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dfunction</span><span class="p">(</span><span class="o">**</span><span class="n">funinput</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">setvalue</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span>
+        </div>
+<div class="viewcode-block" id="DeterNode.prob"><a class="viewcode-back" href="../../../pynfg.deternode.html#pynfg.classes.deternode.DeterNode.prob">[docs]</a>    <span class="k">def</span> <span class="nf">prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the probability of the current or specified value</span>
+<span class="sd">        </span>
+<span class="sd">        Note that since this is a deterministic node, the probability is always</span>
+<span class="sd">        either zero or one.</span>
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           compute the probability of the value of the DeterNode function. </span>
+<span class="sd">           Keys are parent names. Values are parent values. To specify values </span>
+<span class="sd">           for only a subset of the parents, only enter those parents in the </span>
+<span class="sd">           dictionary. If no parent values are specified, then the current </span>
+<span class="sd">           values of the parents are used. </span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg valueinput: Optional. A legitimate value of the DeterNode </span>
+<span class="sd">           object. If no valueinput is specified, then the current value of the </span>
+<span class="sd">           node is used.</span>
+<span class="sd">        :returns: the conditional probability of valueinput or the current</span>
+<span class="sd">           value conditioned on parentinput or the current values of the </span>
+<span class="sd">           parents.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must be </span>
+<span class="sd">           legitimate values of the parent. For discrete parents, the values </span>
+<span class="sd">           must correspond to an item in the parent&#39;s space attribute. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>       
+        <span class="n">funinput</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">parentinput</span><span class="p">:</span>
+                    <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="n">pareninput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">funinput</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">par</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">valueinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">valueinput</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dfunction</span><span class="p">(</span><span class="o">**</span><span class="n">funinput</span><span class="p">)</span> <span class="o">==</span> <span class="n">valueinput</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">return</span> <span class="n">r</span>
+        </div>
+<div class="viewcode-block" id="DeterNode.logprob"><a class="viewcode-back" href="../../../pynfg.deternode.html#pynfg.classes.deternode.DeterNode.logprob">[docs]</a>    <span class="k">def</span> <span class="nf">logprob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the conditional logprob of the current or specified value</span>
+<span class="sd">        </span>
+
+<span class="sd">        </span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
+<span class="sd">           compute the logprob of the value of the DeterNode. Keys are parent </span>
+<span class="sd">           names. Values are parent values. To specify values for only a subset </span>
+<span class="sd">           of the parents, only enter those parents in the dictionary. If no </span>
+<span class="sd">           parent values are specified, then the current values of the parents </span>
+<span class="sd">           are used. </span>
+<span class="sd">        :type parentinput: dict</span>
+<span class="sd">        :arg valueinput: Optional. A legitimate value of the DeterNode object. </span>
+<span class="sd">           If no valueinput is specified, then the current value of the node is </span>
+<span class="sd">           used.</span>
+<span class="sd">        :returns: the log conditional probability of valueinput or the current</span>
+<span class="sd">           value conditioned on parentinput or the current values of the </span>
+<span class="sd">           parents.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           If parent values are specified in parentinput, those values must be </span>
+<span class="sd">           legitimate values of the parent. For discrete parents, the values </span>
+<span class="sd">           must correspond to an item in the parent&#39;s space attribute.</span>
+<span class="sd">           </span>
+<span class="sd">        .. note::</span>
+<span class="sd">            </span>
+<span class="sd">           Since this is a deterministic node, the logprob is alwayseither zero </span>
+<span class="sd">           or -inf.</span>
+<span class="sd">           </span>
+<span class="sd">        This is equivalent to ``np.log(DeterNode.prob())``</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob</span><span class="p">(</span><span class="n">parentinput</span><span class="p">,</span> <span class="n">valueinput</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="DeterNode.set_value"><a class="viewcode-back" href="../../../pynfg.deternode.html#pynfg.classes.deternode.DeterNode.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newvalue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the current value of the DeterNode object</span>
+<span class="sd">        </span>
+<span class="sd">        :arg newvalue: a legitimate value of the DeterNode object. If the </span>
+<span class="sd">           DeterNode object is discrete, then newvalue must be in </span>
+<span class="sd">           :py:attr:`classes.DeterNode.space`. If the DeterNode object is </span>
+<span class="sd">           continuous, no corrections are made for unattainable values.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning::</span>
+<span class="sd">            </span>
+<span class="sd">           When arbitrarily setting values, some children may have zero </span>
+<span class="sd">           probability given their parents. This means the logprob may be -inf. </span>
+<span class="sd">           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a </span>
+<span class="sd">           divide by zero error.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newvalue</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">newvalue</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">newvalue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newvalue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">errorstring</span> <span class="o">=</span> <span class="s">&quot;the new value is not in &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&quot;&#39;s space&quot;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">errorstring</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">((</span><span class="n">newvalue</span><span class="o">==</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newvalue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;the new value is not in &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&quot;&#39;s space&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

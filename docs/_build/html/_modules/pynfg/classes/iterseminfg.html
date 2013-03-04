@@ -1,0 +1,380 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pynfg.classes.iterseminfg &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pynfg.classes.iterseminfg</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implements the iterSemiNFG class</span>
+
+<span class="sd">Part of: PyNFG - a Python package for modeling and solving Network Form Games</span>
+
+<span class="sd">Created on Mon Feb 18 10:37:29 2013</span>
+
+<span class="sd">Copyright (C) 2013 James Bono (jwbono@gmail.com)</span>
+
+<span class="sd">GNU Affero General Public License</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
+<span class="kn">from</span> <span class="nn">seminfg</span> <span class="kn">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="iterSemiNFG"><a class="viewcode-back" href="../../../pynfg.iterseminfg.html#pynfg.classes.iterseminfg.iterSemiNFG">[docs]</a><span class="k">class</span> <span class="nc">iterSemiNFG</span><span class="p">(</span><span class="n">SemiNFG</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements the iterated semi-NFG formalism created by D. Wolpert</span>
+<span class="sd">    </span>
+<span class="sd">    :arg nodes: members are :class:`nodes.ChanceNode`, </span>
+<span class="sd">       :class:`nodes.DecisionNode`, or :class:`nodes.DeterNode`. The basename </span>
+<span class="sd">       and time attributes must be set for all nodes used in an iterSemiNFG.</span>
+<span class="sd">    :type nodes: set</span>
+<span class="sd">    :arg r_functions: One entry for each player. Keys are player names. </span>
+<span class="sd">       Values are keyword functions from the basename variables to real </span>
+<span class="sd">       numbers. </span>
+<span class="sd">    :type r_functions: dict</span>
+<span class="sd">    </span>
+<span class="sd">    An iterated semi-NFG is a semi-NFG created from iteratively gluing a kernel </span>
+<span class="sd">    to a base. It is a Markov iterated semi-NFG if the t&#39;th copy of the kernel </span>
+<span class="sd">    is conditionally independent of all nodes in the t-2&#39;th copy and earlier. </span>
+<span class="sd">    Instead of utility functions, iterated semi-NFGs use reward functions.</span>
+<span class="sd">       </span>
+<span class="sd">    .. note::</span>
+<span class="sd">    </span>
+<span class="sd">       This class is a subclass of :py:class:`seminfg.SemiNFG`. It inherits all </span>
+<span class="sd">       of the SemiNFG functionality except :py:meth:`seminfg.SemiNFG.utiity()` </span>
+<span class="sd">       is replaced by :py:meth:`seminfg.iterSemiNFG.reward()`.</span>
+<span class="sd">    </span>
+<span class="sd">    .. note::</span>
+<span class="sd">    </span>
+<span class="sd">       An object that consists of all of these elements except the reward</span>
+<span class="sd">       functions is called a iterated semi-Bayes net.  When initialized with </span>
+<span class="sd">       `r_functions=None`, the result is an iterated semi-Bayes net.</span>
+<span class="sd">       </span>
+<span class="sd">    .. note::</span>
+<span class="sd">       </span>
+<span class="sd">       For a node in nodes, the parent attribute, e.g. </span>
+<span class="sd">       :py:attr:`nodes.ChanceNode.parents`, must not have parents that are not </span>
+<span class="sd">       in the set of nodes passed to :class:`seminfg.SemiNFG`.</span>
+<span class="sd">       </span>
+<span class="sd">    Example::</span>
+<span class="sd">        </span>
+<span class="sd">        import scipy.stats.distributions as randvars</span>
+<span class="sd">        </span>
+<span class="sd">        dist1 = randvars.randint</span>
+<span class="sd">        params1 = [0, 4]</span>
+<span class="sd">        space1 = range(10)</span>
+<span class="sd">        distip1 = (dist1, params1, space1)</span>
+<span class="sd">        C1 = ChanceNode(&#39;C10&#39;, distip=distip1, description=&#39;root CN randint from 0 to 3&#39;, basename=&#39;C1&#39;, time=0)</span>
+<span class="sd">        </span>
+<span class="sd">        D1 = DecisionNode(&#39;D10&#39;, &#39;1&#39;, [0, 1], parents=[C1], description=&#39;child node of C1. belongs to p1&#39;, basename=&#39;D1&#39;, time=0)</span>
+<span class="sd">                            </span>
+<span class="sd">        D2 = DecisionNode(&#39;D20&#39;, &#39;2&#39;, [0, 1], parents=[C1], description=&#39;child node of C1. belongs to p2&#39;, basename=&#39;D2&#39;, time=0)</span>
+<span class="sd">        </span>
+<span class="sd">        def funcf(var1, var2, var3):</span>
+<span class="sd">            total = var1+var2+var3</span>
+<span class="sd">            if total&gt;10:</span>
+<span class="sd">                return total-8</span>
+<span class="sd">            elif total&lt;1:</span>
+<span class="sd">                return total+2</span>
+<span class="sd">            else:</span>
+<span class="sd">                return total                    </span>
+<span class="sd">        </span>
+<span class="sd">        paramsf = {&#39;var1&#39;: D1, &#39;var2&#39;: D2, &#39;var3&#39;: C1}</span>
+<span class="sd">        continuousf = False</span>
+<span class="sd">        spacef = range(11)</span>
+<span class="sd">        F1 = DeterNode(&#39;F10&#39;, funcf, paramsf, continuousf, space=spacef, description=&#39;a disc. DeterNode child of D1, D2, C1&#39;, basename=&#39;F1&#39;, time=0)</span>
+<span class="sd">        </span>
+<span class="sd">        nodeset = set([C1,D1,D2,F1])</span>
+<span class="sd">                       </span>
+<span class="sd">        for t in range(1,4):</span>
+<span class="sd">            </span>
+<span class="sd">            params1 = [0, F1]</span>
+<span class="sd">            distip1 = (dist1, params1, space1)</span>
+<span class="sd">            C1 = ChanceNode(&#39;C1%s&#39; %t, distip=distip1, description=&#39;CN randint from 0 to 3&#39;, basename=&#39;C1&#39;, time=t)</span>
+<span class="sd">            nodeset.add(C1)</span>
+<span class="sd">                            </span>
+<span class="sd">            D1 = DecisionNode(&#39;D1%s&#39; %t, &#39;1&#39;, [0, 1], parents=[C1], description=&#39;child node of C1. belongs to p1&#39;, basename=&#39;D1&#39;, time=t)     </span>
+<span class="sd">            nodeset.add(D1)</span>
+<span class="sd">                            </span>
+<span class="sd">            D2 = DecisionNode(&#39;D2%s&#39; %t, &#39;2&#39;, [0, 1], parents=[C1], description=&#39;child node of C1. belongs to p2&#39;, basename=&#39;D2&#39;, time=t) </span>
+<span class="sd">            nodeset.add(D2)</span>
+<span class="sd">        </span>
+<span class="sd">            D2.randomCPT(setCPT=True)</span>
+<span class="sd">            D2.draw_value()</span>
+<span class="sd">            D1.randomCPT(setCPT=True)</span>
+<span class="sd">            D1.draw_value()</span>
+<span class="sd">            </span>
+<span class="sd">            paramsf = {&#39;var1&#39;: D1, &#39;var2&#39;: D2, &#39;var3&#39;: C1}</span>
+<span class="sd">            F1 = DeterNode(&#39;F1%s&#39; %t, funcf, paramsf, continuousf, space=spacef, description=&#39;a disc. DeterNode child of D1, D2, C1&#39;, basename=&#39;F1&#39;, time=t)</span>
+<span class="sd">            nodeset.add(F1)</span>
+<span class="sd">            </span>
+<span class="sd">        def reward1(F1=0):</span>
+<span class="sd">            if F1&lt;3:</span>
+<span class="sd">                if F1%2 == 0:</span>
+<span class="sd">                    x=1</span>
+<span class="sd">                else: </span>
+<span class="sd">                    x=-1</span>
+<span class="sd">            elif F1&lt;=7:</span>
+<span class="sd">                if F1%2 == 1:</span>
+<span class="sd">                    x=1</span>
+<span class="sd">                else:</span>
+<span class="sd">                    x=-1</span>
+<span class="sd">            else:</span>
+<span class="sd">                if F1%2 == 0:</span>
+<span class="sd">                    x=1</span>
+<span class="sd">                else:</span>
+<span class="sd">                    x=-1</span>
+<span class="sd">            return x</span>
+<span class="sd">            </span>
+<span class="sd">        def reward2(F1=0):</span>
+<span class="sd">            return -1*reward1(F1)</span>
+<span class="sd">        </span>
+<span class="sd">        rfuncs = {&#39;1&#39;: reward1, &#39;2&#39;: reward2}</span>
+<span class="sd">        G = iterSemiNFG(nodeset, rfuncs)</span>
+<span class="sd">        G.reward(&#39;1&#39;, 2)</span>
+<span class="sd">       </span>
+<span class="sd">    Some useful methods:</span>
+<span class="sd">    </span>
+<span class="sd">    * :py:meth:`seminfg.SemiNFG.ancestors()`</span>
+<span class="sd">    * :py:meth:`seminfg.SemiNFG.descendants()`</span>
+<span class="sd">    * :py:meth:`seminfg.SemiNFG.children()`</span>
+<span class="sd">    * :py:meth:`seminfg.SemiNFG.loglike()`</span>
+<span class="sd">    * :py:meth:`seminfg.SemiNFG.sample()`</span>
+<span class="sd">    * :py:meth:`seminfg.SemiNFG.draw_graph()`</span>
+<span class="sd">    * :py:meth:`seminfg.iterSemiNFG.reward()`</span>
+<span class="sd">    * :py:meth:`seminfg.iterSemiNFG.sample_timesteps()`</span>
+<span class="sd">       </span>
+<span class="sd">    Upon initialization, the following private methods are called:</span>
+<span class="sd">    </span>
+<span class="sd">    * :py:meth:`seminfg.SemiNFG._set_node_dict()`</span>
+<span class="sd">    * :py:meth:`seminfg.SemiNFG._set_partition()`</span>
+<span class="sd">    * :py:meth:`seminfg.SemiNFG._set_edges()`</span>
+<span class="sd">    * :py:meth:`seminfg.SemiNFG._topological_sort()`</span>
+<span class="sd">    * :py:meth:`seminfg.iterSemiNFG._set_time_partition()`</span>
+<span class="sd">    * :py:meth:`seminfg.iterSemiNFG.self._set_bn_part()`</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">r_functions</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">starttime</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">time</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endtime</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">time</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_node_dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_edges</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_topological_sort</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_partition</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">players</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span><span class="o">!=</span><span class="s">&#39;nature&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_time_partition</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_bn_part</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r_functions</span> <span class="o">=</span> <span class="n">r_functions</span>
+
+    <span class="k">def</span> <span class="nf">_set_time_partition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the time_partition :py:attr:`seminfg.iterSemiNFG.time_partition`</span>
+<span class="sd">        </span>
+<span class="sd">        :py:attr:`seminfg.iterSemiNFG.time_partition` is a partition of the </span>
+<span class="sd">        nodes into their corresponding timesteps. It is a dictionary, where </span>
+<span class="sd">        keys are integers 0 and greater corresponding to timesteps, and values </span>
+<span class="sd">        are lists of nodes that belong in that timestep, where the order of the</span>
+<span class="sd">        list is given by the topological order in </span>
+<span class="sd">        :py:attr:`seminfg.iterSemiNFG.iterator`</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_partition</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">time</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_partition</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">time_partition</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">time</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">time_partition</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">time</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endtime</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time_partition</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_partition</span><span class="p">[</span><span class="n">t</span><span class="p">]]</span>
+                
+    <span class="k">def</span> <span class="nf">_set_bn_part</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the bn_part :py:attr:`seminfg.iterSemiNFG.bn_part`</span>
+<span class="sd">        </span>
+<span class="sd">        :py:attr:`seminfg.iterSemiNFG.bn_part` is a partition of the </span>
+<span class="sd">        nodes into groups according to nodes in a theoretical base/kernel. It </span>
+<span class="sd">        is a dictionary, where keys are basenames, and values are lists of </span>
+<span class="sd">        nodes that correspond to that basename. The order of the list is given</span>
+<span class="sd">        by the time attribute.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn_part</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">basename</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn_part</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">basename</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">basename</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn_part</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">nod</span><span class="p">:</span> <span class="n">nod</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+
+<div class="viewcode-block" id="iterSemiNFG.reward"><a class="viewcode-back" href="../../../pynfg.iterseminfg.html#pynfg.classes.iterseminfg.iterSemiNFG.reward">[docs]</a>    <span class="k">def</span> <span class="nf">reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">nodeinput</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate the reward of the specified player in the specified time.</span>
+
+<span class="sd">        :arg player: The name of a player with a reward function specified.</span>
+<span class="sd">        :type player: str.</span>
+<span class="sd">        :arg nodeinput: Optional. Keys are node names. Values are node values. </span>
+<span class="sd">           The values in nodeinput merely override the current node values, so </span>
+<span class="sd">           nodeinput does not need to specify values for every argument to a </span>
+<span class="sd">           player&#39;s reward function.</span>
+<span class="sd">        :type nodeinput: dict</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">r_functions</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;This is a semi-Bayes net, not a semi-NFG&#39;</span><span class="p">)</span>
+        <span class="n">kw</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">nodenames</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r_functions</span><span class="p">[</span><span class="n">player</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">nam</span> <span class="ow">in</span> <span class="n">nodenames</span><span class="p">:</span>        
+            <span class="k">if</span> <span class="n">nam</span> <span class="ow">in</span> <span class="n">nodeinput</span><span class="p">:</span>
+                <span class="n">kw</span><span class="p">[</span><span class="n">nam</span><span class="p">]</span> <span class="o">=</span> <span class="n">nodeinput</span><span class="p">[</span><span class="n">nam</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kw</span><span class="p">[</span><span class="n">nam</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">nam</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r_functions</span><span class="p">[</span><span class="n">player</span><span class="p">](</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r</span>
+    </div>
+<div class="viewcode-block" id="iterSemiNFG.npv_reward"><a class="viewcode-back" href="../../../pynfg.iterseminfg.html#pynfg.classes.iterseminfg.iterSemiNFG.npv_reward">[docs]</a>    <span class="k">def</span> <span class="nf">npv_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">nodeinput</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;Return the npv of rewards from start using delta discount factor</span>
+<span class="sd">        </span>
+<span class="sd">        :arg player: the name of the player to evaluate</span>
+<span class="sd">        :type player: str</span>
+<span class="sd">        :arg start: the starting time step</span>
+<span class="sd">        :type start: int</span>
+<span class="sd">        :arg delta: the discount factor for the npv calculation</span>
+<span class="sd">        :type delta: float</span>
+<span class="sd">        :arg nodeinput: Optional dict of node name, node values for use in </span>
+<span class="sd">           calculating the rewards</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">npvreward</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">endtime</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">npvreward</span> <span class="o">+=</span> <span class="p">(</span><span class="n">delta</span><span class="o">**</span><span class="n">count</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="n">player</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">nodeinput</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">npvreward</span>
+            </div>
+<div class="viewcode-block" id="iterSemiNFG.sample_timesteps"><a class="viewcode-back" href="../../../pynfg.iterseminfg.html#pynfg.classes.iterseminfg.iterSemiNFG.sample_timesteps">[docs]</a>    <span class="k">def</span> <span class="nf">sample_timesteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">basenames</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sample the nodes from a starting time through a stopping time.</span>
+<span class="sd">        </span>
+<span class="sd">        :arg start: the first timestep to be sampled  </span>
+<span class="sd">        :type start: integer</span>
+<span class="sd">        :arg stop: (Optional) the last timestep to be sampled. If unspecified, </span>
+<span class="sd">           the net will be sampled to completion.</span>
+<span class="sd">        :type stop: integer</span>
+<span class="sd">        :arg basenames: (Optional) a list of strings that give the basenames </span>
+<span class="sd">           the user wants to collect as output. If omitted, there is no output.</span>
+<span class="sd">        :returns: a list of lists of values drawn from the joint distribution </span>
+<span class="sd">           given by the net. The order of the lists in the return list is given </span>
+<span class="sd">           by the time step, and the order of the values in the list is given </span>
+<span class="sd">           by the order of the nodes in the attribute list </span>
+<span class="sd">           :py:attr:`seminfg.iterSemiNFG.iterator`.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning::</span>
+<span class="sd">           </span>
+<span class="sd">           The decision nodes must have CPTs before using this function.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">stop</span><span class="o">==</span><span class="bp">None</span> <span class="ow">or</span> <span class="n">stop</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">endtime</span><span class="p">:</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">endtime</span>
+        <span class="k">if</span> <span class="n">basenames</span><span class="p">:</span>
+            <span class="n">outdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">basenames</span><span class="p">,</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">basenames</span><span class="p">))]))</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_partition</span><span class="p">[</span><span class="n">t</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">basename</span> <span class="ow">in</span> <span class="n">basenames</span><span class="p">:</span>
+                        <span class="n">outdict</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">basename</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">draw_value</span><span class="p">())</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">n</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">outdict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_partition</span><span class="p">[</span><span class="n">t</span><span class="p">]:</span>
+                    <span class="n">n</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>            </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

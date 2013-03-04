@@ -13,11 +13,11 @@ GNU Affero General Public License
 """
 from __future__ import division
 
+from pynfg import DecisionNode, DeterNode, ChanceNode
+from pynfg import SemiNFG, iterSemiNFG
 import numpy as np
-from nodes import *
-from seminfg import SemiNFG, iterSemiNFG
 import scipy.stats.distributions as randvars
-from rlsolutions import *
+from import *
 
 # boundaries of the grid
 west = 0

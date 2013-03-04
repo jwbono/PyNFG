@@ -8,5 +8,5 @@ GNU Affero General Public License
 
 """
 
-from iq_iterated import *
-from iq import *
+#from .iq_iterated import *
+#from .iq import *

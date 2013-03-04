@@ -14,7 +14,7 @@ GNU Affero General Public License
 from __future__ import division
 import copy
 import numpy as np
-from classes import *
+#from classes import *
 from iq_iterated import mh_decision
 
 def iq_MC(G, S, X, M, integrand=None, mix=False):
@@ -37,19 +37,19 @@ def iq_MC(G, S, X, M, integrand=None, mix=False):
     """
     intel = {} #keys are dn names, vals are iq time series
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
-    Xlist = [d.name for d in G.nodes if isinstance(d, DecisionNode)]
-    for dn in Xlist:
+    dnlist = [d.name for d in G.nodes if isinstance(d, pynfg.DecisionNode)]
+    for dn in dnlist:
         intel[dn] = []
     for s in xrange(S): #sampling S policy profiles
-        for dn in Xlist: 
+        for dn in dnlist: 
             G.node_dict[dn].randomCPT(mixed=mix, setCPT=True) #drawing current policy
-        for dn in Xlist: #find the iq of each player's policy in turn
+        for dn in dnlist: #find the iq of each player's policy in turn
             intel[dn].append(iq_calc(dn, G, X, M))
         if integrand is not None:
             funcout[s] = integrand(G) #eval integrand G(s), assign to funcout
     return intel, funcout
     
-def iq_MH(G, S, noise, dens, X, M, integrand=None, mix=False):
+def iq_MH(G, S, X, M, noise, dens, integrand=None, mix=False, seed=[]):
     """Run MH for SemiNFG with IQ calcs
     
     :arg G: the SemiNFG to be evaluated
@@ -70,28 +70,40 @@ def iq_MH(G, S, noise, dens, X, M, integrand=None, mix=False):
     :arg integrand: a user-supplied function of G that is evaluated for each s 
        in S 
     :type integrand: func
-    
+    :arg mix: if true, proposal distribution is over mixed CPTs. Default is 
+       False.
+    :type mix: bool
+    :arg seed: list of names of DecisionNodes that have been seeded. DecisionNodes 
+       that are not named in seed use a uniform CPT as a starting point.
+    :type seed: list
+       
     """
     intel = {} #keys are s in S, vals are iq dict (dict of dicts)
-    iq = {} #keys are names, vals are iq time series
+    dnlist = [d.name for d in G.nodes if isinstance(d, pynfg.DecisionNode)]
+    for dn in dnlist:
+        intel[dn] = [0] #init intel dict
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
+    funcout[0] = 0
     propiq = {} #dict of proposal iq, keys are names
-    Xlist = [d.name for d in G.nodes if isinstance(d, DecisionNode)] 
+    seedlist = [dn for dn in dnlist if dn not in seed]
+    for x in seedlist: #if not seeded, DNs start uniform
+            G.node_dict[dn].uniformCPT()
     for s in xrange(1,S+1): #sampling S sequences of policy profiles
         GG = copy.deepcopy(G)
-        for dn in Xlist:
+        for dn in dnlist:
             GG.node_dict[dn].CPT = G.node_dict[dn].perturbCPT(noise, mixed=mix, \
                                          setCPT=False) #drawing current policy 
-        for dn in Xlist: 
+        for dn in dnlist: 
             propiq[dn] = iq_calc(dn, GG, X, M) #getting iq
             # The MH decision
-            verdict = mh_decision(dens(propiq[dn]), dens(iq[s-1][dn]))
+            verdict = mh_decision(dens(propiq[dn]), dens(intel[dn][-1]))
             if verdict: #accepting new CPT
-                iq[dn] = propiq[dn]
+                intel[dn].append(propiq[dn])
                 G.node_dict[dn].CPT = GG.node_dict[dn].CPT
+            else:
+                intel[dn].append(intel[dn][-1])
         if integrand is not None:
             funcout[s] = integrand(G) #eval integrand G(s), assign to funcout
-        intel[s] = iq #assign iq dict to s entry in intel dict
     return intel, funcout
 
 def iq_calc(dn, G, X, M):

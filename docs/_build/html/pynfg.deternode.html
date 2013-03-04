@@ -1,0 +1,346 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Deterministic Node &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="index.html" />
+    <link rel="next" title="Semi-NFG" href="pynfg.seminfg.html" />
+    <link rel="prev" title="Decision Node" href="pynfg.decisionnode.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pynfg.seminfg.html" title="Semi-NFG"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pynfg.decisionnode.html" title="Decision Node"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pynfg.classes.deternode">
+<span id="deterministic-node"></span><span id="deterministicnode"></span><h1>Deterministic Node<a class="headerlink" href="#module-pynfg.classes.deternode" title="Permalink to this headline">¶</a></h1>
+<p>Implements the DeterNode class</p>
+<p>Part of: PyNFG - a Python package for modeling and solving Network Form Games</p>
+<p>Created on Mon Feb 18 10:34:13 2013</p>
+<p>Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)</p>
+<p>GNU Affero General Public License</p>
+<dl class="class">
+<dt id="pynfg.classes.deternode.DeterNode">
+<em class="property">class </em><tt class="descclassname">pynfg.classes.deternode.</tt><tt class="descname">DeterNode</tt><big>(</big><em>name</em>, <em>func</em>, <em>params</em>, <em>continuous</em>, <em>space=</em><span class="optional">[</span><span class="optional">]</span>, <em>description='no description'</em>, <em>time=None</em>, <em>basename=None</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/deternode.html#DeterNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.deternode.DeterNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements a deterministic node for the semi-NFG formalism created 
+by D. Wolpert</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name of the DeterNode, usually descriptive, e.g. F5 for
+the fifth deterministic node (F for fixed), or F21 for the second 
+deterministic node in the first time step, etc.</li>
+<li><strong>func</strong> (<em>function</em>) &#8211; a deterministic function - defined with defaults for each of 
+its inputs.</li>
+<li><strong>params</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; keys are input keywords for func, values are parents or 
+fixed values if something other than defaults for non-parent inputs is
+desired.</li>
+<li><strong>continuous</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True if function takes on continuous values. False if
+discrete.</li>
+<li><strong>space</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; The list of elements in space if discrete. Empty list if 
+continuous</li>
+<li><strong>description</strong> (<em>str.</em>) &#8211; a description of the DeterNode, usually including a
+summary description of the function, space, parents and children.</li>
+<li><strong>time</strong> (<em>integer</em>) &#8211; the timestep to which the node belongs. This is generally 
+only used for <tt class="xref py py-class docutils literal"><span class="pre">seminfg.iterSemiNFG</span></tt> objects.</li>
+<li><strong>basename</strong> (<em>str.</em>) &#8211; a reference to a theoretical node in the base or kernel.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Formally, a deterministic node has the following properties:</p>
+<blockquote>
+<div><ul>
+<li><p class="first">belongs to the <em>nature</em> player</p>
+</li>
+<li><dl class="first docutils">
+<dt>has deterministic function from the values of its parents - given by </dt>
+<dd><p class="first last"><tt class="xref py py-meth docutils literal"><span class="pre">classes.DecisionNode.prob()</span></tt> or
+<tt class="xref py py-meth docutils literal"><span class="pre">classes.ChanceNode.prob()</span></tt>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Deterministic nodes are not a part of the Semi-NFG formalism. Their 
+functionality is implicit in the relationship between stochastic parent
+nodes and their stochastic children, as is the convention in Bayesian 
+Networks. They can be seen as deterministically <em>transforming</em> the 
+values of parents into the parameters that are used by their children.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">scipy.stats.distributions</span> <span class="kn">as</span> <span class="nn">randvars</span>
+
+<span class="n">dist1</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">norm</span>
+<span class="n">params1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">distip1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist1</span><span class="p">,</span> <span class="n">params1</span><span class="p">)</span>
+<span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;CN given by norm loc=0.5, scale=1&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">func2</span><span class="p">(</span><span class="n">var1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">var2</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">var1</span><span class="o">+</span><span class="n">var2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r</span>
+    
+<span class="n">params2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;var1&#39;</span><span class="p">:</span> <span class="n">C1</span><span class="p">}</span>
+<span class="n">continuous2</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">space2</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">F2</span> <span class="o">=</span> <span class="n">DeterNode</span><span class="p">(</span><span class="s">&#39;F2&#39;</span><span class="p">,</span> <span class="n">func2</span><span class="p">,</span> <span class="n">params2</span><span class="p">,</span> <span class="n">continuous2</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">space2</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;a disc. DeterNode child of C1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Upon initialization, the following private method is called: 
+<tt class="xref py py-meth docutils literal"><span class="pre">classes.DeterNode._set_parent_dict()</span></tt></p>
+<p>Some useful methods are:</p>
+<ul class="simple">
+<li><tt class="xref py py-meth docutils literal"><span class="pre">classes.DeterNode.draw_value()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">classes.DeterNode.prob()</span></tt></li>
+<li><tt class="xref py py-meth docutils literal"><span class="pre">classes.DeterNode.logprob()</span></tt></li>
+</ul>
+<dl class="method">
+<dt id="pynfg.classes.deternode.DeterNode.draw_value">
+<tt class="descname">draw_value</tt><big>(</big><em>parentinput={}</em>, <em>setvalue=True</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/deternode.html#DeterNode.draw_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.deternode.DeterNode.draw_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a value from the <tt class="xref py py-class docutils literal"><span class="pre">classes.DeterNode</span></tt> object</p>
+<p>This function computes the value of the deterministic node given the
+current values of the parents or with the values provided in pareninput</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parentinput</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Optional. Specify values of the parents at which to 
+compute values from the function governing the DeterNode. Keys are 
+parent names. Values are parent values. To specify values for only a 
+subset of the parents, only enter those parents in the dictionary. 
+If no parent values are specified, then the current values of the 
+parents are used.</li>
+<li><strong>setvalue</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; (Optional) determines if the random draw replaces
+<tt class="xref py py-attr docutils literal"><span class="pre">classes.DeterNode.value</span></tt>. True by default.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the value of the deterministic node that corresponds to the 
+parent values.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If parent values are specified in parentinput, those values must be 
+legitimate values of the parent. For discrete parents, the values 
+must correspond to an item in the parent&#8217;s space attribute.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.deternode.DeterNode.logprob">
+<tt class="descname">logprob</tt><big>(</big><em>parentinput={}</em>, <em>valueinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/deternode.html#DeterNode.logprob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.deternode.DeterNode.logprob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the conditional logprob of the current or specified value</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parentinput</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Optional. Specify values of the parents at which to 
+compute the logprob of the value of the DeterNode. Keys are parent 
+names. Values are parent values. To specify values for only a subset 
+of the parents, only enter those parents in the dictionary. If no 
+parent values are specified, then the current values of the parents 
+are used.</li>
+<li><strong>valueinput</strong> &#8211; Optional. A legitimate value of the DeterNode object. 
+If no valueinput is specified, then the current value of the node is 
+used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the log conditional probability of valueinput or the current
+value conditioned on parentinput or the current values of the 
+parents.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If parent values are specified in parentinput, those values must be 
+legitimate values of the parent. For discrete parents, the values 
+must correspond to an item in the parent&#8217;s space attribute.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since this is a deterministic node, the logprob is alwayseither zero 
+or -inf.</p>
+</div>
+<p>This is equivalent to <tt class="docutils literal"><span class="pre">np.log(DeterNode.prob())</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.deternode.DeterNode.prob">
+<tt class="descname">prob</tt><big>(</big><em>parentinput={}</em>, <em>valueinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/deternode.html#DeterNode.prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.deternode.DeterNode.prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the probability of the current or specified value</p>
+<p>Note that since this is a deterministic node, the probability is always
+either zero or one.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parentinput</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Optional. Specify values of the parents at which to 
+compute the probability of the value of the DeterNode function. 
+Keys are parent names. Values are parent values. To specify values 
+for only a subset of the parents, only enter those parents in the 
+dictionary. If no parent values are specified, then the current 
+values of the parents are used.</li>
+<li><strong>valueinput</strong> &#8211; Optional. A legitimate value of the DeterNode 
+object. If no valueinput is specified, then the current value of the 
+node is used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the conditional probability of valueinput or the current
+value conditioned on parentinput or the current values of the 
+parents.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If parent values are specified in parentinput, those values must be 
+legitimate values of the parent. For discrete parents, the values 
+must correspond to an item in the parent&#8217;s space attribute.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.deternode.DeterNode.set_value">
+<tt class="descname">set_value</tt><big>(</big><em>newvalue</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/deternode.html#DeterNode.set_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.deternode.DeterNode.set_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the current value of the DeterNode object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>newvalue</strong> &#8211; a legitimate value of the DeterNode object. If the 
+DeterNode object is discrete, then newvalue must be in 
+<tt class="xref py py-attr docutils literal"><span class="pre">classes.DeterNode.space</span></tt>. If the DeterNode object is 
+continuous, no corrections are made for unattainable values.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When arbitrarily setting values, some children may have zero 
+probability given their parents. This means the logprob may be -inf. 
+If using, <tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG.loglike()</span></tt>, this results in a 
+divide by zero error.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pynfg.decisionnode.html"
+                        title="previous chapter">Decision Node</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pynfg.seminfg.html"
+                        title="next chapter">Semi-NFG</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pynfg.deternode.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pynfg.seminfg.html" title="Semi-NFG"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pynfg.decisionnode.html" title="Decision Node"
+             >previous</a> |</li>
+        <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
