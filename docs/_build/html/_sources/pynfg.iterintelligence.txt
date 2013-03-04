@@ -1,0 +1,8 @@
+.. _IteratedIntelligence:
+
+**********************
+Iterated Intelligence
+**********************
+
+.. automodule:: pynfg.pgtsolutions.intelligence.iq_iterated
+   :members:

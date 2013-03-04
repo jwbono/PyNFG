@@ -1,0 +1,10 @@
+.. _GameClasses
+
+Game Classes
+=============
+
+.. toctree::
+   :maxdepth: 2
+
+   Semi-NFG <pynfg.seminfg>
+   Iterated Semi-NFG <pynfg.iterseminfg>

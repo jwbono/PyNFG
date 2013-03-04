@@ -11,13 +11,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   Node <pynfg.node>
-   Chance Node <pynfg.chancenode>
-   Decision Node <pynfg.decisionnode>
-   Deterministic Node <pynfg.deternode>
-   Semi-NFG <pynfg.seminfg>
-   Iterated Semi-NFG <pynfg.iterseminfg>
+   Node Classes <pynfg.nodeclasses>
+   Game Classes <pynfg.gameclasses>
    PGT Solutions <pynfg.pgtsolutions>
+   RL Solutions <pynfg.rlsolutions>
 
 
 Indices and tables

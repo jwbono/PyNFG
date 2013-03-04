@@ -1,0 +1,275 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pynfg.pgtsolutions.intelligence.iq_iterated &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pynfg.pgtsolutions.intelligence.iq_iterated</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implements PGT intelligence for iterSemiNFG objects</span>
+
+<span class="sd">Part of: PyNFG - a Python package for modeling and solving Network Form Games</span>
+
+<span class="sd">Created on Wed Jan  2 16:33:36 2013</span>
+
+<span class="sd">Copyright (C) 2013 James Bono (jwbono@gmail.com)</span>
+
+<span class="sd">GNU Affero General Public License</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="c">#from classes import *</span>
+<span class="kn">import</span> <span class="nn">scipy.stats.distributions</span> <span class="kn">as</span> <span class="nn">randvars</span>
+
+<div class="viewcode-block" id="iq_MC_iter"><a class="viewcode-back" href="../../../../pynfg.iterintelligence.html#pynfg.pgtsolutions.intelligence.iq_iterated.iq_MC_iter">[docs]</a><span class="k">def</span> <span class="nf">iq_MC_iter</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">integrand</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mix</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run MC outer loop on random policy sequences for iterSemiNFG IQ calcs</span>
+<span class="sd">    </span>
+<span class="sd">    :arg G: the iterated semiNFG to be evaluated</span>
+<span class="sd">    :type G: iterSemiNFG</span>
+<span class="sd">    :arg S: number of policy sequences to sample</span>
+<span class="sd">    :type S: int</span>
+<span class="sd">    :arg X: number of samples of each policy profile</span>
+<span class="sd">    :type X: int</span>
+<span class="sd">    :arg M: number of random alt policies to compare</span>
+<span class="sd">    :type M: int</span>
+<span class="sd">    :arg delta: the discount factor</span>
+<span class="sd">    :type delta: float</span>
+<span class="sd">    :arg integrand: a user-supplied function of G that is evaluated for each s </span>
+<span class="sd">       in S </span>
+<span class="sd">    :type integrand: func</span>
+<span class="sd">    </span>
+<span class="sd">    .. note::</span>
+<span class="sd">       </span>
+<span class="sd">       This will throw an error if there is a decision node in G.starttime that </span>
+<span class="sd">       is not repeated throughout the net.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">T0</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">starttime</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">endtime</span>
+    <span class="n">intel</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are base names, vals vals are iq panel series</span>
+    <span class="n">funcout</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are s in S, vals are eval of integrand of G(s)</span>
+    <span class="n">bnlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">basename</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">time_partition</span><span class="p">[</span><span class="n">T0</span><span class="p">]</span> <span class="k">if</span> \
+                                                <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">pynfg</span><span class="o">.</span><span class="n">DecisionNode</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">bnlist</span><span class="p">:</span> <span class="c">#preallocating iq dict entries</span>
+        <span class="n">intel</span><span class="p">[</span><span class="n">bn</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">S</span><span class="p">,</span><span class="n">T</span><span class="o">-</span><span class="n">T0</span><span class="p">))</span> 
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">S</span><span class="p">):</span> <span class="c">#sampling S sequences of policy profiles</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">T0</span><span class="p">,</span> <span class="n">T</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span> <span class="c">#sampling a sequence of policy profiles</span>
+            <span class="c"># gather list of decision nodes in time tout</span>
+            <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">bnlist</span><span class="p">:</span> 
+                <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">t</span><span class="o">-</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">randomCPT</span><span class="p">(</span><span class="n">mixed</span><span class="o">=</span><span class="n">mix</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c">#drawing current policy</span>
+                <span class="k">for</span> <span class="n">dd</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">t</span><span class="p">::]:</span> 
+                    <span class="n">dd</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">t</span><span class="o">-</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="c">#apply policy to future</span>
+            <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">bnlist</span><span class="p">:</span> <span class="c">#find the iq of each player&#39;s policy in turn</span>
+                <span class="n">intel</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">s</span><span class="p">,</span><span class="n">t</span><span class="o">-</span><span class="n">T0</span><span class="p">]</span> <span class="o">=</span> <span class="n">iq_calc_iter</span><span class="p">(</span><span class="n">bn</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">integrand</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">funcout</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">integrand</span><span class="p">(</span><span class="n">G</span><span class="p">)</span> <span class="c">#eval integrand G(s), assign to funcout</span>
+    <span class="k">return</span> <span class="n">intel</span><span class="p">,</span> <span class="n">funcout</span>
+    </div>
+<div class="viewcode-block" id="iq_MH_iter"><a class="viewcode-back" href="../../../../pynfg.iterintelligence.html#pynfg.pgtsolutions.intelligence.iq_iterated.iq_MH_iter">[docs]</a><span class="k">def</span> <span class="nf">iq_MH_iter</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">dens</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">integrand</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mix</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run MH for iterSemiNFG IQ calcs</span>
+<span class="sd">    </span>
+<span class="sd">    :arg G: the iterated semiNFG to be evaluated</span>
+<span class="sd">    :type G: iterSemiNFG</span>
+<span class="sd">    :arg S: number of MH iterations</span>
+<span class="sd">    :type S: int</span>
+<span class="sd">    :arg noise: the degree of independence of the proposal distribution on the </span>
+<span class="sd">       current value.</span>
+<span class="sd">    :type noise: float</span>
+<span class="sd">    :arg dens: the function that assigns weights to iq</span>
+<span class="sd">    :type dens: func</span>
+<span class="sd">    :arg X: number of samples of each policy profile</span>
+<span class="sd">    :type X: int</span>
+<span class="sd">    :arg M: number of random alt policies to compare</span>
+<span class="sd">    :type M: int</span>
+<span class="sd">    :arg delta: the discount factor</span>
+<span class="sd">    :type delta: float</span>
+<span class="sd">    :arg integrand: a user-supplied function of G that is evaluated for each s </span>
+<span class="sd">       in S </span>
+<span class="sd">    :type integrand: func</span>
+<span class="sd">    </span>
+<span class="sd">    .. note::</span>
+<span class="sd">       </span>
+<span class="sd">       This will throw an error if there is a decision node in G.starttime that </span>
+<span class="sd">       is not repeated throughout the net.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">T0</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">starttime</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">endtime</span>
+    <span class="n">iq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">S</span><span class="p">,</span><span class="n">T</span><span class="o">-</span><span class="n">T0</span><span class="p">))</span> <span class="c">#panel series of iq for each MH step and time step</span>
+    <span class="n">intel</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are base names, vals are iq time step series</span>
+    <span class="c"># gather list of decision nodes in base game</span>
+    <span class="n">bnlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">basename</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">time_partition</span><span class="p">[</span><span class="n">T0</span><span class="p">]</span> <span class="k">if</span> \
+                                                <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">pynfg</span><span class="o">.</span><span class="n">DecisionNode</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">bnlist</span><span class="p">:</span> <span class="c">#preallocating iq dict entries</span>
+        <span class="n">intel</span><span class="p">[</span><span class="n">bn</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">[</span><span class="n">T</span><span class="o">-</span><span class="n">T0</span><span class="p">]</span>
+    <span class="n">funcout</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are s in S, vals are eval of integrand of G(s)</span>
+    <span class="n">funcout</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">S</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span> <span class="c">#sampling S sequences of policy profiles</span>
+        <span class="n">GG</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="n">rt</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">randint</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">T0</span><span class="p">,</span><span class="n">T</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">randint</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bnlist</span><span class="p">))</span>
+        <span class="n">rn</span> <span class="o">=</span> <span class="n">bnlist</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+        <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">rn</span><span class="p">][</span><span class="n">rt</span><span class="o">-</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">rn</span><span class="p">][</span><span class="n">rt</span><span class="o">-</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">perturbCPT</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> \
+                                                    <span class="n">mixed</span><span class="o">=</span><span class="n">mix</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dd</span> <span class="ow">in</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">rn</span><span class="p">][</span><span class="n">rt</span><span class="o">-</span><span class="n">T0</span><span class="p">::]:</span> 
+            <span class="n">dd</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">rn</span><span class="p">][</span><span class="n">rt</span><span class="o">-</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="c">#apply policy to future </span>
+        <span class="n">propiq</span> <span class="o">=</span> <span class="n">iq_calc_iter</span><span class="p">(</span><span class="n">rn</span><span class="p">,</span> <span class="n">GG</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">rt</span><span class="p">)</span> <span class="c">#getting iq</span>
+        <span class="c"># The MH decision</span>
+        <span class="n">verdict</span> <span class="o">=</span> <span class="n">mh_decision</span><span class="p">(</span><span class="n">dens</span><span class="p">(</span><span class="n">propiq</span><span class="p">),</span> <span class="n">dens</span><span class="p">(</span><span class="n">intel</span><span class="p">[</span><span class="n">rn</span><span class="p">][</span><span class="n">rt</span><span class="o">-</span><span class="n">T0</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">verdict</span><span class="p">:</span> <span class="c">#accepting new CPT</span>
+            <span class="n">intel</span><span class="p">[</span><span class="n">rn</span><span class="p">][</span><span class="n">rt</span><span class="o">-</span><span class="n">T0</span><span class="p">]</span> <span class="o">=</span> <span class="n">propiq</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">rn</span><span class="p">][</span><span class="n">rt</span><span class="o">-</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">rn</span><span class="p">][</span><span class="n">rt</span><span class="o">-</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span>
+            <span class="n">iq</span><span class="p">[</span><span class="n">s</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">iq</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,:]</span>
+            <span class="n">iq</span><span class="p">[</span><span class="n">s</span><span class="p">,</span><span class="n">rt</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">iq</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">iq</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">integrand</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">funcout</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">integrand</span><span class="p">(</span><span class="n">G</span><span class="p">)</span> <span class="c">#eval integrand G(s), assign to funcout</span>
+    <span class="k">return</span> <span class="n">intel</span><span class="p">,</span> <span class="n">funcout</span>
+                        </div>
+<div class="viewcode-block" id="iq_calc_iter"><a class="viewcode-back" href="../../../../pynfg.iterintelligence.html#pynfg.pgtsolutions.intelligence.iq_iterated.iq_calc_iter">[docs]</a><span class="k">def</span> <span class="nf">iq_calc_iter</span><span class="p">(</span><span class="n">bn</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calc IQ of policy at bn,start in G from the given starting point</span>
+<span class="sd">    </span>
+<span class="sd">    :arg bn: the basename of the DN to be evaluated</span>
+<span class="sd">    :type bn: str</span>
+<span class="sd">    :arg G: the iterated semiNFG to be evaluated</span>
+<span class="sd">    :type G: iterSemiNFG</span>
+<span class="sd">    :arg X: number of samples of each policy profile</span>
+<span class="sd">    :type X: int</span>
+<span class="sd">    :arg M: number of random alt policies with which to compare</span>
+<span class="sd">    :type M: int</span>
+<span class="sd">    :arg delta: the discount factor</span>
+<span class="sd">    :type delta: float</span>
+<span class="sd">    :arg start: the starting time step</span>
+<span class="sd">    :type start: int</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">npvreward</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">start</span><span class="p">]</span><span class="o">.</span><span class="n">player</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">X</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c">#sample from start to the end of the net</span>
+        <span class="c">#npv reward for the player&#39;s real policy</span>
+        <span class="n">npvreward</span> <span class="o">=</span> <span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">npv_reward</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">npvreward</span><span class="p">)</span><span class="o">/</span><span class="n">x</span>
+    <span class="n">altnpv</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">M</span>
+    <span class="n">G1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+<span class="c">#    Ylist = [j for j in G1.partition[p] if j.time == start]</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">M</span><span class="p">):</span> <span class="c">#Sample M alt policies for the player</span>
+<span class="c">#        for d in Ylist: </span>
+        <span class="n">G1</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">start</span><span class="p">]</span><span class="o">.</span><span class="n">randomCPT</span><span class="p">(</span><span class="n">setCPT</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c">#rand altpolicy for each DN in time start</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">G1</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">start</span><span class="p">::]:</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">G1</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">start</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="c">#apply altpolicy to future copies of current DN</span>
+        <span class="n">G1</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c">#sample altpolicy prof. to end of net</span>
+        <span class="n">altnpv</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">G1</span><span class="o">.</span><span class="n">npv_reward</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span> <span class="c">#get alt npvreward</span>
+    <span class="n">worse</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">altnpv</span> <span class="k">if</span> <span class="n">j</span><span class="o">&lt;=</span><span class="n">npvreward</span><span class="p">]</span> <span class="c">#alts worse than G</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">worse</span><span class="p">)</span><span class="o">/</span><span class="n">M</span> <span class="c">#fraction of alts worse than G is IQ                   </span>
+</div>
+<div class="viewcode-block" id="mh_decision"><a class="viewcode-back" href="../../../../pynfg.iterintelligence.html#pynfg.pgtsolutions.intelligence.iq_iterated.mh_decision">[docs]</a><span class="k">def</span> <span class="nf">mh_decision</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">q</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decide to accept the new draw or keep the old one</span>
+<span class="sd">    </span>
+<span class="sd">    :arg p: the unnormalized likelihood of the new draw</span>
+<span class="sd">    :type p: float</span>
+<span class="sd">    :arg q: the unnormalized likelihood of the old draw</span>
+<span class="sd">    :type q: float</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">q</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="n">p</span><span class="o">/</span><span class="n">q</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">u</span><span class="p">:</span>
+        <span class="n">verdict</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">verdict</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="n">verdict</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

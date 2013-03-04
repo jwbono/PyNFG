@@ -1,0 +1,8 @@
+.. _Intelligence:
+
+*****************
+Intelligence
+*****************
+
+.. automodule:: pynfg.pgtsolutions.intelligence.iq
+   :members:

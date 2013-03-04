@@ -1,0 +1,10 @@
+.. _RLSolutions:
+
+RL Solutions
+===============
+
+.. toctree::
+   :maxdepth: 2
+
+   Monte Carlo RL <pynfg.mcrl>
+   Q-Learning <pynfg.qlearning>
