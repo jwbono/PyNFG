@@ -159,8 +159,8 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         # normalize after the shift
         CPTsum = G.bn_part[bn][T0].CPT.sum(axis=-1)
         G.bn_part[bn][T0].CPT /= CPTsum[...,np.newaxis]
-        if np.any(G.bn_part[bn][T0].CPT<0):
-            raise AssertionError('Negative values detected in the CPT')
+#        if np.any(G.bn_part[bn][T0].CPT<0):
+#            raise AssertionError('Negative values detected in the CPT')
     if pureout: #if True, output is a pure policy
         messages = set()
         for mapair in visit:

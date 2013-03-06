@@ -15,7 +15,6 @@ from __future__ import division
 import copy
 import numpy as np
 from pynfg import DecisionNode
-#from classes import *
 from pynfg.pgtsolutions.intelligence.iq_iterated import mh_decision
 
 def iq_MC(G, S, X, M, integrand=None, mix=False):

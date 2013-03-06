@@ -18,7 +18,6 @@ from pynfg import SemiNFG, iterSemiNFG
 import numpy as np
 import scipy.stats.distributions as randvars
 from pynfg.rlsolutions.mcrl import *
-#from pynfg.iq_iterated import iq_MC_iter
 
 # boundaries of the grid
 west = 0
@@ -157,7 +156,7 @@ G.bn_part['D1'][0].uniformCPT()
 
 drawlist = [F, D2, D1, Fseek, Fhide, C1, C2, G.bn_part['F'][G.endtime-1]]
 G.draw_graph(set(drawlist))
-NN = 100
+NN = 10
 #        
 G1, returnfig = ewma_mcrl(G, 'D1', J=20, N=NN, alpha=0.7, delta=0.8, eps=0.1)
 
