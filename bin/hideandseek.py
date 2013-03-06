@@ -18,7 +18,6 @@ from pynfg import SemiNFG, iterSemiNFG
 import numpy as np
 import scipy.stats.distributions as randvars
 from pynfg.rlsolutions.mcrl import *
-#from pynfg.iq_iterated import iq_MC_iter
 
 # boundaries of the grid
 west = 0

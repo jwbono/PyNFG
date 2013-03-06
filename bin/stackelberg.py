@@ -11,6 +11,7 @@ GNU Affero General Public License
 """
 from __future__ import division
 
+import numpy as np
 from pynfg import DecisionNode, ChanceNode, DeterNode
 from pynfg import SemiNFG
 from pynfg.pgtsolutions.intelligence.iq import *
