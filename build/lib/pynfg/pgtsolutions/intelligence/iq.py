@@ -14,8 +14,9 @@ GNU Affero General Public License
 from __future__ import division
 import copy
 import numpy as np
+from pynfg import DecisionNode
 #from classes import *
-from iq_iterated import mh_decision
+from pynfg.pgtsolutions.intelligence.iq_iterated import mh_decision
 
 def iq_MC(G, S, X, M, integrand=None, mix=False):
     """Run MC outer loop on random policies for SemiNFG IQ calcs
@@ -37,7 +38,7 @@ def iq_MC(G, S, X, M, integrand=None, mix=False):
     """
     intel = {} #keys are dn names, vals are iq time series
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
-    dnlist = [d.name for d in G.nodes if isinstance(d, pynfg.DecisionNode)]
+    dnlist = [d.name for d in G.nodes if isinstance(d, DecisionNode)]
     for dn in dnlist:
         intel[dn] = []
     for s in xrange(S): #sampling S policy profiles
@@ -79,7 +80,7 @@ def iq_MH(G, S, X, M, noise, dens, integrand=None, mix=False, seed=[]):
        
     """
     intel = {} #keys are s in S, vals are iq dict (dict of dicts)
-    dnlist = [d.name for d in G.nodes if isinstance(d, pynfg.DecisionNode)]
+    dnlist = [d.name for d in G.nodes if isinstance(d, DecisionNode)]
     for dn in dnlist:
         intel[dn] = [0] #init intel dict
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)

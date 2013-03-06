@@ -14,7 +14,7 @@ GNU Affero General Public License
 from __future__ import division
 import copy
 import numpy as np
-#from classes import *
+from pynfg import DecisionNode
 import scipy.stats.distributions as randvars
 
 def iq_MC_iter(G, S, X, M, delta, integrand=None, mix=False):
@@ -45,7 +45,7 @@ def iq_MC_iter(G, S, X, M, delta, integrand=None, mix=False):
     intel = {} #keys are base names, vals vals are iq panel series
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
     bnlist = [d.basename for d in G.time_partition[T0] if \
-                                                isinstance(d, pynfg.DecisionNode)]
+                                                isinstance(d, DecisionNode)]
     for bn in bnlist: #preallocating iq dict entries
         intel[bn] = np.zeros((S,T-T0)) 
     for s in xrange(0,S): #sampling S sequences of policy profiles
@@ -95,7 +95,7 @@ def iq_MH_iter(G, S, X, M, noise, dens, delta, integrand=None, mix=False):
     intel = {} #keys are base names, vals are iq time step series
     # gather list of decision nodes in base game
     bnlist = [d.basename for d in G.time_partition[T0] if \
-                                                isinstance(d, pynfg.DecisionNode)]
+                                                isinstance(d, DecisionNode)]
     for bn in bnlist: #preallocating iq dict entries
         intel[bn] = [0]*[T-T0]
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)

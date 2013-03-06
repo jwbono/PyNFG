@@ -442,9 +442,9 @@ class SemiNFG(object):
     def draw_graph(self, subgraph=None):
         """Draw the DAG representing the topology of the SemiNFG.
 
-        :arg subgraph: (Optional) a set or list of nodes to be graphed. If not
+        :arg subgraph: (Optional) a set of nodes to be graphed. If not
            specified, all nodes are graphed.
-        :type subgraph: set or list
+        :type subgraph: set
         
         .. note::
             

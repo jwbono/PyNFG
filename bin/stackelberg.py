@@ -13,6 +13,7 @@ from __future__ import division
 
 from pynfg import DecisionNode, ChanceNode, DeterNode
 from pynfg import SemiNFG
+from pynfg.pgtsolutions.intelligence.iq import *
 import matplotlib.pyplot as plt
 import time
 
@@ -72,10 +73,10 @@ def welfare(G):
 def dens(i):
     return np.power(i,2)
 
-S = 20000
+S = 200
 X = 10
 M = 40
-burn = 1000
+burn = 10
 
 tipoff = time.time()
 intelMC, funcoutMC = iq_MC(G, S, X, M, integrand=welfare)

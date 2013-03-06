@@ -13,11 +13,12 @@ GNU Affero General Public License
 """
 from __future__ import division
 
+from pynfg import DecisionNode, DeterNode, ChanceNode
+from pynfg import SemiNFG, iterSemiNFG
 import numpy as np
-from nodes import *
-from seminfg import SemiNFG, iterSemiNFG
 import scipy.stats.distributions as randvars
-from rlsolutions import *
+from pynfg.rlsolutions.mcrl import *
+#from pynfg.iq_iterated import iq_MC_iter
 
 # boundaries of the grid
 west = 0
@@ -153,7 +154,9 @@ for n in G.bn_part['D2'][1:]:
     n.CPT = G.bn_part['D2'][0].CPT
 
 G.bn_part['D1'][0].uniformCPT()
-#G.draw_graph()
+
+drawlist = [F, D2, D1, Fseek, Fhide, C1, C2, G.bn_part['F'][G.endtime-1]]
+G.draw_graph(set(drawlist))
 NN = 100
 #        
 G1, returnfig = ewma_mcrl(G, 'D1', J=20, N=NN, alpha=0.7, delta=0.8, eps=0.1)
