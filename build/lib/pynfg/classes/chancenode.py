@@ -150,7 +150,7 @@ class ChanceNode(Node):
     def __str__(self):
         return self.name
         
-    def draw_value(self, parentinput={}, setvalue=True):
+    def draw_value(self, parentinput=None, setvalue=True):
         """Draw a value from the :class:`classes.ChanceNode` object
         
         :arg parentinput: Optional. Specify values of the parents at which to 
@@ -174,6 +174,8 @@ class ChanceNode(Node):
            must correspond to an item in the parent's space attribute. 
         
         """
+        if parentinput is None:
+            parentinput = {}
         if self.CPT is None:
             if not parentinput:
                 arglist = map(lambda x: x.value \
@@ -198,7 +200,7 @@ class ChanceNode(Node):
         else:
             return r
         
-    def prob(self, parentinput={}, valueinput=None):
+    def prob(self, parentinput=None, valueinput=None):
         """Compute the conditional probability of the current or specified value
         
         :arg parentinput: Optional. Specify values of the parents at which to 
@@ -220,6 +222,8 @@ class ChanceNode(Node):
            must correspond to an item in the parent's space attribute. 
         
         """
+        if parentinput is None:
+            parentinput = {}
         if valueinput is None:
             valueinput = self.value
         if self.CPT is None:
@@ -244,7 +248,7 @@ class ChanceNode(Node):
             r = self.CPT[indo]
         return r
         
-    def logprob(self, parentinput={}, valueinput=None):
+    def logprob(self, parentinput=None, valueinput=None):
         """Compute the conditional logprob of the current or specified value
         
         :arg parentinput: Optional. Specify values of the parents at which to 
@@ -268,6 +272,8 @@ class ChanceNode(Node):
         This is equivalent to ``np.log(ChanceNode.prob())``
         
         """
+        if parentinput is None:
+            parentinput = {}
         r = self.prob(parentinput, valueinput)
         return np.log(r)
         

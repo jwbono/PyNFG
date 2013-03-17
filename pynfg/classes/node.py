@@ -71,12 +71,9 @@ class Node(object):
             if par.continuous is True:
                 raise RuntimeError("The parent named %s is continuous!" %par.name)
                 
-    def dict2list_vals(self, parentinput={}, valueinput=None):
+    def dict2list_vals(self, parentinput=None, valueinput=None):
         """Convert parent/value dict entered by user to a list of values
         
-        :arg parentdict: the parents OrderedDict attribute for the node, e.g.
-           `:py:attr:DecisionNode.parents` or `:py:attr:ChanceNode.parents`
-        :type parentdict: dict
         :arg parentinput: Optional. Specify values of the parents. Keys are 
            parent names. Values are parent values. To specify values for only a 
            subset of the parents, only enter those parents in the dictionary. 
@@ -91,6 +88,8 @@ class Node(object):
            OrderedDict.
         
         """
+        if parentinput is None:
+            parentinput = {}
         valuelist = []
         for par in self.parents.values():
             if par.name in parentinput:
@@ -104,9 +103,9 @@ class Node(object):
     def get_CPTindex(self, values, onlyparents=False):
         """Get the CPT index that corresponds to the (parent, node) values
         
-        :arg parentdict: the parents OrderedDict attribute for the node, e.g.
+        :arg values: the parents OrderedDict attribute for the node, e.g.
            `:py:attr:DecisionNode.parents` or `:py:attr:ChanceNode.parents`
-        :type parentdict: dict
+        :type values: dict
         :arg onlyparents: set to true if 
         :type onlyparents: bool
         :arg values: a list whose members are values for the parents of the 

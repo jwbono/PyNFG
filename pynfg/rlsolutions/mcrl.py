@@ -13,6 +13,7 @@ GNU Affero General Public License
 """
 from __future__ import division
 import time
+import copy
 import numpy as np
 import matplotlib.pylab as plt
 
@@ -81,7 +82,7 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         for j in xrange(int(J[n])):
             visitj = set() #visitj must be cleared at the start of every run
             for t in xrange(T0,T):
-                G.bn_part[bn][t].CPT = G.bn_part[bn][T0].CPT
+                G.bn_part[bn][t].CPT = copy.copy(G.bn_part[bn][T0].CPT)
                 G.sample_timesteps(t, t) #sampling the timestep
                 rew = G.reward(player, t) #getting the reward
                 malist = G.bn_part[bn][t].dict2list_vals(valueinput= \
@@ -171,7 +172,7 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                 messages.add(mapair[:-1])
     # before exiting, match all of the timesteps to the final updated policy
     for tau in xrange(T0+1, T):
-            G.bn_part[bn][tau].CPT = G.bn_part[bn][T0].CPT
+            G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][T0].CPT)
     plt.plot(Rseries) #plotting Rseries to gauge convergence
     fig = plt.gcf() 
     plt.show()

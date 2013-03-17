@@ -58,7 +58,7 @@ nodeset = set([M,Q1,Q2,D])
 
 G = SemiNFG(nodeset, u_funcs)
 
-G.draw_graph()
+#G.draw_graph()
 
 G.node_dict['Q1'].randomCPT(mixed=False)
 G.node_dict['Q2'].randomCPT(mixed=False)
@@ -71,28 +71,33 @@ def welfare(G):
     w = G.utility('1')+G.utility('2')
     return w
     
-def dens(i):
-    return np.power(i,2)
+def density(iqdict):
+    x = iqdict.values()
+    y = np.power(x,2)
+    z = np.product(y)
+    return z
 
-S = 200
+S = 5000
 X = 10
 M = 40
-burn = 10
+burn = 500
 
 tipoff = time.time()
 intelMC, funcoutMC = iq_MC(G, S, X, M, integrand=welfare)
 halftime = time.time()
 print halftime-tipoff
-intelMH, funcoutMH = iq_MH(G, S, X, M, 0.2, dens, integrand=welfare)
+intelMH, funcoutMH, densMH = iq_MH(G, S, X, M, 0.2, density, integrand=welfare)
 buzzer = time.time()
 print 'MH as percent of total time: ',(buzzer-halftime)/(buzzer-tipoff)
 
-weightsMC = dens(intelMC['Q1'])
-weightsMH = dens(intelMH['Q1'][burn::])
+MCiqQ1 = [intelMC[s]['Q1'] for s in xrange(1,S+1)]
+MHiqQ1 = [intelMH[s]['Q1'] for s in xrange(1,S+1)]
+weightsMC = [density(intelMC[s]) for s in xrange(1,S+1)] 
+weightsMH = densMH[burn::]
 
 plt.figure()
-plt.hist(intelMC['Q1'], normed=True, weights=weightsMC)
-plt.hist(intelMH['Q1'][burn::], normed=True, weights=weightsMH)
+plt.hist(MCiqQ1, normed=True, weights=weightsMC)
+plt.hist(MHiqQ1[burn::], normed=True, weights=weightsMH)
 
 plt.figure()
 plt.hist(funcoutMC.values(), normed=True, weights=weightsMC)

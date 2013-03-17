@@ -203,7 +203,7 @@ class iterSemiNFG(SemiNFG):
         for bn in self.bn_part.keys():
             self.bn_part[bn].sort(key=lambda nod: nod.time)
 
-    def reward(self, player, t, nodeinput={}):
+    def reward(self, player, t, nodeinput=None):
         """Evaluate the reward of the specified player in the specified time.
 
         :arg player: The name of a player with a reward function specified.
@@ -215,6 +215,8 @@ class iterSemiNFG(SemiNFG):
         :type nodeinput: dict
         
         """
+        if nodeinput is None:
+            nodeinput = {}
         if not self.r_functions:
             raise AssertionError('This is a semi-Bayes net, not a semi-NFG')
         kw = {}
@@ -227,7 +229,7 @@ class iterSemiNFG(SemiNFG):
         r = self.r_functions[player](**kw)
         return r
     
-    def npv_reward(self, player, start, delta, nodeinput={}):
+    def npv_reward(self, player, start, delta, nodeinput=None):
         """Return the npv of rewards from start using delta discount factor
         
         :arg player: the name of the player to evaluate
@@ -239,6 +241,8 @@ class iterSemiNFG(SemiNFG):
         :arg nodeinput: Optional dict of node name, node values for use in 
            calculating the rewards
         """
+        if nodeinput is None:
+            nodeinput = {}
         count = 0
         npvreward = 0
         for t in range(start, self.endtime+1):
@@ -256,18 +260,15 @@ class iterSemiNFG(SemiNFG):
         :type stop: integer
         :arg basenames: (Optional) a list of strings that give the basenames 
            the user wants to collect as output. If omitted, there is no output.
-        :returns: a list of lists of values drawn from the joint distribution 
-           given by the net. The order of the lists in the return list is given 
-           by the time step, and the order of the values in the list is given 
-           by the order of the nodes in the attribute list 
-           :py:attr:`seminfg.iterSemiNFG.iterator`.
+        :returns: a dict keyed by base names in basenames input. Values are 
+           time series of values from start to stop of nodes that share that 
+           basename.
         
         .. warning::
            
            The decision nodes must have CPTs before using this function.
         
         """
-        values = []
         if stop==None or stop>self.endtime:
             stop = self.endtime
         if basenames:

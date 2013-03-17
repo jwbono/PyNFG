@@ -88,7 +88,7 @@ class DeterNode(Node):
     * :py:meth:`classes.DeterNode.logprob()`
         
     """
-    def __init__(self, name, func, params, continuous, space=[], \
+    def __init__(self, name, func, params, continuous, space=None, \
                  description='no description', time=None, basename=None, \
                  verbose=False):
         if verbose:
@@ -100,6 +100,8 @@ class DeterNode(Node):
         self.player = 'nature'
         self.dfunction = func
         self.params = params
+        if space is None:
+            space = []
         self.space = space
         self.parents = self._set_parent_dict(params.values())
         self.continuous = continuous
@@ -111,7 +113,7 @@ class DeterNode(Node):
     def __str__(self):
         return self.name
     
-    def draw_value(self, parentinput={}, setvalue=True):
+    def draw_value(self, parentinput=None, setvalue=True):
         """Draw a value from the :class:`classes.DeterNode` object
         
         This function computes the value of the deterministic node given the
@@ -137,6 +139,8 @@ class DeterNode(Node):
            must correspond to an item in the parent's space attribute. 
         
         """
+        if parentinput is None:
+            parentinput = {}
         funinput = {}
         for par in self.params:
             if self.params[par] in self.parents.values():
@@ -153,7 +157,7 @@ class DeterNode(Node):
         else:
             return r
         
-    def prob(self, parentinput={}, valueinput=None):
+    def prob(self, parentinput=None, valueinput=None):
         """Compute the probability of the current or specified value
         
         Note that since this is a deterministic node, the probability is always
@@ -179,7 +183,9 @@ class DeterNode(Node):
            legitimate values of the parent. For discrete parents, the values 
            must correspond to an item in the parent's space attribute. 
         
-        """       
+        """
+        if parentinput is None:
+            parentinput = {}
         funinput = {}
         for par in self.params:
             if par in self.parents:
@@ -197,7 +203,7 @@ class DeterNode(Node):
             r=0
         return r
         
-    def logprob(self, parentinput={}, valueinput=None):
+    def logprob(self, parentinput=None, valueinput=None):
         """Compute the conditional logprob of the current or specified value
         
 
@@ -230,6 +236,8 @@ class DeterNode(Node):
         This is equivalent to ``np.log(DeterNode.prob())``
         
         """
+        if parentinput is None:
+            parentinput = {}
         r = self.prob(parentinput, valueinput)
         return np.log(r)
         

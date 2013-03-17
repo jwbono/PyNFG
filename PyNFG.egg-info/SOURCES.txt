@@ -17,6 +17,7 @@ pynfg/classes/seminfg.py
 pynfg/pgtsolutions/__init__.py
 pynfg/pgtsolutions/intelligence/__init__.py
 pynfg/pgtsolutions/intelligence/iq.py
+pynfg/pgtsolutions/intelligence/iq_coord.py
 pynfg/pgtsolutions/intelligence/iq_iterated.py
 pynfg/rlsolutions/__init__.py
 pynfg/rlsolutions/mcrl.py

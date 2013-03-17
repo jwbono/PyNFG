@@ -18,11 +18,12 @@ from pynfg import SemiNFG, iterSemiNFG
 import numpy as np
 import scipy.stats.distributions as randvars
 from pynfg.rlsolutions.mcrl import *
+import time
 
 # boundaries of the grid
 west = 0
-east = 2
-north = 2
+east = 3
+north = 3
 south = 0
 
 # moves of the players
@@ -38,12 +39,12 @@ def adjust(location):
         location[0] = west
     elif location[0]>east:
         location[0] = east
-    
+        
     if location[1]<south:
         location[1] = south
     elif location[1]>north:
         location[1] = north
-    
+        
     return location
 
 # Combines start loc. and moves to give new loc. Used by DeterNode F
@@ -62,13 +63,13 @@ spaceseek = [np.array([[w,x], [y,z]]) for w in range(east+1) for x in \
 F = DeterNode('Froot0', newloc, paramsf, continuousf, space=spaceseek, \
                basename='Froot', time=0)
 # Observational noise for player 1, seeker
-CPT1 = np.array([0, 0, 0, 0, 1])
+CPT1 = np.array([.1, .1, .1, .1, .6])
 par1 = []
 space1 = [up, down, left, right, stay]
 CPTip1 = (CPT1, par1, space1)
 C1 = ChanceNode('C10', CPTip=CPTip1, basename='C1', time=0)
 # Observational noise for player 2, hider
-CPT2 = np.array([0, 0, 0, 0, 1])
+CPT2 = CPT1
 par2 = []
 space2 = [up, down, left, right, stay]
 CPTip2 = (CPT2, par2, space2)
@@ -105,7 +106,7 @@ F = DeterNode('F0', newloc, paramsf, continuousf, space=spaceseek,\
 nodeset.add(F)
 
 # iteratively building up the net               
-for t in range(1,10):
+for t in range(1,15):
                     
     C1 = ChanceNode('C1%s' %t, CPTip=CPTip1, basename='C1', time=t)
     nodeset.add(C1)
@@ -156,10 +157,11 @@ G.bn_part['D1'][0].uniformCPT()
 
 drawlist = [F, D2, D1, Fseek, Fhide, C1, C2, G.bn_part['F'][G.endtime-1]]
 G.draw_graph(set(drawlist))
-NN = 10
-#        
-G1, returnfig = ewma_mcrl(G, 'D1', J=20, N=NN, alpha=0.7, delta=0.8, eps=0.1)
-
+NN = 100
+#
+go = time.time()        
+G1, returnfig = ewma_mcrl(G, 'D1', J=40, N=NN, alpha=0.7, delta=0.8, eps=0.15)
+print time.time()-go
 #G1.sample_timesteps(G1.starttime)
 #
 #for t in range(G1.starttime, G1.endtime+1):

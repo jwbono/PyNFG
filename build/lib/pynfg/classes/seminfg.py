@@ -188,7 +188,7 @@ class SemiNFG(object):
         for n in S:
             self.iterator, visit_dict = top_visit(n, self.iterator, visit_dict)
 
-    def utility(self, player, nodeinput={}):
+    def utility(self, player, nodeinput=None):
         """Evaluate the utility of the specified player
 
         :arg player: The name of a player with a utility function specified.
@@ -200,6 +200,8 @@ class SemiNFG(object):
         :type nodeinput: dict
         
         """
+        if nodeinput is None:
+            nodeinput = {}
         if not self.u_functions:
             raise AssertionError('This is a semi-Bayes net, not a semi-NFG')
         kw = {}
@@ -371,7 +373,7 @@ class SemiNFG(object):
         for n in value_dict:
             self.node_dict[n].set_value(value_dict[n])
     
-    def loglike(self, nodeinput={}):
+    def loglike(self, nodeinput=None):
         """Compute the log likelihood of the net using the values in nodeinput.
         
         :arg nodeinput: Keys are node names. Values are node values. This 
@@ -397,13 +399,15 @@ class SemiNFG(object):
            The decision nodes must have CPTs before using this function.
            
         """
+        if nodeinput is None:
+            nodeinput = {}
         problist = []
         for n in self.nodes:
                 problist.append(n.logprob(nodeinput))
         r = np.sum(problist)
         return r
         
-    def sample(self, start=None):
+    def sample(self, start=None, nodenames=None):
         """Sample the net to obtain a draw from the joint distribution.
         
         :arg start: (Optional) if unspecified, the entire net will be sampled 
@@ -412,10 +416,8 @@ class SemiNFG(object):
            commence from the nodes in start and continue until all of the 
            descendants of the nodes in start have been sampled exactly once.
         :type start: list
-        :returns: a list of values drawn from the joint distribution given by 
-           the net. The order of the values in the list is given by the order 
-           of the nodes in the attribute list 
-           :py:attr:`seminfg.SemiNFG.iterator`.
+        :returns: a dict keyed by node names in nodenames input. Values are 
+           values of nodes in node names.
         
         .. warning::
            
@@ -423,21 +425,22 @@ class SemiNFG(object):
         
         """
         if not start:
-            values = []
             for n in self.iterator:
-                values.append(n.draw_value())
-            return values
+                n.draw_value()
         else:
             children = set()
-            values = []
             for n in start:
                 chidren = children.update(self.descendants(n))
             for n in self.iterator:
                 if n in children.union(set(start)):
-                    values.append(n.draw_value())
-                else: 
-                    values.append(n.value)
-            return values
+                    n.draw_value()
+        if nodenames:
+            outdict = dict(zip(nodenames, [self.node_dict[x].value for x in \
+                                                                    nodenames]))
+        else:
+            outdict = self.get_values()
+        return outdict
+        
             
     def draw_graph(self, subgraph=None):
         """Draw the DAG representing the topology of the SemiNFG.
