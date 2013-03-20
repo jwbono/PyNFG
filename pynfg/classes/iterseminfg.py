@@ -180,9 +180,9 @@ class iterSemiNFG(SemiNFG):
                 self.time_partition[n.time] = [n]
             else:
                 self.time_partition[n.time].append(n)
-        for t in range(self.endtime):
-            self.time_partition[t] = \
-                [n for n in self.iterator if n in self.time_partition[t]]
+#        for t in range(self.endtime):
+#            self.time_partition[t] = \
+#                [n for n in self.iterator if n in self.time_partition[t]]
                 
     def _set_bn_part(self):
         """Set the bn_part :py:attr:`seminfg.iterSemiNFG.bn_part`

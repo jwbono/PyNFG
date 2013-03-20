@@ -19,11 +19,12 @@ import numpy as np
 import scipy.stats.distributions as randvars
 from pynfg.rlsolutions.mcrl import *
 import time
+import copy
 
 # boundaries of the grid
 west = 0
-east = 3
-north = 3
+east = 2
+north = 2
 south = 0
 
 # moves of the players
@@ -32,6 +33,9 @@ down = np.array([0,-1])
 left = np.array([-1,0])
 right = np.array([1,0])
 stay = np.array([0,0])
+
+#time steps
+T = 12
 
 # a function that adjusts for moves off the grid
 def adjust(location):
@@ -67,13 +71,13 @@ CPT1 = np.array([.1, .1, .1, .1, .6])
 par1 = []
 space1 = [up, down, left, right, stay]
 CPTip1 = (CPT1, par1, space1)
-C1 = ChanceNode('C10', CPTip=CPTip1, basename='C1', time=0)
+C1 = ChanceNode('Cseek0', CPTip=CPTip1, basename='Cseek', time=0)
 # Observational noise for player 2, hider
 CPT2 = CPT1
 par2 = []
 space2 = [up, down, left, right, stay]
 CPTip2 = (CPT2, par2, space2)
-C2 = ChanceNode('C20', CPTip=CPTip2, basename='C2', time=0)
+C2 = ChanceNode('Chide0', CPTip=CPTip2, basename='Chide', time=0)
 # Combines observational noise and location to give a valid location on-grid.
 def adjust1(var1, var2):
     opponent = adjust(var1+var2[1]) 
@@ -92,11 +96,11 @@ paramshide = {'var1': C2, 'var2': F}
 Fhide = DeterNode('Fhide0', adjust2, paramshide, continuousseek,
               space=spaceseek, basename='Fhide', time=0)
 # DecisionNode for the seeker
-D1 = DecisionNode('D10', 'seeker', [up, down, left, right, stay], \
-                    parents=[Fseek], basename='D1', time=0)
+D1 = DecisionNode('Dseek0', 'seeker', [up, down, left, right, stay], \
+                    parents=[Fseek], basename='Dseek', time=0)
 # DecisionNode for the hider
-D2 = DecisionNode('D20', 'hider', [up, down, left, right, stay], \
-                    parents=[Fhide], basename='D2', time=0)
+D2 = DecisionNode('Dhide0', 'hider', [up, down, left, right, stay], \
+                    parents=[Fhide], basename='Dhide', time=0)
 
 nodeset = set([F,Fseek,Fhide,C1,C2,D1,D2])
 
@@ -106,12 +110,12 @@ F = DeterNode('F0', newloc, paramsf, continuousf, space=spaceseek,\
 nodeset.add(F)
 
 # iteratively building up the net               
-for t in range(1,15):
+for t in range(1,T+1):
                     
-    C1 = ChanceNode('C1%s' %t, CPTip=CPTip1, basename='C1', time=t)
+    C1 = ChanceNode('Cseek%s' %t, CPTip=CPTip1, basename='Cseek', time=t)
     nodeset.add(C1)
     
-    C2 = ChanceNode('C2%s' %t, CPTip=CPTip2, basename='C2', time=t)
+    C2 = ChanceNode('Chide%s' %t, CPTip=CPTip2, basename='Chide', time=t)
     nodeset.add(C2)
                     
     paramsseek = {'var1': C1, 'var2': F}
@@ -124,12 +128,12 @@ for t in range(1,15):
               space=spaceseek, basename='Fhide', time=t)
     nodeset.add(Fhide)
               
-    D1 = DecisionNode('D1%s' %t, 'seeker', [up, down, left, right, stay], \
-                    parents=[Fseek], basename='D1', time=t)
+    D1 = DecisionNode('Dseek%s' %t, 'seeker', [up, down, left, right, stay], \
+                    parents=[Fseek], basename='Dseek', time=t)
     nodeset.add(D1)
                     
-    D2 = DecisionNode('D2%s' %t, 'hider', [up, down, left, right, stay], \
-                    parents=[Fhide], basename='D2', time=t)
+    D2 = DecisionNode('Dhide%s' %t, 'hider', [up, down, left, right, stay], \
+                    parents=[Fhide], basename='Dhide', time=t)
     nodeset.add(D2)
     
     paramsf = {'var1': D1, 'var2': D2, 'var3': F}
@@ -149,18 +153,62 @@ def reward2(F=np.array([[1,0],[0,1]])):
 rfuncs = {'seeker': reward1, 'hider': reward2}
 G = iterSemiNFG(nodeset, rfuncs)
 
-G.bn_part['D2'][0].randomCPT(mixed=True)
-for n in G.bn_part['D2'][1:]:
-    n.CPT = G.bn_part['D2'][0].CPT
+for t in xrange(G.starttime, G.endtime+1):
+    G.bn_part['Dhide'][t].randomCPT(mixed=False)
+    G.bn_part['Dseek'][t].randomCPT(mixed=False)
 
-G.bn_part['D1'][0].uniformCPT()
+drawset = set(G.time_partition[0]).union(set(G.time_partition[1]))
+G.draw_graph(drawset)
 
-drawlist = [F, D2, D1, Fseek, Fhide, C1, C2, G.bn_part['F'][G.endtime-1]]
-G.draw_graph(set(drawlist))
-NN = 100
+def density(iq):
+    x = iq.values()
+    y = np.power(x, 2)
+    z = np.prod(y)
+    return z
+
+def captures(G):
+    T0 = G.starttime
+    T = G.endtime
+    num_captures = G.npv_reward('seeker', T0, 1)
+    return num_captures/(T-T0)
+
+S = 100
+X = 10
+M = 40
+delta = 1
+noise = 1
+burn = 20
+go = time.time()
+
+#intelMC, funcoutMC, weightMC = iq_MC_coord(G, S, X, M, noise, innoise=1, \
+#                                                            integrand=captures)
+#weightlist = np.array([weightMC[s]['hider']**-1 for s in xrange(1, S+1)])                                                           
+#probMC = weightlist/np.sum(weightlist)
 #
-go = time.time()        
-G1, returnfig = ewma_mcrl(G, 'D1', J=40, N=NN, alpha=0.7, delta=0.8, eps=0.15)
+#iqhiderMC = [intelMC[s]['hider'] for s in xrange(1,S+1)]
+#plt.figure()
+#plt.hist(iqhiderMC, normed=True, weights=probMC)
+#
+#social_welfare = [funcoutMC[s] for s in xrange(1,S+1)]
+#plt.figure()
+#plt.hist(social_welfare, normed=True, weights=probMC) 
+#
+#print time.time()-go
+
+intelMH, funcoutMH, densMH = iq_MH_coord(G, S, X, M, density, noise, \
+                                                innoise=.4, integrand=captures)
+                                                
+iqhiderMH = [intelMH[s]['hider'] for s in xrange(1,S+1)]
+weightMH = densMH[burn::]
+plt.figure()
+plt.hist(iqhiderMH[burn::], normed=True, weights=weightMH)
+
+social_welfare = [funcoutMH[s] for s in xrange(1,S+1)]
+plt.figure()
+plt.hist(social_welfare[burn::], normed=True, weights=weightMH)
+#
+#go = time.time()        
+#G1, returnfig = ewma_mcrl(G, 'D1', J=40, N=NN, alpha=0.7, delta=0.8, eps=0.15)
 print time.time()-go
 #G1.sample_timesteps(G1.starttime)
 #

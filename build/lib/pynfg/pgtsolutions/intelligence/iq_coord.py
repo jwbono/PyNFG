@@ -112,7 +112,6 @@ def iq_MH_coord(G, S, X, M, density, noise, innoise=1, delta=1, \
         for p in GG.players:
             iq[p] = iq_calc_coord(p, GG, X, M, mix, delta, innoise) #getting iq
         # The MH decision
-        import pdb; pdb.set_trace()
         current_dens = density(iq)
         verdict = mh_decision(current_dens, dens[s-1])
         if verdict: #accepting new CPT
@@ -160,7 +159,11 @@ def iq_calc_coord(p, G, X, M, mix, delta, innoise):
         GG = copy.deepcopy(G)
         for dn in GG.partition[p]: #rand CPT for the DN
             #density for the importance sampling distribution
-            denw = dn.perturbCPT(innoise, mixed=mix, returnweight=True)
+            if innoise == 1:
+                dn.perturbCPT(innoise, mixed=mix)
+                denw=1
+            else:
+                denw = dn.perturbCPT(innoise, mixed=mix, returnweight=True)
             if not tick:  
                 numw = denw #scaling constant num to ~ magnitude of den
             weight[m] *= (numw/denw)

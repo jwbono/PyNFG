@@ -112,7 +112,6 @@ def iq_MH_coord(G, S, X, M, density, noise, innoise=1, delta=1, \
         for p in GG.players:
             iq[p] = iq_calc_coord(p, GG, X, M, mix, delta, innoise) #getting iq
         # The MH decision
-        import pdb; pdb.set_trace()
         current_dens = density(iq)
         verdict = mh_decision(current_dens, dens[s-1])
         if verdict: #accepting new CPT

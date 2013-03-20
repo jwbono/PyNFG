@@ -18,6 +18,7 @@ import scipy as sp
 import networkx as nx
 import inspect
 import matplotlib.pyplot as plt
+from pynfg import DecisionNode, DeterNode, ChanceNode
 
 class SemiNFG(object):
     """Implements the semi-NFG formalism created by D. Wolpert
@@ -463,5 +464,6 @@ class SemiNFG(object):
                 G.add_edge(n.name,child.name)
         pos = nx.spring_layout(G, iterations=100)
  #       nx.draw_networkx(G, pos)
-        nx.draw_graphviz(G, prog='dot')
+        fig = nx.draw_graphviz(G, prog='dot')
         plt.show()
+        return fig

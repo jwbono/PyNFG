@@ -65,6 +65,8 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     shape_last = shape[-1]
     if uni:
         G.bn_part[bn][T0].uniformCPT() #starting with a uniform CPT
+    for dn in G.bn_part[bn]: #pointing all CPTs to T0, i.e. single policy
+        dn.CPT = G.bn_part[bn][T0].CPT
     visit = set() #dict of the messages and mapairs visited throughout training
     R = 0 #average reward
     A = 0 #normalizing constant for average reward
@@ -82,7 +84,7 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         for j in xrange(int(J[n])):
             visitj = set() #visitj must be cleared at the start of every run
             for t in xrange(T0,T):
-                G.bn_part[bn][t].CPT = copy.copy(G.bn_part[bn][T0].CPT)
+                #G.bn_part[bn][t].CPT = copy.copy(G.bn_part[bn][T0].CPT)
                 G.sample_timesteps(t, t) #sampling the timestep
                 rew = G.reward(player, t) #getting the reward
                 malist = G.bn_part[bn][t].dict2list_vals(valueinput= \
@@ -170,8 +172,7 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                 G.bn_part[bn][T0].CPT[mapair[:-1],:] = 0
                 G.bn_part[bn][T0].CPT[mapair[:-1],ind]=1
                 messages.add(mapair[:-1])
-    # before exiting, match all of the timesteps to the final updated policy
-    for tau in xrange(T0+1, T):
+    for tau in xrange(T0+1, T): #before exit, make CPTs independent in memory
             G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][T0].CPT)
     plt.plot(Rseries) #plotting Rseries to gauge convergence
     fig = plt.gcf() 
