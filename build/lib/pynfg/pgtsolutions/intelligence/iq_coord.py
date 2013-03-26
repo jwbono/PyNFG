@@ -14,21 +14,21 @@ import copy
 import numpy as np
 from pynfg import DecisionNode, iterSemiNFG
 
-def iq_MC_coord(G, S, X, M, noise, innoise=1, delta=1, integrand=None, \
-                mix=False):
-    """Run MC outer loop on random policies for SemiNFG IQ calcs
+def iq_MC_coord(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
+                mix=False, satisfice=None):
+    """Run MC outer loop on random strategy sequences for SemiNFG IQ calcs
     
     :arg G: the semiNFG to be evaluated
     :type G: SemiNFG
     :arg S: number of policy profiles to sample
     :type S: int
-    :arg X: number of samples of each policy profile
-    :type X: int
-    :arg M: number of random alt policies to compare
     :type M: int
     :arg noise: the degree of independence of the proposal distribution on the 
        current value. 1 is independent, 0 returns no perturbation.
     :type noise: float
+    :arg X: number of samples of each policy profile
+    :type X: int
+    :arg M: number of random alt policies to compare
     :arg innoise: the perturbation noise for the loop within iq_calc to draw 
        alt CPTs to compare utilities to current CPT.
     :type innoise: float
@@ -58,30 +58,30 @@ def iq_MC_coord(G, S, X, M, noise, innoise=1, delta=1, integrand=None, \
             for dn in GG.partition[p]: #drawing current policy
                 w[p] *= dn.perturbCPT(noise, mixed=mix, returnweight=True) 
         for p in GG.players: #find the iq of each player's policy in turn
-            iq[p] = iq_calc_coord(p, GG, X, M, mix, delta, innoise)
+            iq[p] = iq_calc_coord(p, GG, X, M, mix, delta, innoise, satisfice)
         if integrand is not None:
             funcout[s] = integrand(GG) #eval integrand G(s), assign to funcout
         intel[s] = copy.deepcopy(iq)
         weight[s] = copy.deepcopy(w)
     return intel, funcout, weight
     
-def iq_MH_coord(G, S, X, M, density, noise, innoise=1, delta=1, \
-                integrand=None, mix=False):
-    """Run MH for SemiNFG with IQ calcs
+def iq_MH_coord(G, S, density, noise, X, M, innoise=1, delta=1, \
+                integrand=None, mix=False, satisfice=None):
+    """Run MH outer loop on random strategy sequences for SemiNFG IQ calcs
     
     :arg G: the SemiNFG to be evaluated
     :type G: SemiNFG
     :arg S: number of MH iterations
     :type S: int
-    :arg X: number of samples of each policy profile
-    :type X: int
-    :arg M: number of random alt policies to compare
-    :type M: int
     :arg density: the function that assigns weights to iq
     :type density: func
     :arg noise: the degree of independence of the proposal distribution on the 
        current value. 1 is independent, 0 returns no perturbation.
     :type noise: float
+    :arg X: number of samples of each policy profile
+    :type X: int
+    :arg M: number of random alt policies to compare
+    :type M: int
     :arg innoise: the perturbation noise for the loop within iq_calc to draw 
        alt CPTs to compare utilities to current CPT.
     :type innoise: float
@@ -105,12 +105,13 @@ def iq_MH_coord(G, S, X, M, density, noise, innoise=1, delta=1, \
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
     dens = np.zeros(S+1) #storing densities for return
     for s in xrange(1, S+1): #sampling S sequences of policy profiles
+        print s
         GG = copy.deepcopy(G)
         for p in GG.players:
             for dn in GG.partition[p]: #drawing current policy 
                 dn.perturbCPT(noise, mixed=mix, setCPT=False) 
-        for p in GG.players:
-            iq[p] = iq_calc_coord(p, GG, X, M, mix, delta, innoise) #getting iq
+        for p in GG.players:#getting iq
+            iq[p] = iq_calc_coord(p, GG, X, M, mix, delta, innoise, satisfice) 
         # The MH decision
         current_dens = density(iq)
         verdict = mh_decision(current_dens, dens[s-1])
@@ -125,7 +126,7 @@ def iq_MH_coord(G, S, X, M, density, noise, innoise=1, delta=1, \
             funcout[s] = integrand(G) #eval integrand G(s), assign to funcout
     return intel, funcout, dens[1::]
     
-def iq_calc_coord(p, G, X, M, mix, delta, innoise):
+def iq_calc_coord(p, G, X, M, mix, delta, innoise, satisfice=None):
     """Calc IQ of player p in G across all of p's decision nodes
     
     :arg p: the name of the player whose intelligence is being evaluated.
@@ -155,11 +156,13 @@ def iq_calc_coord(p, G, X, M, mix, delta, innoise):
     altutil = [0]*M
     weight = np.ones(M)
     tick = 0
+    if satisfice: #using the satisficing distribution for drawing alternatives
+        G = satisfice
     for m in range(M): #Sample M alt policies for the player
         GG = copy.deepcopy(G)
         for dn in GG.partition[p]: #rand CPT for the DN
             #density for the importance sampling distribution
-            if innoise == 1:
+            if innoise == 1 or satisfice:
                 dn.perturbCPT(innoise, mixed=mix)
                 denw=1
             else:
@@ -174,7 +177,7 @@ def iq_calc_coord(p, G, X, M, mix, delta, innoise):
         else:
             altutil[m] = GG.utility(p)
     #weight of alts worse than G
-    worse = [weight[m] for m in range(M) if altutil[m]<=util]
+    worse = [weight[m] for m in range(M) if altutil[m]<util]
     return np.sum(worse)/np.sum(weight) #fraction of alts worse than G is IQ
     
 def mh_decision(pnew, pold, qnew=1, qold=1):

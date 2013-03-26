@@ -76,6 +76,7 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     V = np.zeros(shape[:-1]) #Value table
     Rseries = np.zeros(N) #tracking average reward for plotting convergence
     for n in xrange(N):
+        import pdb; pdb.set_trace()
         print n
         indicaten = np.zeros(Q.shape) #indicates visited mapairs
         visitn = set() #dict of messages and mapairs visited in episode n

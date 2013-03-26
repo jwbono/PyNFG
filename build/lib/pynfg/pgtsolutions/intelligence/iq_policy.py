@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Implements coordinated PGT intelligence for SemiNFG object
+Implements PGT intelligence for policies for SemiNFG objects
 
-Created on Tue Mar 12 17:38:37 2013
+Created on Fri Mar 22 15:32:33 2013
 
 Copyright (C) 2013 James Bono (jwbono@gmail.com)
 
 GNU Affero General Public License
 
 """
+
 from __future__ import division
 import copy
 import numpy as np
 from pynfg import DecisionNode, iterSemiNFG
 
-def iq_MC_coord(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
+def iq_MC_policy(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
                 mix=False, satisfice=None):
-    """Run MC outer loop on random strategy sequences for SemiNFG IQ calcs
+    """Run MC outer loop on random policies for SemiNFG IQ calcs
     
     :arg G: the semiNFG to be evaluated
     :type G: SemiNFG
@@ -51,23 +52,31 @@ def iq_MC_coord(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
     weight = {}
     w = {}
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
+    bndict = {}
+    T0 = G.starttime
+    for p in G.players: #getting player-keyed dict of basenames
+        bndict[p] = [x.basename for x in G.partition[p] if x.time==T0]
     for s in xrange(1, S+1): #sampling S policy profiles
+        print s
         GG = copy.deepcopy(G)
-        for p in GG.players:
+        for p in G.players:
             w[p] = 1
-            for dn in GG.partition[p]: #drawing current policy
-                w[p] *= dn.perturbCPT(noise, mixed=mix, returnweight=True) 
-        for p in GG.players: #find the iq of each player's policy in turn
-            iq[p] = iq_calc_coord(p, GG, X, M, mix, delta, innoise, satisfice)
+            for bn in bndict[p]:
+                w[p] *= GG.bn_part[bn][T0].perturbCPT(noise, mixed=mix, \
+                                                            returnweight=True)
+#                for dn in GG.bn_part[bn][T0+1:]:
+#                    dn.CPT = GG.bn_part[bn][T0].CPT
+        for p in G.players: #find the iq of each player's policy in turn
+            iq[p] = iq_calc_policy(p, GG, X, M, mix, delta, innoise, satisfice)
         if integrand is not None:
             funcout[s] = integrand(GG) #eval integrand G(s), assign to funcout
         intel[s] = copy.deepcopy(iq)
         weight[s] = copy.deepcopy(w)
     return intel, funcout, weight
     
-def iq_MH_coord(G, S, density, noise, X, M, innoise=1, delta=1, \
+def iq_MH_policy(G, S, density, noise, X, M, innoise=1, delta=1, \
                 integrand=None, mix=False, satisfice=None):
-    """Run MH outer loop on random strategy sequences for SemiNFG IQ calcs
+    """Run MH for SemiNFG with IQ calcs
     
     :arg G: the SemiNFG to be evaluated
     :type G: SemiNFG
@@ -104,12 +113,16 @@ def iq_MH_coord(G, S, density, noise, X, M, innoise=1, delta=1, \
     iq = {} #keys are base names, iq timestep series
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
     dens = np.zeros(S+1) #storing densities for return
+    bndict = {}
+    T0 = G.starttime
+    for p in G.players: #getting player-keyed dict of basenames
+        bndict[p] = [x.basename for x in G.partition[p] if x.time==T0]
     for s in xrange(1, S+1): #sampling S sequences of policy profiles
         print s
         GG = copy.deepcopy(G)
-        for p in GG.players:
-            for dn in GG.partition[p]: #drawing current policy 
-                dn.perturbCPT(noise, mixed=mix, setCPT=False) 
+        for p in G.players:
+            for bn in bndict[p]:
+                GG.bn_part[bn][T0].perturbCPT(noise, mixed=mix) 
         for p in GG.players:#getting iq
             iq[p] = iq_calc_coord(p, GG, X, M, mix, delta, innoise, satisfice) 
         # The MH decision
@@ -126,7 +139,7 @@ def iq_MH_coord(G, S, density, noise, X, M, innoise=1, delta=1, \
             funcout[s] = integrand(G) #eval integrand G(s), assign to funcout
     return intel, funcout, dens[1::]
     
-def iq_calc_coord(p, G, X, M, mix, delta, innoise, satisfice=None):
+def iq_calc_policy(p, G, X, M, mix, delta, innoise, satisfice=None):
     """Calc IQ of player p in G across all of p's decision nodes
     
     :arg p: the name of the player whose intelligence is being evaluated.
@@ -156,21 +169,27 @@ def iq_calc_coord(p, G, X, M, mix, delta, innoise, satisfice=None):
     altutil = [0]*M
     weight = np.ones(M)
     tick = 0
+    T0 = G.starttime
+    bnlist = [x.basename for x in G.partition[p] if x.time==T0]
     if satisfice: #using the satisficing distribution for drawing alternatives
         G = satisfice
     for m in range(M): #Sample M alt policies for the player
         GG = copy.deepcopy(G)
-        for dn in GG.partition[p]: #rand CPT for the DN
+        denw = 1
+        for bn in bnlist: #rand CPT for the DN
             #density for the importance sampling distribution
             if innoise == 1 or satisfice:
-                dn.perturbCPT(innoise, mixed=mix)
-                denw=1
+                GG.bn_part[bn][T0].perturbCPT(innoise, mixed=mix)
             else:
-                denw = dn.perturbCPT(innoise, mixed=mix, returnweight=True)
+                denw *= GG.bn_part[bn][T0].perturbCPT(innoise, mixed=mix, \
+                                                        returnweight=True)
             if not tick:  
                 numw = denw #scaling constant num to ~ magnitude of den
             weight[m] *= (numw/denw)
             tick += 1
+#            import pdb; pdb.set_trace()
+#            for dn in GG.bn_part[bn][T0+1:]:
+#                dn.CPT = GG.bn_part[bn][T0].CPT
         GG.sample() #sample altpolicy prof. to end of net
         if isinstance(GG, iterSemiNFG):
             altutil[m] = GG.npv_reward(p, GG.starttime, delta)

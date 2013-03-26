@@ -18,6 +18,7 @@ from pynfg import SemiNFG, iterSemiNFG
 import numpy as np
 import scipy.stats.distributions as randvars
 from pynfg.rlsolutions.mcrl import *
+from pynfg.pgtsolutions.intelligence.iq_coord import *
 import time
 import copy
 
@@ -153,9 +154,11 @@ def reward2(F=np.array([[1,0],[0,1]])):
 rfuncs = {'seeker': reward1, 'hider': reward2}
 G = iterSemiNFG(nodeset, rfuncs)
 
-for t in xrange(G.starttime, G.endtime+1):
-    G.bn_part['Dhide'][t].randomCPT(mixed=False)
-    G.bn_part['Dseek'][t].randomCPT(mixed=False)
+G.bn_part['Dhide'][0].randomCPT()
+G.bn_part['Dseek'][0].randomCPT()
+for t in xrange(G.starttime+1, G.endtime+1):
+    G.bn_part['Dhide'][t].CPT = copy.copy(G.bn_part['Dhide'][0].CPT)
+    G.bn_part['Dseek'][t].CPT = copy.copy(G.bn_part['Dseek'][0].CPT)
 
 drawset = set(G.time_partition[0]).union(set(G.time_partition[1]))
 G.draw_graph(drawset)
@@ -169,18 +172,19 @@ def density(iq):
 def captures(G):
     T0 = G.starttime
     T = G.endtime
+    G.sample()
     num_captures = G.npv_reward('seeker', T0, 1)
     return num_captures/(T-T0)
 
-S = 100
+S = 1000
 X = 10
-M = 40
+M = 30
 delta = 1
-noise = 1
-burn = 20
+noise = .1
+burn = 200
 go = time.time()
 
-#intelMC, funcoutMC, weightMC = iq_MC_coord(G, S, X, M, noise, innoise=1, \
+#intelMC, funcoutMC, weightMC = iq_MC_coord(G, S, noise, X, M, innoise=1, \
 #                                                            integrand=captures)
 #weightlist = np.array([weightMC[s]['hider']**-1 for s in xrange(1, S+1)])                                                           
 #probMC = weightlist/np.sum(weightlist)
@@ -193,9 +197,8 @@ go = time.time()
 #plt.figure()
 #plt.hist(social_welfare, normed=True, weights=probMC) 
 #
-#print time.time()-go
 
-intelMH, funcoutMH, densMH = iq_MH_coord(G, S, X, M, density, noise, \
+intelMH, funcoutMH, densMH = iq_MH_coord(G, S, density, noise, X, M, \
                                                 innoise=.4, integrand=captures)
                                                 
 iqhiderMH = [intelMH[s]['hider'] for s in xrange(1,S+1)]
@@ -207,9 +210,13 @@ social_welfare = [funcoutMH[s] for s in xrange(1,S+1)]
 plt.figure()
 plt.hist(social_welfare[burn::], normed=True, weights=weightMH)
 #
-#go = time.time()        
-#G1, returnfig = ewma_mcrl(G, 'D1', J=40, N=NN, alpha=0.7, delta=0.8, eps=0.15)
-print time.time()-go
+#N=80
+#
+#G1, returnfig = ewma_mcrl(G, 'Dseek', np.linspace(30,1,N), N, \
+#                        np.linspace(1,1,N), 1, np.linspace(.2,1,N), uni=True, \
+#                        pureout=True)
+print (time.time()-go)/60
+#captures(G1)
 #G1.sample_timesteps(G1.starttime)
 #
 #for t in range(G1.starttime, G1.endtime+1):

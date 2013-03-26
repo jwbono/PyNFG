@@ -184,7 +184,7 @@ noise = .1
 burn = 200
 go = time.time()
 
-#intelMC, funcoutMC, weightMC = iq_MC_coord(G, S, X, M, noise, innoise=1, \
+#intelMC, funcoutMC, weightMC = iq_MC_coord(G, S, noise, X, M, innoise=1, \
 #                                                            integrand=captures)
 #weightlist = np.array([weightMC[s]['hider']**-1 for s in xrange(1, S+1)])                                                           
 #probMC = weightlist/np.sum(weightlist)
@@ -198,7 +198,7 @@ go = time.time()
 #plt.hist(social_welfare, normed=True, weights=probMC) 
 #
 
-intelMH, funcoutMH, densMH = iq_MH_coord(G, S, X, M, density, noise, \
+intelMH, funcoutMH, densMH = iq_MH_coord(G, S, density, noise, X, M, \
                                                 innoise=.4, integrand=captures)
                                                 
 iqhiderMH = [intelMH[s]['hider'] for s in xrange(1,S+1)]
