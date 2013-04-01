@@ -134,10 +134,7 @@ class ChanceNode(Node):
             self.CPT = None
             self.distribution = distip[0]
             self.params = distip[1]
-            parlist = filter(lambda x: type(x) is DecisionNode \
-                         or type(x) is ChanceNode \
-                         or type(x) is DeterNode, \
-                         self.params)
+            parlist = filter(lambda x: isinstance(x,Node), self.params)
             self.parents = self._set_parent_dict(parlist)
             self.continuous = (randvars.rv_continuous in \
                                 inspect.getmro(type(self.distribution)))
@@ -178,13 +175,11 @@ class ChanceNode(Node):
             parentinput = {}
         if self.CPT is None:
             if not parentinput:
-                arglist = map(lambda x: x.value \
-                              if type(x) in (DecisionNode, ChanceNode, DeterNode) \
-                              else x, self.params)
+                arglist = map(lambda x: x.value 
+                              if isinstance(x,Node) else x, self.params)
             else:
                 arglist = map(lambda x: parentinput[x.name] \
-                              if type(x) in (DecisionNode, ChanceNode, DeterNode) \
-                              else x, self.params)
+                              if isinstance(x,Node) else x, self.params)
             argtuple = tuple(arglist)
             r = self.distribution.rvs(*argtuple)
         else:
@@ -229,12 +224,10 @@ class ChanceNode(Node):
         if self.CPT is None:
             if not parentinput:
                 arglist = map(lambda x: x.value \
-                              if type(x) in (DecisionNode, ChanceNode, DeterNode) \
-                              else x, self.params)
+                              if isinstance(x,Node) else x, self.params)
             else:
                 arglist = map(lambda x: parentinput[x.name] \
-                              if type(x) in (DecisionNode, ChanceNode, DeterNode) \
-                              else x, self.params)
+                              if isinstance(x,Node) else x, self.params)
             args = tuple(arglist)
             if self.continuous:
                 r = self.distribution.pdf(valueinput, *args)

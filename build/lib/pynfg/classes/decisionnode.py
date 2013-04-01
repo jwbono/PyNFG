@@ -212,7 +212,7 @@ class DecisionNode(Node):
             yy = np.sort(y, axis=-1)
             z = np.diff(yy, axis=-1)/M
         if setCPT:
-            self.CPT = z
+            self.CPT[:] = z
         else:
             return z
             
@@ -228,7 +228,7 @@ class DecisionNode(Node):
         z = np.zeros(self.CPT.shape)
         z += 1/(self.CPT.shape[-1])
         if setCPT:
-            self.CPT = z
+            self.CPT[:] = z
         else:
             return z
         
@@ -254,30 +254,31 @@ class DecisionNode(Node):
         :type sliver: dict
         
         """
+        copiedCPT = copy.copy(self.CPT)
         weight = 1
         if not mixed: #pure CPT
             if not sliver: #perturbing the whole CPT
                 if returnweight:
-                    z, weight = perturbpure(self.CPT, noise, returnweight)
+                    copiedCPT, weight = perturbpure(copiedCPT, noise, \
+                                                    returnweight)
                 else:
-                    z = perturbpure(self.CPT, noise, returnweight)
+                    copiedCPT = perturbpure(copiedCPT, noise, returnweight)
             else:
-                z = copy.deepcopy(self.CPT)
                 for par in self.parents:
                     if par not in sliver:
                         sliver[par] = self.parents[par].value
                 parlist = self.dict2list_vals(sliver)
                 ind = self.get_CPTindex(parlist, onlyparents=True)
-                zeroind = np.nonzero(z[ind]==0)
+                zeroind = np.nonzero(copiedCPT[ind]==0)
                 if len(actind) == 0:
                     raise ValueError('The specified sliver has no 0 entries')
                 newactind = np.random.uniform(0,len(actind))
-                z[ind] = np.zeros(len(z.CPT[ind]))
-                z[ind][zeroind[newactind]] = 1
+                copiedCPT[ind] = np.zeros(len(copiedCPT[ind]))
+                copiedCPT[ind][zeroind[newactind]] = 1
         else: #mixed CPT
             randCPT = self.randomCPT(mixed=True, setCPT=False)
             if not sliver: #perturbing the whole thing
-                z = self.CPT*(1-noise) + randCPT*noise
+                copiedCPT = copiedCPT*(1-noise) + randCPT*noise
             else: #perturbing only sliver
                 ind = []
                 for par in self.parents:
@@ -291,17 +292,17 @@ class DecisionNode(Node):
                                                         self.parents[par].space]
                         ind.append(truth.index(True))
                 indo = tuple(ind)
-                z = self.CPT
-                z[indo] = z[indo]*(1-noise) + randCPT[indo]*noise
+                copiedCPT[indo] = copiedCPT[indo]*(1-noise) + \
+                                                            randCPT[indo]*noise
         if setCPT:
-            self.CPT = z
+            self.CPT[:] = copiedCPT
             if returnweight:
                 return weight
         else:
             if returnweight:
-                return z, weight
+                return copiedCPT, weight
             else:
-                return z
+                return copiedCPT
         
     def prob(self, parentinput=None, valueinput=None):
         """Compute the conditional probability of the current or specified value
@@ -405,7 +406,7 @@ class DecisionNode(Node):
         
 def perturbpure(CPT, noise, returnweight):
     # Generate noise for each possible combination of parent node values and reshape
-    oldCPT = copy.deepcopy(CPT)
+    CPT = copy.copy(oldCPT)
     shape = CPT.shape
     nmessages = np.prod(shape[:-1])
     noises = np.random.random((nmessages))

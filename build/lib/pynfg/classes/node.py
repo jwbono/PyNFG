@@ -118,6 +118,7 @@ class Node(object):
         ind = []
         i = 0
         for par in self.parents.values():
+            import pdb; pdb.set_trace()
             if type(par.space[0]==values[i]) is bool:
                 ind.append(par.space.index(values[i]))
             else:

@@ -143,7 +143,7 @@ class DeterNode(Node):
             parentinput = {}
         funinput = {}
         for par in self.params:
-            if self.params[par] in self.parents.values():
+            if isinstance(self.params[par],Node):
                 if par in parentinput:
                     funinput[par] = pareninput[par].value
                 else:
