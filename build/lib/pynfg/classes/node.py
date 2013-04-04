@@ -81,8 +81,8 @@ class Node(object):
            values are used for the remaining parents.
         :type parentinput: dict
         :arg valueinput: Optional. A legitimate value of the decision node 
-           object. If no valueinput is specified, then the output does not include a 
-           value for the node itself.
+           object. If no valueinput is specified, then the output does not 
+           include a value for the node itself.
         :returns: a list of the values for the parents and the decision node 
            itself in the order determine by the :py:attr:DecisionNode.parents` 
            OrderedDict.
@@ -95,7 +95,7 @@ class Node(object):
             if par.name in parentinput:
                 valuelist.append(parentinput[par.name]) 
             else:            
-                valuelist.append(par.value) 
+                valuelist.append(par.get_value()) 
         if valueinput is not None:
             valuelist.append(valueinput)
         return valuelist
@@ -103,14 +103,13 @@ class Node(object):
     def get_CPTindex(self, values, onlyparents=False):
         """Get the CPT index that corresponds to the (parent, node) values
         
-        :arg values: the parents OrderedDict attribute for the node, e.g.
-           `:py:attr:DecisionNode.parents` or `:py:attr:ChanceNode.parents`
-        :type values: dict
-        :arg onlyparents: set to true if 
-        :type onlyparents: bool
         :arg values: a list whose members are values for the parents of the 
            decision node and the decision node itself, in the order given by 
            the `:py:attr:DecisionNode.parents` OrderedDict
+        :type values: list
+        :arg onlyparents: set to true if only parent indices are desired, i.e.
+           the returned index slices into the last dimension of the CPT
+        :type onlyparents: bool
            
         """
         if self.continuous:
@@ -118,17 +117,92 @@ class Node(object):
         ind = []
         i = 0
         for par in self.parents.values():
-            if type(par.space[0]==values[i]) is bool:
-                ind.append(par.space.index(values[i]))
-            else:
-                truth = [(x==values[i]).all() for x in par.space]
-                ind.append(truth.index(True))
-            i += 1
-        if not onlyparents:
-            if type(self.space[0]==values[-1]) is bool:
-                ind.append(self.space.index(values[-1]))
-            else:
-                truth = [(x==values[-1]).all() for x in self.space]
-                ind.append(truth.index(True))
+            ind.append(par.valueindex)
+#            if isinstance(par.space[0]==values[i], bool):
+#                ind.append(par.space.index(values[i]))
+#            else:
+#                truth = [(x==values[i]).all() for x in par.space]
+#                ind.append(truth.index(True))
+#            i += 1
+#        if not onlyparents:
+#            if isinstance(self.space[0]==values[-1], bool):
+#                ind.append(self.space.index(values[-1]))
+#            else:
+#                truth = [(x==values[-1]).all() for x in self.space]
+#                ind.append(truth.index(True))
         indo = tuple(ind)
         return indo
+        
+    def set_value(self, value):
+        """Set the current value of the Node object
+        
+        :arg value: a legitimate value of the Node object, i.e. the 
+           value must be in :py:attr:`classes.Node.space`.
+        
+        .. warning::
+            
+           When arbitrarily setting values, some children may have zero 
+           probability given their parents. This means the logprob may be -inf. 
+           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a 
+           divide by zero error.
+        
+        """
+        if not self.continuous:
+            self.set_valueindex(value)
+        self.value = value                
+        
+    def set_valueindex(self, value):
+        """Set the valueindex attribute of the discrete Node object
+        
+        :arg value: a legitimate value of the Node object, i.e. the value must 
+           be in :py:attr:`classes.Node.space`. Otherwise an error occurs
+        
+        """
+        if isinstance(value==self.space[0], bool):
+            try: 
+                self.valueindex = self.space.index(value)
+            except ValueError:
+                print 'the value %s is not in the space of %s' \
+                        %(str(value),self.name)
+        else:
+            truth = [(x==value).all() for x in self.space]
+            try: 
+                self.valueindex = truth.index(True)
+            except ValueError:
+                print 'the value %s is not in the space of %s' \
+                        %(str(value),self.name)
+    
+    def get_value(self):
+        """Get the current value of the Node object
+        
+        """
+        if self.continuous:
+            return self.value
+        else:
+            return self.space[self.valueindex]
+        
+    def get_valueindex(self, value=None):
+        """Get the valueindex attribute of the discrete Node object
+        
+        :arg value: a legitimate value of the Node object, i.e. the value must 
+           be in :py:attr:`classes.Node.space`. Otherwise an error occurs. If 
+           no value is provided, the current valueindex is returned.
+        
+        """
+        if value:
+            if isinstance(value==self.space[0], bool):
+                try: 
+                    ind = self.space.index(value)
+                except ValueError:
+                    print 'the value %s is not in the space of %s' \
+                            %(str(value),self.name)
+            else:
+                truth = [(x==value).all() for x in self.space]
+                try: 
+                    ind = truth.index(True)
+                except ValueError:
+                    print 'the value %s is not in the space of %s' \
+                            %(str(value),self.name)
+            return ind
+        else:
+            return self.valueindex

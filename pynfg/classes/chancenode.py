@@ -131,8 +131,7 @@ class ChanceNode(Node):
             if isinstance(CPTip[2], list):
                 self.space = CPTip[2]
             else:
-                except TypeError:
-                    print 'The space, CPTip[2], must be a list'
+                raise TypeError('The space, CPTip[2], must be a list')
             self.continuous = False
         else:
             self.CPT = None

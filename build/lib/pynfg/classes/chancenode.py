@@ -128,7 +128,10 @@ class ChanceNode(Node):
             self.CPT = CPTip[0]
             self.parents = self._set_parent_dict(CPTip[1])
             self._check_disc_parents()
-            self.space = CPTip[2]
+            if isinstance(CPTip[2], list):
+                self.space = CPTip[2]
+            else:
+                raise TypeError('The space, CPTip[2], must be a list')
             self.continuous = False
         else:
             self.CPT = None
@@ -175,7 +178,7 @@ class ChanceNode(Node):
             parentinput = {}
         if self.CPT is None:
             if not parentinput:
-                arglist = map(lambda x: x.value 
+                arglist = map(lambda x: x.get_value() 
                               if isinstance(x,Node) else x, self.params)
             else:
                 arglist = map(lambda x: parentinput[x.name] \
@@ -190,8 +193,8 @@ class ChanceNode(Node):
             idx = np.nonzero( cdf >= cutoff )[0][0]
             r = self.space[idx]
         if setvalue:
-            self.value = r
-            return self.value
+            self.set_value(r)
+            return self.get_value()
         else:
             return r
         
@@ -220,10 +223,10 @@ class ChanceNode(Node):
         if parentinput is None:
             parentinput = {}
         if valueinput is None:
-            valueinput = self.value
+            valueinput = self.get_value()
         if self.CPT is None:
             if not parentinput:
-                arglist = map(lambda x: x.value \
+                arglist = map(lambda x: x.get_value() \
                               if isinstance(x,Node) else x, self.params)
             else:
                 arglist = map(lambda x: parentinput[x.name] \
@@ -235,7 +238,7 @@ class ChanceNode(Node):
                 r = self.distribution.pmf(valueinput, *args)
         else:
             if valueinput is None:
-                valueinput = self.value
+                valueinput = self.get_value()
             valslist = self.dict2list_vals(parentinput, valueinput)
             indo = self.get_CPTindex(valslist)
             r = self.CPT[indo]
@@ -270,31 +273,31 @@ class ChanceNode(Node):
         r = self.prob(parentinput, valueinput)
         return np.log(r)
         
-    def set_value(self, newvalue):
-        """Set the current value of the ChanceNode object
-        
-        :arg newvalue: a legitimate value of the ChanceNode object. If the 
-           ChanceNode object is discrete, then newvalue must be in 
-           :py:attr:`classes.ChanceNode.space`. If the ChanceNode object is 
-           continuous, no corrections are made for values at which the pdf is 0.
-        
-        .. warning::
-            
-           When arbitrarily setting values, some children may have zero 
-           probability given their parents. This means the logprob may be -inf. 
-           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a 
-           divide by zero error.
-        
-        """
-        if self.continuous:
-            self.value = newvalue
-        elif type(newvalue==self.space[0]) is bool:
-            if newvalue in self.space:
-                self.value = newvalue
-            else:
-                errorstring = "the new value is not in "+self.name+"'s space"
-                raise ValueError(errorstring)
-        elif any((newvalue==y).all() for y in self.space):
-            self.value = newvalue
-        else:
-            raise ValueError("the new value is not in "+self.name+"'s space")
+#    def set_value(self, newvalue):
+#        """Set the current value of the ChanceNode object
+#        
+#        :arg newvalue: a legitimate value of the ChanceNode object. If the 
+#           ChanceNode object is discrete, then newvalue must be in 
+#           :py:attr:`classes.ChanceNode.space`. If the ChanceNode object is 
+#           continuous, no corrections are made for values at which the pdf is 0.
+#        
+#        .. warning::
+#            
+#           When arbitrarily setting values, some children may have zero 
+#           probability given their parents. This means the logprob may be -inf. 
+#           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a 
+#           divide by zero error.
+#        
+#        """
+#        if self.continuous:
+#            self.value = newvalue
+#        elif type(newvalue==self.space[0]) is bool:
+#            if newvalue in self.space:
+#                self.value = newvalue
+#            else:
+#                errorstring = "the new value is not in "+self.name+"'s space"
+#                raise ValueError(errorstring)
+#        elif any((newvalue==y).all() for y in self.space):
+#            self.value = newvalue
+#        else:
+#            raise ValueError("the new value is not in "+self.name+"'s space")

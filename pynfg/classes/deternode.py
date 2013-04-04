@@ -102,7 +102,10 @@ class DeterNode(Node):
         self.params = params
         if space is None:
             space = []
-        self.space = space
+        if isinstance(space, list):
+            self.space = space
+        else:
+            raise TypeError('The space must be a list')
         self.parents = self._set_parent_dict(params.values())
         self.continuous = continuous
         self.draw_value()        

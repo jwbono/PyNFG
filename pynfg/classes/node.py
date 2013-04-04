@@ -165,7 +165,7 @@ class Node(object):
                 print 'the value %s is not in the space of %s' \
                         %(str(value),self.name)
         else:
-            truth = [(x==values).all() for x in self.space]
+            truth = [(x==value).all() for x in self.space]
             try: 
                 self.valueindex = truth.index(True)
             except ValueError:
@@ -197,9 +197,9 @@ class Node(object):
                     print 'the value %s is not in the space of %s' \
                             %(str(value),self.name)
             else:
-                truth = [(x==values).all() for x in self.space]
+                truth = [(x==value).all() for x in self.space]
                 try: 
-                    ind = truth.index(True))
+                    ind = truth.index(True)
                 except ValueError:
                     print 'the value %s is not in the space of %s' \
                             %(str(value),self.name)

@@ -102,7 +102,10 @@ class DeterNode(Node):
         self.params = params
         if space is None:
             space = []
-        self.space = space
+        if isinstance(space, list):
+            self.space = space
+        else:
+            raise TypeError('The space must be a list')
         self.parents = self._set_parent_dict(params.values())
         self.continuous = continuous
         self.draw_value()        
@@ -145,15 +148,15 @@ class DeterNode(Node):
         for par in self.params:
             if isinstance(self.params[par],Node):
                 if par in parentinput:
-                    funinput[par] = pareninput[par].value
+                    funinput[par] = pareninput[par].get_value()
                 else:
-                    funinput[par] = self.params[par].value
+                    funinput[par] = self.params[par].get_value()
             else:
                 funinput[par] = self.params[par]
         r = self.dfunction(**funinput)
         if setvalue:
-            self.value = r
-            return self.value
+            self.set_value(r)
+            return self.get_value()
         else:
             return r
         
@@ -190,13 +193,13 @@ class DeterNode(Node):
         for par in self.params:
             if par in self.parents:
                 if par in parentinput:
-                    funinput[par] = pareninput[par].value
+                    funinput[par] = pareninput[par].get_value()
                 else:
-                    funinput[par] = self.params[par].value
+                    funinput[par] = self.params[par].get_value()
             else:
                 funinput[par] = self.params[par]
         if valueinput is None:
-            valueinput = self.value
+            valueinput = self.get_value()
         if self.dfunction(**funinput) == valueinput:
             r=1
         else:
@@ -241,31 +244,31 @@ class DeterNode(Node):
         r = self.prob(parentinput, valueinput)
         return np.log(r)
         
-    def set_value(self, newvalue):
-        """Set the current value of the DeterNode object
-        
-        :arg newvalue: a legitimate value of the DeterNode object. If the 
-           DeterNode object is discrete, then newvalue must be in 
-           :py:attr:`classes.DeterNode.space`. If the DeterNode object is 
-           continuous, no corrections are made for unattainable values.
-        
-        .. warning::
-            
-           When arbitrarily setting values, some children may have zero 
-           probability given their parents. This means the logprob may be -inf. 
-           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a 
-           divide by zero error.
-        
-        """
-        if self.continuous:
-            self.value = newvalue
-        elif type(newvalue==self.space[0]) is bool:
-            if newvalue in self.space:
-                self.value = newvalue
-            else:
-                errorstring = "the new value is not in "+self.name+"'s space"
-                raise ValueError(errorstring)
-        elif any((newvalue==y).all() for y in self.space):
-            self.value = newvalue
-        else:
-            raise ValueError("the new value is not in "+self.name+"'s space")
+#    def set_value(self, newvalue):
+#        """Set the current value of the DeterNode object
+#        
+#        :arg newvalue: a legitimate value of the DeterNode object. If the 
+#           DeterNode object is discrete, then newvalue must be in 
+#           :py:attr:`classes.DeterNode.space`. If the DeterNode object is 
+#           continuous, no corrections are made for unattainable values.
+#        
+#        .. warning::
+#            
+#           When arbitrarily setting values, some children may have zero 
+#           probability given their parents. This means the logprob may be -inf. 
+#           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a 
+#           divide by zero error.
+#        
+#        """
+#        if self.continuous:
+#            self.set_value(newvalue)
+#        elif type(newvalue==self.space[0]) is bool:
+#            if newvalue in self.space:
+#                self.set_value(newvalue)
+#            else:
+#                errorstring = "the new value is not in "+self.name+"'s space"
+#                raise ValueError(errorstring)
+#        elif any((newvalue==y).all() for y in self.space):
+#            self.set_value(newvalue)
+#        else:
+#            raise ValueError("the new value is not in "+self.name+"'s space")

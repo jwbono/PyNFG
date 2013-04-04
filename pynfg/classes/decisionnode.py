@@ -98,7 +98,9 @@ class DecisionNode(Node):
                 print 'Name: '+ name + '\nDescription: '+ description + \
                     '\nPlayer: '+ player 
             except (AttributeError, TypeError):
-                raise AssertionError('name, description, player should be strings')
+                raise AssertionError('name, description, \
+                                     player should be strings')
+        self.continuous = False
         self.name = name
         self.description = description
         self.time = time
@@ -107,8 +109,7 @@ class DecisionNode(Node):
         if isinstance(space, list):
             self.space = space
         else:
-            except TypeError:
-                print 'The space must be a list'
+            raise TypeError('The space must be a list')
         if parents is None:
             parents = []
         self.parents = self._set_parent_dict(parents)

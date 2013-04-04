@@ -96,21 +96,26 @@ class DecisionNode(Node):
         if verbose:
             try:
                 print 'Name: '+ name + '\nDescription: '+ description + \
-                    '\nPlayer: '+player 
+                    '\nPlayer: '+ player 
             except (AttributeError, TypeError):
-                raise AssertionError('name, description, player should be strings')
+                raise AssertionError('name, description, \
+                                     player should be strings')
+        self.continuous = False
         self.name = name
         self.description = description
         self.time = time
         self.basename = basename
         self.player = player
-        self.space = space
+        if isinstance(space, list):
+            self.space = space
+        else:
+            raise TypeError('The space must be a list')
         if parents is None:
             parents = []
         self.parents = self._set_parent_dict(parents)
         self._createCPT()
         self._check_disc_parents()
-        self.value = self.space[0]
+        self.set_value(self.space[0])
         self.continuous = False
         
     def __str__(self):
@@ -174,8 +179,8 @@ class DecisionNode(Node):
             idx = self.CPT[indo].argmax()
         r = self.space[idx]
         if setvalue:
-            self.value = r
-            return self.value
+            self.set_value(r)
+            return self.get_value()
         else:
             return r
         
@@ -266,7 +271,7 @@ class DecisionNode(Node):
             else:
                 for par in self.parents:
                     if par not in sliver:
-                        sliver[par] = self.parents[par].value
+                        sliver[par] = self.parents[par].get_value()
                 parlist = self.dict2list_vals(sliver)
                 ind = self.get_CPTindex(parlist, onlyparents=True)
                 zeroind = np.nonzero(copiedCPT[ind]==0)
@@ -287,7 +292,7 @@ class DecisionNode(Node):
                                                         self.parents[par].space]
                         ind.append(truth.index(True))
                     else:
-                        value = self.parents[par].value
+                        value = self.parents[par].get_value()
                         truth = [(x==value).all() for x in \
                                                         self.parents[par].space]
                         ind.append(truth.index(True))
@@ -338,7 +343,7 @@ class DecisionNode(Node):
         if not self.CPT.any():
             raise RuntimeError('CPT for %s is just a zeros array' % self.name)
         if valueinput is None:
-            valueinput = self.value
+            valueinput = self.get_value()
         valslist = self.dict2list_vals(parentinput, valueinput)
         indo = self.get_CPTindex(valslist)
         p = self.CPT[indo]
@@ -378,31 +383,31 @@ class DecisionNode(Node):
         r = self.prob(parentinput, valueinput)
         return np.log(r)
         
-    def set_value(self, newvalue):
-        """Set the current value of the DecisionNode object
-        
-        :arg newvalue: a legitimate value of the DecisionNode object, i.e. the 
-           value must be in :py:attr:`classes.ChanceNode.space`.
-        
-        .. warning::
-            
-           When arbitrarily setting values, some children may have zero 
-           probability given their parents. This means the logprob may be -inf. 
-           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a 
-           divide by zero error.
-        
-        """
-        if type(newvalue==self.space[0]) is bool:
-            if newvalue in self.space:
-                self.value = newvalue
-            else:
-                errorstring = "the new value is not in "+self.name+"'s space"
-                raise ValueError(errorstring)
-        elif any((newvalue==y).all() for y in self.space):
-            self.value = newvalue
-        else:
-            errorstring = "the new value is not in "+self.name+"'s space"
-            raise ValueError(errorstring)  
+#    def set_value(self, newvalue):
+#        """Set the current value of the DecisionNode object
+#        
+#        :arg newvalue: a legitimate value of the DecisionNode object, i.e. the 
+#           value must be in :py:attr:`classes.ChanceNode.space`.
+#        
+#        .. warning::
+#            
+#           When arbitrarily setting values, some children may have zero 
+#           probability given their parents. This means the logprob may be -inf. 
+#           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a 
+#           divide by zero error.
+#        
+#        """
+#        if type(newvalue==self.space[0]) is bool:
+#            if newvalue in self.space:
+#                self.set_value(newvalue)
+#            else:
+#                errorstring = "the new value is not in "+self.name+"'s space"
+#                raise ValueError(errorstring)
+#        elif any((newvalue==y).all() for y in self.space):
+#            self.set_value(newvalue)
+#        else:
+#            errorstring = "the new value is not in "+self.name+"'s space"
+#            raise ValueError(errorstring)  
         
 def perturbpure(CPT, noise, returnweight):
     # Generate noise for each possible combination of parent node values and reshape
