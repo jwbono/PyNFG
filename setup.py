@@ -17,6 +17,7 @@ setup(
         "networkx",
         "scipy",
         "numpy",
+        "pygraphviz",
 
     ],
 )

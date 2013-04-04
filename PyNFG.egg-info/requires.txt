@@ -2,3 +2,4 @@ matplotlib
 networkx
 scipy
 numpy
+pygraphviz

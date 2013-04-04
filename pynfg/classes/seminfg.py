@@ -417,6 +417,8 @@ class SemiNFG(object):
            commence from the nodes in start and continue until all of the 
            descendants of the nodes in start have been sampled exactly once.
         :type start: list
+        :arg nodenames: a list of node names for which output is desired. By
+           default, no output is provided.
         :returns: a dict keyed by node names in nodenames input. Values are 
            values of nodes in node names.
         
@@ -438,17 +440,18 @@ class SemiNFG(object):
         if nodenames:
             outdict = dict(zip(nodenames, [self.node_dict[x].value for x in \
                                                                     nodenames]))
+            return outdict
         else:
             outdict = self.get_values()
-        return outdict
         
             
     def draw_graph(self, subgraph=None):
         """Draw the DAG representing the topology of the SemiNFG.
 
-        :arg subgraph: (Optional) a set of nodes to be graphed. If not
-           specified, all nodes are graphed.
-        :type subgraph: set
+        :arg subgraph: (Optional) node names of subset of nodes to include in 
+           drawing. Default is self.nodes. If not specified, all nodes are 
+           graphed. 
+        :type subgraph: set or list
         
         .. note::
             
@@ -458,9 +461,18 @@ class SemiNFG(object):
         """
         G = nx.DiGraph()
         if not subgraph:
-            subgraph = self.nodes
-        for n in subgraph:
-            for child in subgraph.intersection(self.edges[n.name]):
+            nodelist = self.node_dict.keys()
+        else:
+            nodelist = []
+            for name in subgraph:
+                try: 
+                    n = self.node_dict[name]
+                except ValueError:
+                    print "%s is not a valid node name" %n
+                nodelist.append(n)
+        nodeset = set(nodelist)
+        for n in nodeset:
+            for child in nodeset.intersection(self.edges[n.name]):
                 G.add_edge(n.name,child.name)
         pos = nx.spring_layout(G, iterations=100)
  #       nx.draw_networkx(G, pos)
