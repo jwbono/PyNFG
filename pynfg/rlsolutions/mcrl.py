@@ -77,6 +77,7 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     Rseries = np.zeros(N) #tracking average reward for plotting convergence
     for n in xrange(N):
         print n
+#        import pdb; pdb.set_trace()
         indicaten = np.zeros(Q.shape) #indicates visited mapairs
         visitn = set() #dict of messages and mapairs visited in episode n
         Rseries[n] = R #adding the most recent ave reward to the data series
@@ -85,13 +86,9 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
             visitj = set() #visitj must be cleared at the start of every run
             for t in xrange(T0,T):
                 #G.bn_part[bn][t].CPT = copy.copy(G.bn_part[bn][T0].CPT)
-                import pdb; pdb.set_trace()
                 G.sample_timesteps(t, t) #sampling the timestep
                 rew = G.reward(player, t) #getting the reward
-                malist = G.bn_part[bn][t].dict2list_vals(valueinput= \
-                                                        G.bn_part[bn][t].value)
-                # CPT index of messages and actions
-                mapair = G.bn_part[bn][t].get_CPTindex(malist)
+                mapair = G.bn_part[bn][t].get_CPTindex()
                 a = A #updating scalar dynamics
                 A = 1+a
                 r = R

@@ -100,36 +100,35 @@ class Node(object):
             valuelist.append(valueinput)
         return valuelist
     
-    def get_CPTindex(self, values, onlyparents=False):
-        """Get the CPT index that corresponds to the (parent, node) values
+    def get_CPTindex(self, parentinput=None, valueinput=None):
+        """Get the CPT index of (parent[, node]) values from user-supplied dict
         
-        :arg values: a list whose members are values for the parents of the 
-           decision node and the decision node itself, in the order given by 
-           the `:py:attr:DecisionNode.parents` OrderedDict
-        :type values: list
-        :arg onlyparents: set to true if only parent indices are desired, i.e.
-           the returned index slices into the last dimension of the CPT
-        :type onlyparents: bool
+        :arg parentinput: Optional. Specify values of the parents. Keys are 
+           parent names. Values are parent values. To specify values for only a 
+           subset of the parents, only enter those parents in the dictionary. 
+           If only a subset of parent values are specified, then the current 
+           values are used for the remaining parents.
+        :type parentinput: dict
+        :arg valueinput: Optional. A legitimate value of the decision node 
+           object. If no valueinput is specified, then the output 
+           includes the current value for the node itself. If False is given, 
+           then the output index does not include an entry for the node itself.
+        :returns: a tuple CPT index for the values for the parents and the node
+           itself in the order determined by the parents OrderedDict.
            
         """
         if self.continuous:
             raise AttributeError('cont. nodes do not have CPTs')
+        if parentinput is None:
+            parentinput = {}
         ind = []
-        i = 0
         for par in self.parents.values():
-            ind.append(par.valueindex)
-#            if isinstance(par.space[0]==values[i], bool):
-#                ind.append(par.space.index(values[i]))
-#            else:
-#                truth = [(x==values[i]).all() for x in par.space]
-#                ind.append(truth.index(True))
-#            i += 1
-#        if not onlyparents:
-#            if isinstance(self.space[0]==values[-1], bool):
-#                ind.append(self.space.index(values[-1]))
-#            else:
-#                truth = [(x==values[-1]).all() for x in self.space]
-#                ind.append(truth.index(True))
+            if par.name in parentinput:
+                ind.append(par.get_valueindex(parentinput[par.name])) 
+            else:            
+                ind.append(par.get_valueindex())
+        if valueinput or valueinput==None:
+            ind.append(self.get_valueindex(valueinput))
         indo = tuple(ind)
         return indo
         

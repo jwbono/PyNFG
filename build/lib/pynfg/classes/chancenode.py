@@ -186,8 +186,7 @@ class ChanceNode(Node):
             argtuple = tuple(arglist)
             r = self.distribution.rvs(*argtuple)
         else:
-            valslist = self.dict2list_vals(parentinput)
-            indo = self.get_CPTindex(valslist, onlyparents=True)
+            indo = self.get_CPTindex(parentinput, valueinput=False)
             cdf = np.cumsum(self.CPT[indo])
             cutoff = np.random.rand()
             idx = np.nonzero( cdf >= cutoff )[0][0]
@@ -222,8 +221,6 @@ class ChanceNode(Node):
         """
         if parentinput is None:
             parentinput = {}
-        if valueinput is None:
-            valueinput = self.get_value()
         if self.CPT is None:
             if not parentinput:
                 arglist = map(lambda x: x.get_value() \
@@ -232,15 +229,14 @@ class ChanceNode(Node):
                 arglist = map(lambda x: parentinput[x.name] \
                               if isinstance(x,Node) else x, self.params)
             args = tuple(arglist)
+            if valueinput is None:
+                valueinput = self.get_value()
             if self.continuous:
                 r = self.distribution.pdf(valueinput, *args)
             else:
                 r = self.distribution.pmf(valueinput, *args)
         else:
-            if valueinput is None:
-                valueinput = self.get_value()
-            valslist = self.dict2list_vals(parentinput, valueinput)
-            indo = self.get_CPTindex(valslist)
+            indo = self.get_CPTindex(parentinput, valueinput)
             r = self.CPT[indo]
         return r
         

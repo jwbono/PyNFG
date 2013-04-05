@@ -169,8 +169,7 @@ class DecisionNode(Node):
         if not self.CPT.any():
             raise AttributeError('CPT for %s is just a zeros array' % self.name)
         ind = []
-        valslist = self.dict2list_vals(parentinput)
-        indo = self.get_CPTindex(valslist, onlyparents=True)
+        indo = self.get_CPTindex(parentinput, valueinput=False)
         if not mode:
             cdf = np.cumsum(self.CPT[indo])
             cutoff = np.random.rand()
@@ -272,8 +271,7 @@ class DecisionNode(Node):
                 for par in self.parents:
                     if par not in sliver:
                         sliver[par] = self.parents[par].get_value()
-                parlist = self.dict2list_vals(sliver)
-                ind = self.get_CPTindex(parlist, onlyparents=True)
+                ind = self.get_CPTindex(sliver, valueinput=False)
                 zeroind = np.nonzero(copiedCPT[ind]==0)
                 if len(actind) == 0:
                     raise ValueError('The specified sliver has no 0 entries')
@@ -342,10 +340,7 @@ class DecisionNode(Node):
             parentinput = {}
         if not self.CPT.any():
             raise RuntimeError('CPT for %s is just a zeros array' % self.name)
-        if valueinput is None:
-            valueinput = self.get_value()
-        valslist = self.dict2list_vals(parentinput, valueinput)
-        indo = self.get_CPTindex(valslist)
+        indo = self.get_CPTindex(parentinput, valueinput)
         p = self.CPT[indo]
         return p  
         
@@ -411,7 +406,7 @@ class DecisionNode(Node):
         
 def perturbpure(CPT, noise, returnweight):
     # Generate noise for each possible combination of parent node values and reshape
-    CPT = copy.copy(oldCPT)
+    oldCPT = copy.copy(CPT)
     shape = CPT.shape
     nmessages = np.prod(shape[:-1])
     noises = np.random.random((nmessages))
