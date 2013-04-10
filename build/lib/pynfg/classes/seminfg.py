@@ -211,7 +211,7 @@ class SemiNFG(object):
             if nam in nodeinput:
                 kw[nam] = nodeinput[nam]
             else:
-                kw[nam] = self.node_dict[nam].value
+                kw[nam] = self.node_dict[nam].get_value()
         u = self.u_functions[player](**kw)
         return u
             
@@ -349,7 +349,7 @@ class SemiNFG(object):
         :returns: dict where keys are node names and values are node values
         
         """
-        return dict(map(lambda x: (x.name, x.value), self.nodes))
+        return dict(map(lambda x: (x.name, x.get_value()), self.nodes))
         
     def set_values(self, value_dict):
         """Set the values of a subset of the nodes comprising the SemiNFG.
@@ -438,8 +438,8 @@ class SemiNFG(object):
                 if n in children.union(set(start)):
                     n.draw_value()
         if nodenames:
-            outdict = dict(zip(nodenames, [self.node_dict[x].value for x in \
-                                                                    nodenames]))
+            outdict = dict(zip(nodenames, [self.node_dict[x].get_value() for \
+                                            x in nodenames]))
             return outdict
         else:
             outdict = self.get_values()

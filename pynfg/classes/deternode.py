@@ -148,7 +148,7 @@ class DeterNode(Node):
         for par in self.params:
             if isinstance(self.params[par],Node):
                 if par in parentinput:
-                    funinput[par] = pareninput[par].get_value()
+                    funinput[par] = parentinput[par]
                 else:
                     funinput[par] = self.params[par].get_value()
             else:

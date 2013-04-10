@@ -175,14 +175,11 @@ class iterSemiNFG(SemiNFG):
         
         """
         self.time_partition = {}
-        for n in self.nodes:
+        for n in self.iterator:
             if n.time not in self.time_partition.keys():
                 self.time_partition[n.time] = [n]
             else:
                 self.time_partition[n.time].append(n)
-#        for t in range(self.endtime):
-#            self.time_partition[t] = \
-#                [n for n in self.iterator if n in self.time_partition[t]]
                 
     def _set_bn_part(self):
         """Set the bn_part :py:attr:`seminfg.iterSemiNFG.bn_part`
@@ -225,7 +222,7 @@ class iterSemiNFG(SemiNFG):
             if nam in nodeinput:
                 kw[nam] = nodeinput[nam]
             else:
-                kw[nam] = self.bn_part[nam][t].value
+                kw[nam] = self.bn_part[nam][t-self.starttime].get_value()
         r = self.r_functions[player](**kw)
         return r
     
@@ -272,6 +269,7 @@ class iterSemiNFG(SemiNFG):
         if stop==None or stop>self.endtime:
             stop = self.endtime
         if basenames:
+#            import pdb; pdb.set_trace()
             outdict = dict(zip(basenames, [[] for x in range(len(basenames))]))
             for t in range(start, stop+1):
                 for n in self.time_partition[t]:

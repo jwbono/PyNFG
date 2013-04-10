@@ -17,11 +17,11 @@ import copy
 import numpy as np
 import matplotlib.pylab as plt
 
-def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
+def ewma_mcrl(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     """ Use EWMA MC RL to approximate the optimal CPT at bn given G
     
-    :arg G: The iterated semi-NFG on which to perform the RL
-    :type G: iterSemiNFG
+    :arg Game: The iterated semi-NFG on which to perform the RL
+    :type Game: iterSemiNFG
     :arg bn: the basename of the node with the CPT to be trained
     :type bn: str
     :arg J: The number of runs per training episode. If a schedule is desired, 
@@ -49,6 +49,7 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
            N=50, alpha=1, delta=0.8, eps=0.4)
     
     """
+    G = copy.deepcopy(Game)
     timepassed = np.zeros(N)
     # initializing training schedules from scalar inputs
     if isinstance(J, (int)):
@@ -60,15 +61,22 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     # getting shorter/more descriptive variable names to work with
     T0 = G.starttime
     T = G.endtime+1
-    player = G.bn_part[bn][T0].player
-    shape = G.bn_part[bn][T0].CPT.shape
+    player = G.bn_part[bn][0].player
+    shape = G.bn_part[bn][0].CPT.shape
     shape_last = shape[-1]
     if uni:
-        G.bn_part[bn][T0].uniformCPT() #starting with a uniform CPT
+        G.bn_part[bn][0].uniformCPT() #starting with a uniform CPT
     for dn in G.bn_part[bn]: #pointing all CPTs to T0, i.e. single policy
-        dn.CPT = G.bn_part[bn][T0].CPT
+        dn.CPT = G.bn_part[bn][0].CPT
     visit = set() #dict of the messages and mapairs visited throughout training
-    R = 0 #average reward
+    averew = 0
+    for x in xrange(30):
+        rew = 0
+        G.sample()
+        for t in xrange(T0,T):
+            rew += G.reward(player, t)/(T-T0-1)
+        averew += rew/(30)
+    R = averew #average reward
     A = 0 #normalizing constant for average reward
     B = {} #dict associates messages and mapairs with beta exponents
     D = {} #dict associates messages and mapairs with norm constants for Q,V
@@ -77,7 +85,7 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     Rseries = np.zeros(N) #tracking average reward for plotting convergence
     for n in xrange(N):
         print n
-#        import pdb; pdb.set_trace()
+
         indicaten = np.zeros(Q.shape) #indicates visited mapairs
         visitn = set() #dict of messages and mapairs visited in episode n
         Rseries[n] = R #adding the most recent ave reward to the data series
@@ -85,14 +93,14 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         for j in xrange(int(J[n])):
             visitj = set() #visitj must be cleared at the start of every run
             for t in xrange(T0,T):
-                #G.bn_part[bn][t].CPT = copy.copy(G.bn_part[bn][T0].CPT)
+                #import pdb; pdb.set_trace()
+                #G.bn_part[bn][t-T0].CPT = copy.copy(G.bn_part[bn][0].CPT)
                 G.sample_timesteps(t, t) #sampling the timestep
                 rew = G.reward(player, t) #getting the reward
-                mapair = G.bn_part[bn][t].get_CPTindex()
-                a = A #updating scalar dynamics
-                A = 1+a
+                mapair = G.bn_part[bn][t-T0].get_CPTindex()
+                A += 1
                 r = R
-                R = (1/A)*(a*r+rew)
+                R = (1/A)*((A-1)*r+rew)
                 xm = set() #used below to keep track of updated messages
                 for values in visitj:
                     b = B[values] #past values
@@ -150,28 +158,28 @@ def ewma_mcrl(G, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                     indicaten[mapair] = 1 #only visited actions are updated 
         # update CPT with shift towards Qtable argmax actions.
         shift = Q-V[...,np.newaxis]
-        idx = np.nonzero(shift) # indices of nonzero shifts (avoid divide by 0)
+        idx = np.nonzero(shift) #indices of nonzero shifts (avoid divide by 0)
         # normalizing shifts to be a % of message's biggest shift
         shiftnorm = np.absolute(shift).max(axis=-1)[...,np.newaxis]
         # for each mapair shift only eps% of the percent shift
-        updater = eps[n]*indicaten*G.bn_part[bn][T0].CPT/shiftnorm
+        updater = eps[n]*indicaten*G.bn_part[bn][0].CPT/shiftnorm
         # increment the CPT
-        G.bn_part[bn][T0].CPT[idx] += updater[idx]*shift[idx]
+        G.bn_part[bn][0].CPT[idx] += updater[idx]*shift[idx]
         # normalize after the shift
-        CPTsum = G.bn_part[bn][T0].CPT.sum(axis=-1)
-        G.bn_part[bn][T0].CPT /= CPTsum[...,np.newaxis]
+        CPTsum = G.bn_part[bn][0].CPT.sum(axis=-1)
+        G.bn_part[bn][0].CPT /= CPTsum[...,np.newaxis]
 #        if np.any(G.bn_part[bn][T0].CPT<0):
 #            raise AssertionError('Negative values detected in the CPT')
     if pureout: #if True, output is a pure policy
         messages = set()
         for mapair in visit:
             if mapair[:-1] not in messages:
-                ind = G.bn_part[bn][T0].CPT[mapair[:-1],:].argmax()
-                G.bn_part[bn][T0].CPT[mapair[:-1],:] = 0
-                G.bn_part[bn][T0].CPT[mapair[:-1],ind]=1
+                ind = G.bn_part[bn][0].CPT[mapair[:-1],:].argmax()
+                G.bn_part[bn][0].CPT[mapair[:-1],:] = 0
+                G.bn_part[bn][0].CPT[mapair[:-1],ind]=1
                 messages.add(mapair[:-1])
-    for tau in xrange(T0+1, T): #before exit, make CPTs independent in memory
-            G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][T0].CPT)
+    for tau in xrange(1, T-T0): #before exit, make CPTs independent in memory
+            G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][0].CPT)
     plt.plot(Rseries) #plotting Rseries to gauge convergence
     fig = plt.gcf() 
     plt.show()

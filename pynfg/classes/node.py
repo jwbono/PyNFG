@@ -103,12 +103,14 @@ class Node(object):
     def get_CPTindex(self, parentinput=None, valueinput=None):
         """Get the CPT index of (parent[, node]) values from user-supplied dict
         
-        :arg parentinput: Optional. Specify values of the parents. Keys are 
-           parent names. Values are parent values. To specify values for only a 
-           subset of the parents, only enter those parents in the dictionary. 
-           If only a subset of parent values are specified, then the current 
-           values are used for the remaining parents.
-        :type parentinput: dict
+        :arg parentinput: Optional. Specify values of the parents. If input is 
+           dict, keys are parent names. Values are parent values. To specify 
+           values for only a subset of the parents, only enter those parents 
+           in the dictionary. If only a subset of parent values are specified, 
+           then the current values are used for the remaining parents. If input
+           is list, then the list members are valid values of the parents, and 
+           the order is given by the parent dictionary.
+        :type parentinput: dict or list
         :arg valueinput: Optional. A legitimate value of the decision node 
            object. If no valueinput is specified, then the output 
            includes the current value for the node itself. If False is given, 
@@ -119,14 +121,24 @@ class Node(object):
         """
         if self.continuous:
             raise AttributeError('cont. nodes do not have CPTs')
+        ind = []
         if parentinput is None:
             parentinput = {}
-        ind = []
-        for par in self.parents.values():
-            if par.name in parentinput:
-                ind.append(par.get_valueindex(parentinput[par.name])) 
-            else:            
-                ind.append(par.get_valueindex())
+        if isinstance(parentinput, list):
+            if len(parentinput)<len(self.parents.keys()):
+                raise ValueError('parentinput as list must have at least as', \
+                                 'many entries as the parent dict')
+            else:
+                i = 0
+                for par in self.parents.values():
+                    ind.append(par.get_valueindex(parentinput[i]))
+                    i += 1
+        else: 
+            for par in self.parents.values():
+                if par.name in parentinput:
+                    ind.append(par.get_valueindex(parentinput[par.name])) 
+                else:            
+                    ind.append(par.get_valueindex())
         if valueinput or valueinput==None:
             ind.append(self.get_valueindex(valueinput))
         indo = tuple(ind)

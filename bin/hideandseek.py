@@ -36,7 +36,7 @@ right = np.array([1,0])
 stay = np.array([0,0])
 
 #time steps
-T = 12
+T = 10
 
 # a function that adjusts for moves off the grid
 def adjust(location):
@@ -154,14 +154,14 @@ def reward2(F=np.array([[1,0],[0,1]])):
 rfuncs = {'seeker': reward1, 'hider': reward2}
 G = iterSemiNFG(nodeset, rfuncs)
 
-G.bn_part['Dhide'][0].randomCPT()
+G.bn_part['Dhide'][0].uniformCPT()
 G.bn_part['Dseek'][0].randomCPT()
-for t in xrange(G.starttime+1, G.endtime+1):
+for t in xrange(1, G.endtime+1):
     G.bn_part['Dhide'][t].CPT = copy.copy(G.bn_part['Dhide'][0].CPT)
     G.bn_part['Dseek'][t].CPT = copy.copy(G.bn_part['Dseek'][0].CPT)
 
-drawset = set(G.time_partition[0]).union(set(G.time_partition[1]))
-G.draw_graph(drawset)
+#drawset = set(G.time_partition[0]).union(set(G.time_partition[1]))
+#G.draw_graph(drawset)
 
 def density(iq):
     x = iq.values()
@@ -198,23 +198,23 @@ go = time.time()
 #plt.hist(social_welfare, normed=True, weights=probMC) 
 #
 
-intelMH, funcoutMH, densMH = iq_MH_coord(G, S, density, noise, X, M, \
-                                                innoise=.4, integrand=captures)
-                                                
-iqhiderMH = [intelMH[s]['hider'] for s in xrange(1,S+1)]
-weightMH = densMH[burn::]
-plt.figure()
-plt.hist(iqhiderMH[burn::], normed=True, weights=weightMH)
+#intelMH, funcoutMH, densMH = iq_MH_coord(G, S, density, noise, X, M, \
+#                                                innoise=.4, integrand=captures)
+#                                                
+#iqhiderMH = [intelMH[s]['hider'] for s in xrange(1,S+1)]
+#weightMH = densMH[burn::]
+#plt.figure()
+#plt.hist(iqhiderMH[burn::], normed=True, weights=weightMH)
+#
+#social_welfare = [funcoutMH[s] for s in xrange(1,S+1)]
+#plt.figure()
+#plt.hist(social_welfare[burn::], normed=True, weights=weightMH)
+#
+N=60
 
-social_welfare = [funcoutMH[s] for s in xrange(1,S+1)]
-plt.figure()
-plt.hist(social_welfare[burn::], normed=True, weights=weightMH)
-#
-#N=80
-#
-#G1, returnfig = ewma_mcrl(G, 'Dseek', np.linspace(30,1,N), N, \
-#                        np.linspace(1,1,N), 1, np.linspace(.2,1,N), uni=True, \
-#                        pureout=True)
+G1, returnfig = ewma_mcrl(copy.deepcopy(G), 'Dseek', np.linspace(50,1,N), N, \
+                        np.linspace(.5,1,N), 1, np.linspace(.2,1,N), uni=True, \
+                        pureout=True)
 print (time.time()-go)/60
 #captures(G1)
 #G1.sample_timesteps(G1.starttime)

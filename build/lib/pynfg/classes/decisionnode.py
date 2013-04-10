@@ -170,10 +170,16 @@ class DecisionNode(Node):
             raise AttributeError('CPT for %s is just a zeros array' % self.name)
         ind = []
         indo = self.get_CPTindex(parentinput, valueinput=False)
+        idx = 0
         if not mode:
             cdf = np.cumsum(self.CPT[indo])
             cutoff = np.random.rand()
+#            if cdf[-1] < cutoff:
+#                raise ValueError(self.name, cdf[-1], cutoff, indo, self.CPT[indo]) 
+#            try:
             idx = np.nonzero( cdf >= cutoff )[0][0]
+#            except IndexError:
+#                print self.name, cdf[-1], cutoff, indo, self.CPT[indo]    
         else:
             idx = self.CPT[indo].argmax()
         r = self.space[idx]
@@ -236,7 +242,8 @@ class DecisionNode(Node):
         else:
             return z
         
-    def perturbCPT(self, noise, mixed=True, sliver=None, setCPT=True, returnweight=False):
+    def perturbCPT(self, noise, mixed=True, sliver=None, setCPT=True, \
+                   returnweight=False):
         """Create a perturbation of the CPT attribute.
         
         :arg noise: The noise determines the mixture between the current CPT 
