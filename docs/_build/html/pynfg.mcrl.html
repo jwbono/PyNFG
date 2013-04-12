@@ -66,14 +66,14 @@
 <p>GNU Affero General Public License</p>
 <dl class="function">
 <dt id="pynfg.rlsolutions.mcrl.ewma_mcrl">
-<tt class="descclassname">pynfg.rlsolutions.mcrl.</tt><tt class="descname">ewma_mcrl</tt><big>(</big><em>G</em>, <em>bn</em>, <em>J</em>, <em>N</em>, <em>alpha</em>, <em>delta</em>, <em>eps</em>, <em>uni=False</em>, <em>pureout=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/rlsolutions/mcrl.html#ewma_mcrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.rlsolutions.mcrl.ewma_mcrl" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pynfg.rlsolutions.mcrl.</tt><tt class="descname">ewma_mcrl</tt><big>(</big><em>Game</em>, <em>bn</em>, <em>J</em>, <em>N</em>, <em>alpha</em>, <em>delta</em>, <em>eps</em>, <em>uni=False</em>, <em>pureout=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/rlsolutions/mcrl.html#ewma_mcrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.rlsolutions.mcrl.ewma_mcrl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use EWMA MC RL to approximate the optimal CPT at bn given G</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>G</strong> (<em>iterSemiNFG</em>) &#8211; The iterated semi-NFG on which to perform the RL</li>
+<li><strong>Game</strong> (<em>iterSemiNFG</em>) &#8211; The iterated semi-NFG on which to perform the RL</li>
 <li><strong>bn</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the basename of the node with the CPT to be trained</li>
 <li><strong>J</strong> (<em>int, list, or np.array</em>) &#8211; The number of runs per training episode. If a schedule is desired, 
 enter a list or np.array with size equal to N.</li>

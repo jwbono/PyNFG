@@ -66,7 +66,7 @@
 <p>GNU Affero General Public License</p>
 <dl class="class">
 <dt id="pynfg.classes.decisionnode.DecisionNode">
-<em class="property">class </em><tt class="descclassname">pynfg.classes.decisionnode.</tt><tt class="descname">DecisionNode</tt><big>(</big><em>name</em>, <em>player</em>, <em>space</em>, <em>parents=</em><span class="optional">[</span><span class="optional">]</span>, <em>description='no description'</em>, <em>time=None</em>, <em>basename=None</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pynfg.classes.decisionnode.</tt><tt class="descname">DecisionNode</tt><big>(</big><em>name</em>, <em>player</em>, <em>space</em>, <em>parents=None</em>, <em>description='no description'</em>, <em>time=None</em>, <em>basename=None</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a decision node of the semi-NFG formalism by D. Wolpert</p>
 <p>The <tt class="xref py py-class docutils literal"><span class="pre">classes.DecisionNode</span></tt> can be initialized with either a 
 conditional probability distribution (CPT) or a distribution object 
@@ -145,7 +145,7 @@ discrete.</p>
 </ul>
 <dl class="method">
 <dt id="pynfg.classes.decisionnode.DecisionNode.draw_value">
-<tt class="descname">draw_value</tt><big>(</big><em>parentinput={}</em>, <em>setvalue=True</em>, <em>mode=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode.draw_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode.draw_value" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">draw_value</tt><big>(</big><em>parentinput=None</em>, <em>setvalue=True</em>, <em>mode=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode.draw_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode.draw_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw a value from the <tt class="xref py py-class docutils literal"><span class="pre">classes.DecisionNode</span></tt> object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -183,7 +183,7 @@ manually before calling this method.</p>
 
 <dl class="method">
 <dt id="pynfg.classes.decisionnode.DecisionNode.logprob">
-<tt class="descname">logprob</tt><big>(</big><em>parentinput={}</em>, <em>valueinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode.logprob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode.logprob" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">logprob</tt><big>(</big><em>parentinput=None</em>, <em>valueinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode.logprob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode.logprob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the conditional logprob of the current or specified value</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -224,7 +224,7 @@ manually before calling this method.</p>
 
 <dl class="method">
 <dt id="pynfg.classes.decisionnode.DecisionNode.perturbCPT">
-<tt class="descname">perturbCPT</tt><big>(</big><em>noise</em>, <em>mixed=True</em>, <em>sliver=None</em>, <em>setCPT=True</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode.perturbCPT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode.perturbCPT" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">perturbCPT</tt><big>(</big><em>noise</em>, <em>mixed=True</em>, <em>sliver=None</em>, <em>setCPT=True</em>, <em>returnweight=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode.perturbCPT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode.perturbCPT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a perturbation of the CPT attribute.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -242,7 +242,9 @@ a mixed CPT with positive weight on all values.</li>
 to perturb the current CPT. Keys are parent names. Values are parent 
 values. If empty, the entire CPT is perturbed. If sliver is nonempty, 
 but specifies values for only a subset of parents, the current values 
-are used for the remaining parents.</li>
+are used for the remaining parents. Note that for pure perturbations
+the noise parameter is ignored and a different action is selected 
+with probability 1.</li>
 </ul>
 </td>
 </tr>
@@ -252,7 +254,7 @@ are used for the remaining parents.</li>
 
 <dl class="method">
 <dt id="pynfg.classes.decisionnode.DecisionNode.prob">
-<tt class="descname">prob</tt><big>(</big><em>parentinput={}</em>, <em>valueinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode.prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode.prob" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">prob</tt><big>(</big><em>parentinput=None</em>, <em>valueinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode.prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode.prob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the conditional probability of the current or specified value</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -315,28 +317,6 @@ assigns probability 1 to a single value in
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pynfg.classes.decisionnode.DecisionNode.set_value">
-<tt class="descname">set_value</tt><big>(</big><em>newvalue</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/decisionnode.html#DecisionNode.set_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode.set_value" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the current value of the DecisionNode object</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>newvalue</strong> &#8211; a legitimate value of the DecisionNode object, i.e. the 
-value must be in <tt class="xref py py-attr docutils literal"><span class="pre">classes.ChanceNode.space</span></tt>.</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When arbitrarily setting values, some children may have zero 
-probability given their parents. This means the logprob may be -inf. 
-If using, <tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG.loglike()</span></tt>, this results in a 
-divide by zero error.</p>
-</div>
 </dd></dl>
 
 <dl class="method">

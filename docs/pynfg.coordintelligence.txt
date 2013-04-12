@@ -1,0 +1,8 @@
+.. _CoordinatedIntelligence:
+
+*************************
+Coordinated Intelligence
+*************************
+
+.. automodule:: pynfg.pgtsolutions.intelligence.iq_coord
+   :members:

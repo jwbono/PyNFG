@@ -8,3 +8,5 @@ PGT Solutions
 
    Intelligence <pynfg.intelligence>
    Iterated Intelligence <pynfg.iterintelligence>
+   Policy Intelligence <pynfg.policyintelligence>
+   Coordinated Intelligence <pynfg.coordintelligence>

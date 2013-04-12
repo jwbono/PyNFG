@@ -1,0 +1,8 @@
+.. _PolicyIntelligence:
+
+**********************
+Policy Intelligence
+**********************
+
+.. automodule:: pynfg.pgtsolutions.intelligence.iq_policy
+   :members:

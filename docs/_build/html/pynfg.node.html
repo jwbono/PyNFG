@@ -96,23 +96,21 @@ discrete.</li>
 </ul>
 <dl class="method">
 <dt id="pynfg.classes.node.Node.dict2list_vals">
-<tt class="descname">dict2list_vals</tt><big>(</big><em>parentinput={}</em>, <em>valueinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/node.html#Node.dict2list_vals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.node.Node.dict2list_vals" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dict2list_vals</tt><big>(</big><em>parentinput=None</em>, <em>valueinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/node.html#Node.dict2list_vals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.node.Node.dict2list_vals" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert parent/value dict entered by user to a list of values</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>parentdict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; the parents OrderedDict attribute for the node, e.g.
-<cite>:py:attr:DecisionNode.parents</cite> or <cite>:py:attr:ChanceNode.parents</cite></li>
 <li><strong>parentinput</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Optional. Specify values of the parents. Keys are 
 parent names. Values are parent values. To specify values for only a 
 subset of the parents, only enter those parents in the dictionary. 
 If only a subset of parent values are specified, then the current 
 values are used for the remaining parents.</li>
 <li><strong>valueinput</strong> &#8211; Optional. A legitimate value of the decision node 
-object. If no valueinput is specified, then the output does not include a 
-value for the node itself.</li>
+object. If no valueinput is specified, then the output does not 
+include a value for the node itself.</li>
 </ul>
 </td>
 </tr>
@@ -127,21 +125,89 @@ OrderedDict.</p>
 
 <dl class="method">
 <dt id="pynfg.classes.node.Node.get_CPTindex">
-<tt class="descname">get_CPTindex</tt><big>(</big><em>values</em>, <em>onlyparents=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/node.html#Node.get_CPTindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.node.Node.get_CPTindex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the CPT index that corresponds to the (parent, node) values</p>
+<tt class="descname">get_CPTindex</tt><big>(</big><em>parentinput=None</em>, <em>valueinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/node.html#Node.get_CPTindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.node.Node.get_CPTindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the CPT index of (parent[, node]) values from user-supplied dict</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>parentdict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; the parents OrderedDict attribute for the node, e.g.
-<cite>:py:attr:DecisionNode.parents</cite> or <cite>:py:attr:ChanceNode.parents</cite></li>
-<li><strong>onlyparents</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; set to true if</li>
-<li><strong>values</strong> &#8211; a list whose members are values for the parents of the 
-decision node and the decision node itself, in the order given by 
-the <cite>:py:attr:DecisionNode.parents</cite> OrderedDict</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parentinput</strong> (<em>dict or list</em>) &#8211; Optional. Specify values of the parents. If input is 
+dict, keys are parent names. Values are parent values. To specify 
+values for only a subset of the parents, only enter those parents 
+in the dictionary. If only a subset of parent values are specified, 
+then the current values are used for the remaining parents. If input
+is list, then the list members are valid values of the parents, and 
+the order is given by the parent dictionary.</li>
+<li><strong>valueinput</strong> &#8211; Optional. A legitimate value of the decision node 
+object. If no valueinput is specified, then the output 
+includes the current value for the node itself. If False is given, 
+then the output index does not include an entry for the node itself.</li>
 </ul>
 </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a tuple CPT index for the values for the parents and the node
+itself in the order determined by the parents OrderedDict.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.node.Node.get_value">
+<tt class="descname">get_value</tt><big>(</big><big>)</big><a class="headerlink" href="#pynfg.classes.node.Node.get_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current value of the Node object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.node.Node.get_valueindex">
+<tt class="descname">get_valueindex</tt><big>(</big><em>value=None</em><big>)</big><a class="headerlink" href="#pynfg.classes.node.Node.get_valueindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the valueindex attribute of the discrete Node object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; a legitimate value of the Node object, i.e. the value must 
+be in <tt class="xref py py-attr docutils literal"><span class="pre">classes.Node.space</span></tt>. Otherwise an error occurs. If 
+no value is provided, the current valueindex is returned.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.node.Node.set_value">
+<tt class="descname">set_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#pynfg.classes.node.Node.set_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the current value of the Node object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; a legitimate value of the Node object, i.e. the 
+value must be in <tt class="xref py py-attr docutils literal"><span class="pre">classes.Node.space</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When arbitrarily setting values, some children may have zero 
+probability given their parents. This means the logprob may be -inf. 
+If using, <tt class="xref py py-meth docutils literal"><span class="pre">seminfg.SemiNFG.loglike()</span></tt>, this results in a 
+divide by zero error.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.node.Node.set_valueindex">
+<tt class="descname">set_valueindex</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#pynfg.classes.node.Node.set_valueindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the valueindex attribute of the discrete Node object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; a legitimate value of the Node object, i.e. the value must 
+be in <tt class="xref py py-attr docutils literal"><span class="pre">classes.Node.space</span></tt>. Otherwise an error occurs</td>
 </tr>
 </tbody>
 </table>

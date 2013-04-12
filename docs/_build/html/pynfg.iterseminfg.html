@@ -205,7 +205,7 @@ in the set of nodes passed to <tt class="xref py py-class docutils literal"><spa
 </ul>
 <dl class="method">
 <dt id="pynfg.classes.iterseminfg.iterSemiNFG.npv_reward">
-<tt class="descname">npv_reward</tt><big>(</big><em>player</em>, <em>start</em>, <em>delta</em>, <em>nodeinput={}</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/iterseminfg.html#iterSemiNFG.npv_reward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.iterseminfg.iterSemiNFG.npv_reward" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">npv_reward</tt><big>(</big><em>player</em>, <em>start</em>, <em>delta</em>, <em>nodeinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/iterseminfg.html#iterSemiNFG.npv_reward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.iterseminfg.iterSemiNFG.npv_reward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the npv of rewards from start using delta discount factor</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -226,7 +226,7 @@ calculating the rewards</li>
 
 <dl class="method">
 <dt id="pynfg.classes.iterseminfg.iterSemiNFG.reward">
-<tt class="descname">reward</tt><big>(</big><em>player</em>, <em>t</em>, <em>nodeinput={}</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/iterseminfg.html#iterSemiNFG.reward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.iterseminfg.iterSemiNFG.reward" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">reward</tt><big>(</big><em>player</em>, <em>t</em>, <em>nodeinput=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/iterseminfg.html#iterSemiNFG.reward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.iterseminfg.iterSemiNFG.reward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate the reward of the specified player in the specified time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -262,11 +262,9 @@ the user wants to collect as output. If omitted, there is no output.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of lists of values drawn from the joint distribution 
-given by the net. The order of the lists in the return list is given 
-by the time step, and the order of the values in the list is given 
-by the order of the nodes in the attribute list 
-<tt class="xref py py-attr docutils literal"><span class="pre">seminfg.iterSemiNFG.iterator</span></tt>.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a dict keyed by base names in basenames input. Values are 
+time series of values from start to stop of nodes that share that 
+basename.</p>
 </td>
 </tr>
 </tbody>
