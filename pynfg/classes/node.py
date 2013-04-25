@@ -188,7 +188,10 @@ class Node(object):
         
         """
         if self.continuous:
+#            try:
             return self.value
+#            except AttributeError:
+#                print self.name
         else:
             return self.space[self.valueindex]
         

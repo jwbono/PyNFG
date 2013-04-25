@@ -205,7 +205,7 @@ class iterSemiNFG(SemiNFG):
 
         :arg player: The name of a player with a reward function specified.
         :type player: str.
-        :arg nodeinput: Optional. Keys are node names. Values are node values. 
+        :arg nodeinput: Optional. Keys are basenames. Values are node values. 
            The values in nodeinput merely override the current node values, so 
            nodeinput does not need to specify values for every argument to a 
            player's reward function.

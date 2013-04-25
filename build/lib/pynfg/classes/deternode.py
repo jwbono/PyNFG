@@ -108,7 +108,8 @@ class DeterNode(Node):
             raise TypeError('The space must be a list')
         self.parents = self._set_parent_dict(params.values())
         self.continuous = continuous
-        self.draw_value()        
+#        self.value = None
+#        self.draw_value()        
         self.description = description
         self.time = time
         self.basename = basename
