@@ -115,7 +115,7 @@ class DecisionNode(Node):
         self.parents = self._set_parent_dict(parents)
         self._createCPT()
         self._check_disc_parents()
-        self.set_value(self.space[0])
+#        self.set_value(self.space[0])
         self.continuous = False
         
     def __str__(self):
