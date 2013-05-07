@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Q-Learning &mdash; PyNFG 0.1 documentation</title>
+    <title>Optimistic Q-Learning &mdash; PyNFG 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -28,7 +28,7 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="PyNFG 0.1 documentation" href="index.html" />
     <link rel="up" title="RL Solutions" href="pynfg.rlsolutions.html" />
-    <link rel="prev" title="Monte Carlo RL" href="pynfg.mcrl.html" /> 
+    <link rel="prev" title="Q-Learning" href="pynfg.qlearning.html" /> 
   </head>
   <body>
     <div class="related">
@@ -41,7 +41,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="pynfg.mcrl.html" title="Monte Carlo RL"
+          <a href="pynfg.qlearning.html" title="Q-Learning"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li>
           <li><a href="pynfg.rlsolutions.html" accesskey="U">RL Solutions</a> &raquo;</li> 
@@ -53,18 +53,17 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-pynfg.rlsolutions.qlearning">
-<span id="q-learning"></span><span id="qlearning"></span><h1>Q-Learning<a class="headerlink" href="#module-pynfg.rlsolutions.qlearning" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-pynfg.rlsolutions.opt_qlearning">
+<span id="optimistic-q-learning"></span><span id="optimisticqlearning"></span><h1>Optimistic Q-Learning<a class="headerlink" href="#module-pynfg.rlsolutions.opt_qlearning" title="Permalink to this headline">¶</a></h1>
 <p>Implements Optimistic Q-Learning for policies in pynfg.iterSemiNFG objects</p>
 <p>Created on Fri Mar 22 15:32:33 2013</p>
 <p>Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)</p>
 <p>GNU Affero General Public License</p>
 <p>Author: Dongping Xie</p>
 <dl class="function">
-<dt id="pynfg.rlsolutions.qlearning.opt_qlearning">
-<tt class="descclassname">pynfg.rlsolutions.qlearning.</tt><tt class="descname">opt_qlearning</tt><big>(</big><em>G</em>, <em>bn</em>, <em>w</em>, <em>d</em>, <em>N</em>, <em>r_max=0</em><big>)</big><a class="reference internal" href="_modules/pynfg/rlsolutions/qlearning.html#opt_qlearning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.rlsolutions.qlearning.opt_qlearning" title="Permalink to this definition">¶</a></dt>
-<dd><p>Train a policy using Optimistic Q-learning</p>
-<p>Optimistic Q-Learning  is an off-policy TD control RL algorithm</p>
+<dt id="pynfg.rlsolutions.opt_qlearning.opt_qlearning">
+<tt class="descclassname">pynfg.rlsolutions.opt_qlearning.</tt><tt class="descname">opt_qlearning</tt><big>(</big><em>G</em>, <em>bn</em>, <em>w</em>, <em>d</em>, <em>N</em>, <em>r_max=0</em><big>)</big><a class="reference internal" href="_modules/pynfg/rlsolutions/opt_qlearning.html#opt_qlearning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.rlsolutions.opt_qlearning.opt_qlearning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimistic Q-learning: An Off-Policy TD Control RL Solution</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -92,17 +91,10 @@ q table</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="pynfg.rlsolutions.qlearning.q_to_cpt">
-<tt class="descclassname">pynfg.rlsolutions.qlearning.</tt><tt class="descname">q_to_cpt</tt><big>(</big><em>qtable</em><big>)</big><a class="reference internal" href="_modules/pynfg/rlsolutions/qlearning.html#q_to_cpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.rlsolutions.qlearning.q_to_cpt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a Q table to a CPT</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>qtable</strong> &#8211; </td>
-</tr>
-</tbody>
-</table>
+<dt id="pynfg.rlsolutions.opt_qlearning.q_to_cpt">
+<tt class="descclassname">pynfg.rlsolutions.opt_qlearning.</tt><tt class="descname">q_to_cpt</tt><big>(</big><em>qtable</em><big>)</big><a class="reference internal" href="_modules/pynfg/rlsolutions/opt_qlearning.html#q_to_cpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.rlsolutions.opt_qlearning.q_to_cpt" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to convert a Q table to a CPT
+:arg qtable:</p>
 </dd></dl>
 
 </div>
@@ -114,11 +106,11 @@ q table</p>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="pynfg.mcrl.html"
-                        title="previous chapter">Monte Carlo RL</a></p>
+  <p class="topless"><a href="pynfg.qlearning.html"
+                        title="previous chapter">Q-Learning</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="_sources/pynfg.qlearning.txt"
+    <li><a href="_sources/pynfg.optqlearning.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
@@ -148,7 +140,7 @@ q table</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="pynfg.mcrl.html" title="Monte Carlo RL"
+          <a href="pynfg.qlearning.html" title="Q-Learning"
              >previous</a> |</li>
         <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li>
           <li><a href="pynfg.rlsolutions.html" >RL Solutions</a> &raquo;</li> 

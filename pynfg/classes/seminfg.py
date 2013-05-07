@@ -343,13 +343,22 @@ class SemiNFG(object):
                 roots.add(n)
         return roots
         
-    def get_values(self):
+    def get_values(self, nodenames=None):
         """Retrieve the values of the nodes comprising the SemiNFG.
         
+        :arg nodenames: (Optional) The names of the nodes whose values should 
+           be returned. If no names are specified, all node values are returned.
+        :type nodenames: set or list
         :returns: dict where keys are node names and values are node values
         
         """
-        return dict(map(lambda x: (x.name, x.get_value()), self.nodes))
+        if not nodenames:
+            return dict(map(lambda x: (x.name, x.get_value()), self.nodes))
+        else:
+            adict = {}
+            for name in nodenames:
+                adict[name] = self.node_dict[name].get_value()
+            return adict
         
     def set_values(self, value_dict):
         """Set the values of a subset of the nodes comprising the SemiNFG.

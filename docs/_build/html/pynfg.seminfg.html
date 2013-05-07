@@ -279,13 +279,16 @@ graphed.</td>
 
 <dl class="method">
 <dt id="pynfg.classes.seminfg.SemiNFG.get_values">
-<tt class="descname">get_values</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.get_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.get_values" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_values</tt><big>(</big><em>nodenames=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.get_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.get_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the values of the nodes comprising the SemiNFG.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict where keys are node names and values are node values</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nodenames</strong> (<em>set or list</em>) &#8211; (Optional) The names of the nodes whose values should 
+be returned. If no names are specified, all node values are returned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict where keys are node names and values are node values</td>
 </tr>
 </tbody>
 </table>

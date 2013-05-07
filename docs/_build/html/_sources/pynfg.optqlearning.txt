@@ -1,0 +1,8 @@
+.. _OptimisticQLearning:
+
+****************************
+Optimistic Q-Learning
+****************************
+
+.. automodule:: pynfg.rlsolutions.opt_qlearning
+   :members:

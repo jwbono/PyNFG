@@ -22,6 +22,7 @@ pynfg/pgtsolutions/intelligence/iq_iterated.py
 pynfg/pgtsolutions/intelligence/iq_policy.py
 pynfg/rlsolutions/__init__.py
 pynfg/rlsolutions/mcrl.py
+pynfg/rlsolutions/opt_qlearning.py
 pynfg/rlsolutions/qlearning.py
 pynfg/test/__init__.py
 pynfg/test/test_script.py

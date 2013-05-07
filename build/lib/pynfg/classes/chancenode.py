@@ -145,7 +145,7 @@ class ChanceNode(Node):
                 self.space = distip[2]
             else:
                 self.space = []
-        self.draw_value()
+#        self.draw_value()
         
     def __str__(self):
         return self.name

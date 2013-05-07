@@ -115,7 +115,7 @@ class DecisionNode(Node):
         self.parents = self._set_parent_dict(parents)
         self._createCPT()
         self._check_disc_parents()
-        self.set_value(self.space[0])
+#        self.set_value(self.space[0])
         self.continuous = False
         
     def __str__(self):
@@ -263,6 +263,16 @@ class DecisionNode(Node):
            the noise parameter is ignored and a different action is selected 
            with probability 1.
         :type sliver: dict
+        
+        .. note::
+           
+           If setCPT is True, then there is no CPT output. If setCPT is True, 
+           and returnweight is False, then there is no output. If setCPT is 
+           True, and returnweight is True, then the weight is the only output. 
+           If setCPT is False, and returnweight is False, then the only output
+           is the CPT output. Finally, if setCPT is False, and returnweight is 
+           True, then there is both CPT and weight output, and the weight is 
+           first in the list.
         
         """
         copiedCPT = copy.copy(self.CPT)
