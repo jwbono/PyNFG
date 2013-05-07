@@ -19,7 +19,12 @@ import matplotlib.pylab as plt
 def q_to_cpt(qtable):
     """Convert a Q table to a CPT
     
-    :arg qtable:
+    :arg qtable: an nd numpy array in which the first n-1 dimensions represent
+       messages, and the -1 axis represents player actions. Entries represent
+       Q values.
+    :type qtable: np.ndarray
+    :returns: a normalized conditional probability distribution over actions
+       given messages.
     
     """
     max_elems = qtable.max(qtable.ndim-1)
@@ -38,7 +43,7 @@ def q_to_cpt(qtable):
     return cpt
     
 def opt_qlearning(G,bn,w,d,N,r_max = 0):
-    """Train a policy using Optimistic Q-learning
+    """Solve for the optimal policy using Optimistic Q-learning
     
     Optimistic Q-Learning  is an off-policy TD control RL algorithm
     
