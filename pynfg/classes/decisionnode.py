@@ -2,8 +2,6 @@
 """
 Implements the DecisionNode class
 
-Part of: PyNFG - a Python package for modeling and solving Network Form Games
-
 Created on Mon Feb 18 10:31:17 2013
 
 Copyright (C) 2013 James Bono (jwbono@gmail.com)
@@ -18,6 +16,7 @@ import scipy as sp
 import copy
 import scipy.stats.distributions as randvars
 from node import *
+from pynfg.utilities.utilities import convert_2_pureCPT
 
 class DecisionNode(Node):
     """Implements a decision node of the semi-NFG formalism by D. Wolpert
@@ -394,6 +393,24 @@ class DecisionNode(Node):
             parentinput = {}
         r = self.prob(parentinput, valueinput)
         return np.log(r)
+        
+    def makeCPTpure(self, setCPT=True):
+        """Convert mixed CPT to pure CPT, 
+        
+        :arg setCPT: if True (default), then the CPT attribute is converted to 
+           a pure CPT. Otherwise, the output is a pure CPT.
+        :type setCPT: bool
+        
+        .. note::
+           
+           whenever there are multiple argmax's, each gets equal probability in
+           the resuling "pure" CPT.
+        
+        """
+        if setCPT:
+            self.CPT = convert_2_pureCPT(self.CPT)
+        else:
+            return convert_2_pureCPT(copy.copy(self.CPT))
         
 #    def set_value(self, newvalue):
 #        """Set the current value of the DecisionNode object

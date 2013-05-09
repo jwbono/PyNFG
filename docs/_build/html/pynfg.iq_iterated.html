@@ -1,0 +1,321 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Iterated Intelligence &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="index.html" />
+    <link rel="up" title="PGT Solutions" href="pynfg.pgtsolutions.html" />
+    <link rel="next" title="RL Solutions" href="pynfg.rlsolutions.html" />
+    <link rel="prev" title="Policy Intelligence" href="pynfg.iq_policy.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pynfg.rlsolutions.html" title="RL Solutions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pynfg.iq_policy.html" title="Policy Intelligence"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="pynfg.pgtsolutions.html" accesskey="U">PGT Solutions</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pynfg.pgtsolutions.intelligence.iterated">
+<span id="iterated-intelligence"></span><span id="iteratedintelligence"></span><h1>Iterated Intelligence<a class="headerlink" href="#module-pynfg.pgtsolutions.intelligence.iterated" title="Permalink to this headline">¶</a></h1>
+<p>Implements Uncoordinated PGT Intelligence for iterSemiNFG objects</p>
+<p>Created on Wed Jan  2 16:33:36 2013</p>
+<p>Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)</p>
+<p>GNU Affero General Public License</p>
+<dl class="function">
+<dt id="pynfg.pgtsolutions.intelligence.iterated.iterated_MC">
+<tt class="descclassname">pynfg.pgtsolutions.intelligence.iterated.</tt><tt class="descname">iterated_MC</tt><big>(</big><em>G</em>, <em>S</em>, <em>noise</em>, <em>X</em>, <em>M</em>, <em>innoise=1</em>, <em>delta=1</em>, <em>integrand=None</em>, <em>mix=False</em>, <em>satisfice=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/pgtsolutions/intelligence/iterated.html#iterated_MC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.pgtsolutions.intelligence.iterated.iterated_MC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run Importance Sampling on policy sequences for PGT IQ Calculations</p>
+<p>For examples, see below or PyNFG/bin/hideandseek.py</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>G</strong> (<em>iterSemiNFG</em>) &#8211; the game to be evaluated</li>
+<li><strong>S</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of policy profiles to sample</li>
+<li><strong>noise</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the degree of independence of the proposal distribution on the 
+current value. 1 is independent, 0 returns no perturbation.</li>
+<li><strong>X</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of samples of each policy profile</li>
+<li><strong>M</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of random alt policies to compare</li>
+<li><strong>innoise</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the perturbation noise for the loop within iq_calc to draw 
+alt CPTs to compare utilities to current CPT.</li>
+<li><strong>delta</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the discount factor (ignored if SemiNFG)</li>
+<li><strong>integrand</strong> (<em>func</em>) &#8211; a user-supplied function of G that is evaluated for each s 
+in S</li>
+<li><strong>mix</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; False if restricting sampling to pure strategies. True if mixed 
+strategies are included in sampling. Default is False.</li>
+<li><strong>satisfice</strong> (<em>iterSemiNFG</em>) &#8211; game G such that the CPTs of G together with innoise 
+determine the intelligence satisficing distribution.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li>intel - a sample-keyed dictionary of basename-keyed timestep iq lists</li>
+<li>funcout - a sample-keyed dictionary of the output of the 
+user-supplied integrand.</li>
+<li>weight - a sample-keyed dictionay of basename-keyed importance weight
+dictionaries.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This will throw an error if there is a decision node in G.starttime that 
+is not repeated throughout the net.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is an uncoordinated approach because intelligence is assigned to a 
+decision node instead of players. As a result, it takes much longer to 
+run than pynfg.pgtsolutions.intelligence.policy.policy_MC</p>
+</div>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">welfare</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+    <span class="c">#calculate the welfare of a single sample of the iterSemiNFG G</span>
+    <span class="n">G</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+        <span class="n">w</span> <span class="o">+=</span> <span class="n">G</span><span class="o">.</span><span class="n">npv_reward</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">starttime</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">w</span>
+    
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="n">GG</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span> <span class="c">#G is an iterSemiNFG</span>
+<span class="n">S</span> <span class="o">=</span> <span class="mi">50</span> <span class="c">#number of MC samples</span>
+<span class="n">X</span> <span class="o">=</span> <span class="mi">10</span> <span class="c">#number of samples of utility of G in calculating iq</span>
+<span class="n">M</span> <span class="o">=</span> <span class="mi">20</span> <span class="c">#number of alternative strategies sampled in calculating iq</span>
+<span class="n">noise</span> <span class="o">=</span> <span class="o">.</span><span class="mi">2</span> <span class="c">#noise in the perturbations of G for MC sampling</span>
+
+<span class="kn">from</span> <span class="nn">pynfg.pgtsolutions.intelligence.iterated</span> <span class="kn">import</span> <span class="n">iterated_MC</span>
+
+<span class="n">intelMC</span><span class="p">,</span> <span class="n">funcoutMC</span><span class="p">,</span> <span class="n">weightMC</span> <span class="o">=</span> <span class="n">iterated_MC</span><span class="p">(</span><span class="n">GG</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> 
+                                           <span class="n">innoise</span><span class="o">=.</span><span class="mi">2</span><span class="p">,</span> 
+                                           <span class="n">delta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+                                           <span class="n">integrand</span><span class="o">=</span><span class="n">welfare</span><span class="p">,</span> 
+                                           <span class="n">mix</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                                           <span class="n">satisfice</span><span class="o">=</span><span class="n">GG</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pynfg.pgtsolutions.intelligence.iterated.iterated_MH">
+<tt class="descclassname">pynfg.pgtsolutions.intelligence.iterated.</tt><tt class="descname">iterated_MH</tt><big>(</big><em>G</em>, <em>S</em>, <em>density</em>, <em>noise</em>, <em>X</em>, <em>M</em>, <em>innoise=1</em>, <em>delta=1</em>, <em>integrand=None</em>, <em>mix=False</em>, <em>satisfice=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/pgtsolutions/intelligence/iterated.html#iterated_MH"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.pgtsolutions.intelligence.iterated.iterated_MH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run Metropolis-Hastings on policy sequences for PGT IQ Calculations</p>
+<p>For examples, see below or PyNFG/bin/hideandseek.py</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>G</strong> (<em>iterSemiNFG</em>) &#8211; the game to be evaluated</li>
+<li><strong>S</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of MH iterations</li>
+<li><strong>density</strong> (<em>func</em>) &#8211; the function that assigns weights to iq</li>
+<li><strong>noise</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the degree of independence of the proposal distribution on the 
+current value. 1 is independent, 0 returns no perturbation.</li>
+<li><strong>X</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of samples of each policy profile</li>
+<li><strong>M</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of random alt policies to compare</li>
+<li><strong>innoise</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the perturbation noise for the loop within iq_calc to draw 
+alt CPTs to compare utilities to current CPT.</li>
+<li><strong>delta</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the discount factor (ignored if SemiNFG)</li>
+<li><strong>integrand</strong> (<em>func</em>) &#8211; a user-supplied function of G that is evaluated for each s 
+in S</li>
+<li><strong>mix</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; if true, proposal distribution is over mixed CPTs. Default is 
+False.</li>
+<li><strong>satisfice</strong> (<em>iterSemiNFG</em>) &#8211; game G such that the CPTs of G together with innoise 
+determine the intelligence satisficing distribution.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li>intel - a sample-keyed dictionary of basename-keyed timestep iq lists</li>
+<li>funcout - a sample-keyed dictionary of the output of the
+user-supplied integrand.</li>
+<li>dens - a list of the density values, one for each MH draw.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This will throw an error if there is a decision node in G.starttime that 
+is not repeated throughout the net.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is an uncoordinated approach because intelligence is assigned to a 
+decision node instead of players. As a result, it takes much longer to 
+run than pynfg.pgtsolutions.intelligence.policy.policy_MH</p>
+</div>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">density</span><span class="p">(</span><span class="n">iqdict</span><span class="p">):</span>
+    <span class="c">#calculate the PGT density for a given iqdict</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">iqdict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">z</span>
+
+<span class="k">def</span> <span class="nf">welfare</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+    <span class="c">#calculate the welfare of a single sample of the iterSemiNFG G</span>
+    <span class="n">G</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+        <span class="n">w</span> <span class="o">+=</span> <span class="n">G</span><span class="o">.</span><span class="n">npv_reward</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">starttime</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">w</span>
+    
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="n">GG</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span> <span class="c">#G is an iterSemiNFG</span>
+<span class="n">S</span> <span class="o">=</span> <span class="mi">50</span> <span class="c">#number of MH samples</span>
+<span class="n">X</span> <span class="o">=</span> <span class="mi">10</span> <span class="c">#number of samples of utility of G in calculating iq</span>
+<span class="n">M</span> <span class="o">=</span> <span class="mi">20</span> <span class="c">#number of alternative strategies sampled in calculating iq</span>
+<span class="n">noise</span> <span class="o">=</span> <span class="o">.</span><span class="mi">2</span> <span class="c">#noise in the perturbations of G for MH sampling</span>
+
+<span class="kn">from</span> <span class="nn">pynfg.pgtsolutions.intelligence.iterated</span> <span class="kn">import</span> <span class="n">iterated_MH</span>
+
+<span class="n">intelMH</span><span class="p">,</span> <span class="n">funcoutMH</span><span class="p">,</span> <span class="n">densMH</span> <span class="o">=</span> <span class="n">iterated_MH</span><span class="p">(</span><span class="n">GG</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span>
+                                         <span class="n">innoise</span><span class="o">=.</span><span class="mi">2</span><span class="p">,</span> 
+                                         <span class="n">delta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+                                         <span class="n">integrand</span><span class="o">=</span><span class="n">welfare</span><span class="p">,</span> 
+                                         <span class="n">mix</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                                         <span class="n">satisfice</span><span class="o">=</span><span class="n">GG</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pynfg.pgtsolutions.intelligence.iterated.iterated_calciq">
+<tt class="descclassname">pynfg.pgtsolutions.intelligence.iterated.</tt><tt class="descname">iterated_calciq</tt><big>(</big><em>bn</em>, <em>G</em>, <em>X</em>, <em>M</em>, <em>mix</em>, <em>delta</em>, <em>start</em>, <em>innoise</em>, <em>satisfice=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/pgtsolutions/intelligence/iterated.html#iterated_calciq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.pgtsolutions.intelligence.iterated.iterated_calciq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate IQ of player&#8217;s policy at a given time step</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>p</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name of the player whose intelligence is being evaluated.</li>
+<li><strong>G</strong> (<em>iterSemiNFG</em>) &#8211; the iterated semi-NFG to be evaluated</li>
+<li><strong>X</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of samples of each policy profile</li>
+<li><strong>M</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of random alt policies with which to compare</li>
+<li><strong>mix</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; if true, proposal distribution is over mixed CPTs. Default is 
+False.</li>
+<li><strong>delta</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the discount factor (ignored if SemiNFG)</li>
+<li><strong>innoise</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the perturbation noise for the inner loop to draw alt CPTs</li>
+<li><strong>satisfice</strong> (<em>iterSemiNFG</em>) &#8211; game G such that the CPTs of G together with innoise 
+determine the intelligence satisficing distribution.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an estimate of the fraction of alternative policies at the given 
+time step that have a lower npv reward than the current policy.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pynfg.iq_policy.html"
+                        title="previous chapter">Policy Intelligence</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pynfg.rlsolutions.html"
+                        title="next chapter">RL Solutions</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pynfg.iq_iterated.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pynfg.rlsolutions.html" title="RL Solutions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pynfg.iq_policy.html" title="Policy Intelligence"
+             >previous</a> |</li>
+        <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="pynfg.pgtsolutions.html" >PGT Solutions</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

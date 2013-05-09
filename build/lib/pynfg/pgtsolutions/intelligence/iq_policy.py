@@ -175,8 +175,8 @@ def iq_calc_policy(p, G, X, M, mix, delta, innoise, satisfice=None):
     :type delta: float
     :arg innoise: the perturbation noise for the inner loop to draw alt CPTs
     :type innoise: float
-    :returns: the fraction of alternative policies for the given player that 
-       have a lower npv reward than the current policy.
+    :returns: the fraction of alternative policies that have a lower npv 
+       reward than the current policy.
     
     """
     if isinstance(G, iterSemiNFG): 

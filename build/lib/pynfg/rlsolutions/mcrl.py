@@ -2,8 +2,6 @@
 """
 Implements Monte Carlo Reinforcement Learning for iterSemiNFG objects
 
-Part of: PyNFG - a Python package for modeling and solving Network Form Games
-
 Created on Mon Feb 18 09:03:32 2013
 
 Copyright (C) 2013 James Bono (jwbono@gmail.com)
@@ -45,8 +43,12 @@ def ewma_mcrl(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     
     Example::
         
-        G1, Rseries = ewma_mcrl(G, 'D1', J=np.floor(linspace(300,100,num=50)), \
-           N=50, alpha=1, delta=0.8, eps=0.4)
+        import copy
+        GG = copy.deepcopy(G)
+        from pynfg.rlsolutions.mcrl import ewma_mcrl
+        G1, Rseries = ewma_mcrl(GG, 'D1', J=np.floor(linspace(300,100,num=50)),
+                                N=50, alpha=1, delta=0.8, eps=0.4, 
+                                pureout=True)
     
     """
     G = copy.deepcopy(Game)
@@ -70,12 +72,12 @@ def ewma_mcrl(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         dn.CPT = G.bn_part[bn][0].CPT
     visit = set() #dict of the messages and mapairs visited throughout training
     averew = 0
-    for x in xrange(30):
-        rew = 0
-        G.sample()
-        for t in xrange(T0,T):
-            rew += G.reward(player, t)/(T-T0-1)
-        averew += rew/(30)
+#    for x in xrange(30):
+#        rew = 0
+#        G.sample()
+#        for t in xrange(T0,T):
+#            rew += G.reward(player, t)/(T-T0-1)
+#        averew += rew/(30)
     R = averew #average reward
     A = 0 #normalizing constant for average reward
     B = {} #dict associates messages and mapairs with beta exponents
@@ -168,18 +170,10 @@ def ewma_mcrl(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         # normalize after the shift
         CPTsum = G.bn_part[bn][0].CPT.sum(axis=-1)
         G.bn_part[bn][0].CPT /= CPTsum[...,np.newaxis]
-#        if np.any(G.bn_part[bn][T0].CPT<0):
-#            raise AssertionError('Negative values detected in the CPT')
     if pureout: #if True, output is a pure policy
-        messages = set()
-        for mapair in visit:
-            if mapair[:-1] not in messages:
-                ind = G.bn_part[bn][0].CPT[mapair[:-1],:].argmax()
-                G.bn_part[bn][0].CPT[mapair[:-1],:] = 0
-                G.bn_part[bn][0].CPT[mapair[:-1],ind]=1
-                messages.add(mapair[:-1])
+        G.bn_part[bn][0].makeCPTpure()
     for tau in xrange(1, T-T0): #before exit, make CPTs independent in memory
-            G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][0].CPT)
+        G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][0].CPT)
     plt.plot(Rseries) #plotting Rseries to gauge convergence
     fig = plt.gcf() 
     plt.show()

@@ -60,7 +60,6 @@
   <div class="section" id="module-pynfg.rlsolutions.mcrl">
 <span id="monte-carlo-rl"></span><span id="montecarlorl"></span><h1>Monte Carlo RL<a class="headerlink" href="#module-pynfg.rlsolutions.mcrl" title="Permalink to this headline">¶</a></h1>
 <p>Implements Monte Carlo Reinforcement Learning for iterSemiNFG objects</p>
-<p>Part of: PyNFG - a Python package for modeling and solving Network Form Games</p>
 <p>Created on Mon Feb 18 09:03:32 2013</p>
 <p>Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)</p>
 <p>GNU Affero General Public License</p>
@@ -92,7 +91,12 @@ of training by assigning argmax actions prob 1. Default is False</li>
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">G1</span><span class="p">,</span> <span class="n">Rseries</span> <span class="o">=</span> <span class="n">ewma_mcrl</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="s">&#39;D1&#39;</span><span class="p">,</span> <span class="n">J</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">linspace</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">)),</span>            <span class="n">N</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">copy</span>
+<span class="n">GG</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pynfg.rlsolutions.mcrl</span> <span class="kn">import</span> <span class="n">ewma_mcrl</span>
+<span class="n">G1</span><span class="p">,</span> <span class="n">Rseries</span> <span class="o">=</span> <span class="n">ewma_mcrl</span><span class="p">(</span><span class="n">GG</span><span class="p">,</span> <span class="s">&#39;D1&#39;</span><span class="p">,</span> <span class="n">J</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">linspace</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">)),</span>
+                        <span class="n">N</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> 
+                        <span class="n">pureout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>

@@ -79,12 +79,14 @@ class ChanceNode(Node):
         
         import scipy.stats.distributions as randvars
                         
-        D1 = DecisionNode('D1', '1', [-1, 0, 1], parents=[], description='This is a child node of C1')
+        D1 = DecisionNode('D1', '1', [-1, 0, 1], parents=[], 
+                          description='This is a child node of C1')
         
         dist1 = randvars.norm
         params1 = [D1, 2]
         distip1 = (dist2, params2)
-        C1 = ChanceNode('C1', distip=distip1, description='CN norm rv with scale=2 and loc=D1')
+        C1 = ChanceNode('C1', distip=distip1, 
+                        description='CN norm rv with scale=2 and loc=D1')
                         
     or::
         
@@ -93,13 +95,15 @@ class ChanceNode(Node):
         dist1 = randvars.randint
         params1 = [5, 10]
         distip1 = (dist1, params1)
-        C1 = ChanceNode('C1', distip=distip1, description='root CN randint from 5 to 10')
+        C1 = ChanceNode('C1', distip=distip1, 
+                        description='root CN randint from 5 to 10')
         
         dist2 = randvars.hypergeom
         params2 = [C1, 3, 3]
         space2 = [0, 1, 2, 3]
         distip2 = (dist2, params2, space2)
-        C2 = ChanceNode('C2', distip=distip1, description='CN hypergeom M=C1, n=3, N=3')
+        C2 = ChanceNode('C2', distip=distip1, 
+                        description='CN hypergeom M=C1, n=3, N=3')
                         
     Upon initialization, the following private method is called: 
     :py:meth:`classes.ChanceNode._set_parent_dict()`

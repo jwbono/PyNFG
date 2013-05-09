@@ -60,7 +60,6 @@
   <div class="section" id="module-pynfg.classes.decisionnode">
 <span id="decision-node"></span><span id="decisionnode"></span><h1>Decision Node<a class="headerlink" href="#module-pynfg.classes.decisionnode" title="Permalink to this headline">¶</a></h1>
 <p>Implements the DecisionNode class</p>
-<p>Part of: PyNFG - a Python package for modeling and solving Network Form Games</p>
 <p>Created on Mon Feb 18 10:31:17 2013</p>
 <p>Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)</p>
 <p>GNU Affero General Public License</p>
@@ -219,6 +218,26 @@ correspond to items in the space attributes of the parents.</p>
 <p class="last">The CPT is an np.zero array upon initialization. Therefore, one must 
 set the CPT wih <tt class="xref py py-meth docutils literal"><span class="pre">classes.DecisionNode.randomCPT()</span></tt> or 
 manually before calling this method.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.classes.decisionnode.DecisionNode.makeCPTpure">
+<tt class="descname">makeCPTpure</tt><big>(</big><em>setCPT=True</em><big>)</big><a class="headerlink" href="#pynfg.classes.decisionnode.DecisionNode.makeCPTpure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert mixed CPT to pure CPT,</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>setCPT</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; if True (default), then the CPT attribute is converted to 
+a pure CPT. Otherwise, the output is a pure CPT.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">whenever there are multiple argmax&#8217;s, each gets equal probability in
+the resuling &#8220;pure&#8221; CPT.</p>
 </div>
 </dd></dl>
 

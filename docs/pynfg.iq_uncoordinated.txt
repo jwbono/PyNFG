@@ -1,0 +1,8 @@
+.. _UncoordinatedIntelligence:
+
+****************************
+Uncoordinated Intelligence
+****************************
+
+.. automodule:: pynfg.pgtsolutions.intelligence.uncoordinated
+   :members:

@@ -67,7 +67,8 @@ class DeterNode(Node):
         dist1 = randvars.norm
         params1 = [0.5, 1]
         distip1 = (dist1, params1)
-        C1 = ChanceNode('C1', distip=distip1, description='CN given by norm loc=0.5, scale=1')
+        C1 = ChanceNode('C1', distip=distip1, 
+                        description='CN given by norm loc=0.5, scale=1')
        
         def func2(var1=1, var2=0):
             r = np.sign(var1+var2)
@@ -76,7 +77,8 @@ class DeterNode(Node):
         params2 = {'var1': C1}
         continuous2 = False
         space2 = [-1, 0, 1]
-        F2 = DeterNode('F2', func2, params2, continuous2, space=space2, description='a disc. DeterNode child of C1')
+        F2 = DeterNode('F2', func2, params2, continuous2, space=space2, 
+                       description='a disc. DeterNode child of C1')
     
     Upon initialization, the following private method is called: 
     :py:meth:`classes.DeterNode._set_parent_dict()`

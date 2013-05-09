@@ -124,7 +124,8 @@ values of parents into the parameters that are used by their children.</p>
 <span class="n">dist1</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">norm</span>
 <span class="n">params1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">distip1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist1</span><span class="p">,</span> <span class="n">params1</span><span class="p">)</span>
-<span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;CN given by norm loc=0.5, scale=1&#39;</span><span class="p">)</span>
+<span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> 
+                <span class="n">description</span><span class="o">=</span><span class="s">&#39;CN given by norm loc=0.5, scale=1&#39;</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">func2</span><span class="p">(</span><span class="n">var1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">var2</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">var1</span><span class="o">+</span><span class="n">var2</span><span class="p">)</span>
@@ -133,7 +134,8 @@ values of parents into the parameters that are used by their children.</p>
 <span class="n">params2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;var1&#39;</span><span class="p">:</span> <span class="n">C1</span><span class="p">}</span>
 <span class="n">continuous2</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="n">space2</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-<span class="n">F2</span> <span class="o">=</span> <span class="n">DeterNode</span><span class="p">(</span><span class="s">&#39;F2&#39;</span><span class="p">,</span> <span class="n">func2</span><span class="p">,</span> <span class="n">params2</span><span class="p">,</span> <span class="n">continuous2</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">space2</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;a disc. DeterNode child of C1&#39;</span><span class="p">)</span>
+<span class="n">F2</span> <span class="o">=</span> <span class="n">DeterNode</span><span class="p">(</span><span class="s">&#39;F2&#39;</span><span class="p">,</span> <span class="n">func2</span><span class="p">,</span> <span class="n">params2</span><span class="p">,</span> <span class="n">continuous2</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">space2</span><span class="p">,</span> 
+               <span class="n">description</span><span class="o">=</span><span class="s">&#39;a disc. DeterNode child of C1&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Upon initialization, the following private method is called: 

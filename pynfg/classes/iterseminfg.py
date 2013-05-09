@@ -20,6 +20,8 @@ from seminfg import *
 class iterSemiNFG(SemiNFG):
     """Implements the iterated semi-NFG formalism created by D. Wolpert
     
+    For an example, see PyNFG/bin/hideandseek.py     
+    
     :arg nodes: members are :class:`nodes.ChanceNode`, 
        :class:`nodes.DecisionNode`, or :class:`nodes.DeterNode`. The basename 
        and time attributes must be set for all nodes used in an iterSemiNFG.
@@ -51,83 +53,6 @@ class iterSemiNFG(SemiNFG):
        For a node in nodes, the parent attribute, e.g. 
        :py:attr:`nodes.ChanceNode.parents`, must not have parents that are not 
        in the set of nodes passed to :class:`seminfg.SemiNFG`.
-       
-    Example::
-        
-        import scipy.stats.distributions as randvars
-        
-        dist1 = randvars.randint
-        params1 = [0, 4]
-        space1 = range(10)
-        distip1 = (dist1, params1, space1)
-        C1 = ChanceNode('C10', distip=distip1, description='root CN randint from 0 to 3', basename='C1', time=0)
-        
-        D1 = DecisionNode('D10', '1', [0, 1], parents=[C1], description='child node of C1. belongs to p1', basename='D1', time=0)
-                            
-        D2 = DecisionNode('D20', '2', [0, 1], parents=[C1], description='child node of C1. belongs to p2', basename='D2', time=0)
-        
-        def funcf(var1, var2, var3):
-            total = var1+var2+var3
-            if total>10:
-                return total-8
-            elif total<1:
-                return total+2
-            else:
-                return total                    
-        
-        paramsf = {'var1': D1, 'var2': D2, 'var3': C1}
-        continuousf = False
-        spacef = range(11)
-        F1 = DeterNode('F10', funcf, paramsf, continuousf, space=spacef, description='a disc. DeterNode child of D1, D2, C1', basename='F1', time=0)
-        
-        nodeset = set([C1,D1,D2,F1])
-                       
-        for t in range(1,4):
-            
-            params1 = [0, F1]
-            distip1 = (dist1, params1, space1)
-            C1 = ChanceNode('C1%s' %t, distip=distip1, description='CN randint from 0 to 3', basename='C1', time=t)
-            nodeset.add(C1)
-                            
-            D1 = DecisionNode('D1%s' %t, '1', [0, 1], parents=[C1], description='child node of C1. belongs to p1', basename='D1', time=t)     
-            nodeset.add(D1)
-                            
-            D2 = DecisionNode('D2%s' %t, '2', [0, 1], parents=[C1], description='child node of C1. belongs to p2', basename='D2', time=t) 
-            nodeset.add(D2)
-        
-            D2.randomCPT(setCPT=True)
-            D2.draw_value()
-            D1.randomCPT(setCPT=True)
-            D1.draw_value()
-            
-            paramsf = {'var1': D1, 'var2': D2, 'var3': C1}
-            F1 = DeterNode('F1%s' %t, funcf, paramsf, continuousf, space=spacef, description='a disc. DeterNode child of D1, D2, C1', basename='F1', time=t)
-            nodeset.add(F1)
-            
-        def reward1(F1=0):
-            if F1<3:
-                if F1%2 == 0:
-                    x=1
-                else: 
-                    x=-1
-            elif F1<=7:
-                if F1%2 == 1:
-                    x=1
-                else:
-                    x=-1
-            else:
-                if F1%2 == 0:
-                    x=1
-                else:
-                    x=-1
-            return x
-            
-        def reward2(F1=0):
-            return -1*reward1(F1)
-        
-        rfuncs = {'1': reward1, '2': reward2}
-        G = iterSemiNFG(nodeset, rfuncs)
-        G.reward('1', 2)
        
     Some useful methods:
     

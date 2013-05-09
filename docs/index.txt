@@ -15,6 +15,7 @@ Contents:
    Game Classes <pynfg.gameclasses>
    PGT Solutions <pynfg.pgtsolutions>
    RL Solutions <pynfg.rlsolutions>
+   Utilities <pynfg.utilities>
 
 
 Indices and tables

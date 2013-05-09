@@ -126,12 +126,14 @@ parents - given by <tt class="xref py py-meth docutils literal"><span class="pre
 <p>Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">scipy.stats.distributions</span> <span class="kn">as</span> <span class="nn">randvars</span>
                 
-<span class="n">D1</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D1&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;This is a child node of C1&#39;</span><span class="p">)</span>
+<span class="n">D1</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D1&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[],</span> 
+                  <span class="n">description</span><span class="o">=</span><span class="s">&#39;This is a child node of C1&#39;</span><span class="p">)</span>
 
 <span class="n">dist1</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">norm</span>
 <span class="n">params1</span> <span class="o">=</span> <span class="p">[</span><span class="n">D1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 <span class="n">distip1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist2</span><span class="p">,</span> <span class="n">params2</span><span class="p">)</span>
-<span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;CN norm rv with scale=2 and loc=D1&#39;</span><span class="p">)</span>
+<span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> 
+                <span class="n">description</span><span class="o">=</span><span class="s">&#39;CN norm rv with scale=2 and loc=D1&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>or:</p>
@@ -140,13 +142,15 @@ parents - given by <tt class="xref py py-meth docutils literal"><span class="pre
 <span class="n">dist1</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">randint</span>
 <span class="n">params1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
 <span class="n">distip1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist1</span><span class="p">,</span> <span class="n">params1</span><span class="p">)</span>
-<span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;root CN randint from 5 to 10&#39;</span><span class="p">)</span>
+<span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> 
+                <span class="n">description</span><span class="o">=</span><span class="s">&#39;root CN randint from 5 to 10&#39;</span><span class="p">)</span>
 
 <span class="n">dist2</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">hypergeom</span>
 <span class="n">params2</span> <span class="o">=</span> <span class="p">[</span><span class="n">C1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
 <span class="n">space2</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
 <span class="n">distip2</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist2</span><span class="p">,</span> <span class="n">params2</span><span class="p">,</span> <span class="n">space2</span><span class="p">)</span>
-<span class="n">C2</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C2&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;CN hypergeom M=C1, n=3, N=3&#39;</span><span class="p">)</span>
+<span class="n">C2</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C2&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> 
+                <span class="n">description</span><span class="o">=</span><span class="s">&#39;CN hypergeom M=C1, n=3, N=3&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Upon initialization, the following private method is called: 

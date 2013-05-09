@@ -68,6 +68,7 @@
 <dt id="pynfg.classes.iterseminfg.iterSemiNFG">
 <em class="property">class </em><tt class="descclassname">pynfg.classes.iterseminfg.</tt><tt class="descname">iterSemiNFG</tt><big>(</big><em>nodes</em>, <em>r_functions=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/iterseminfg.html#iterSemiNFG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.iterseminfg.iterSemiNFG" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements the iterated semi-NFG formalism created by D. Wolpert</p>
+<p>For an example, see PyNFG/bin/hideandseek.py</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -105,83 +106,6 @@ functions is called a iterated semi-Bayes net.  When initialized with
 <p class="last">For a node in nodes, the parent attribute, e.g. 
 <tt class="xref py py-attr docutils literal"><span class="pre">nodes.ChanceNode.parents</span></tt>, must not have parents that are not 
 in the set of nodes passed to <tt class="xref py py-class docutils literal"><span class="pre">seminfg.SemiNFG</span></tt>.</p>
-</div>
-<p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">scipy.stats.distributions</span> <span class="kn">as</span> <span class="nn">randvars</span>
-
-<span class="n">dist1</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">randint</span>
-<span class="n">params1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
-<span class="n">space1</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">distip1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist1</span><span class="p">,</span> <span class="n">params1</span><span class="p">,</span> <span class="n">space1</span><span class="p">)</span>
-<span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C10&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;root CN randint from 0 to 3&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-<span class="n">D1</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D10&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">C1</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;child node of C1. belongs to p1&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;D1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-                    
-<span class="n">D2</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D20&#39;</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">C1</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;child node of C1. belongs to p2&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;D2&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">funcf</span><span class="p">(</span><span class="n">var1</span><span class="p">,</span> <span class="n">var2</span><span class="p">,</span> <span class="n">var3</span><span class="p">):</span>
-    <span class="n">total</span> <span class="o">=</span> <span class="n">var1</span><span class="o">+</span><span class="n">var2</span><span class="o">+</span><span class="n">var3</span>
-    <span class="k">if</span> <span class="n">total</span><span class="o">&gt;</span><span class="mi">10</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">total</span><span class="o">-</span><span class="mi">8</span>
-    <span class="k">elif</span> <span class="n">total</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">total</span><span class="o">+</span><span class="mi">2</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">total</span>                    
-
-<span class="n">paramsf</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;var1&#39;</span><span class="p">:</span> <span class="n">D1</span><span class="p">,</span> <span class="s">&#39;var2&#39;</span><span class="p">:</span> <span class="n">D2</span><span class="p">,</span> <span class="s">&#39;var3&#39;</span><span class="p">:</span> <span class="n">C1</span><span class="p">}</span>
-<span class="n">continuousf</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">spacef</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>
-<span class="n">F1</span> <span class="o">=</span> <span class="n">DeterNode</span><span class="p">(</span><span class="s">&#39;F10&#39;</span><span class="p">,</span> <span class="n">funcf</span><span class="p">,</span> <span class="n">paramsf</span><span class="p">,</span> <span class="n">continuousf</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">spacef</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;a disc. DeterNode child of D1, D2, C1&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;F1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-<span class="n">nodeset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">C1</span><span class="p">,</span><span class="n">D1</span><span class="p">,</span><span class="n">D2</span><span class="p">,</span><span class="n">F1</span><span class="p">])</span>
-               
-<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">):</span>
-    
-    <span class="n">params1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">F1</span><span class="p">]</span>
-    <span class="n">distip1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist1</span><span class="p">,</span> <span class="n">params1</span><span class="p">,</span> <span class="n">space1</span><span class="p">)</span>
-    <span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C1</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span><span class="n">t</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;CN randint from 0 to 3&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
-    <span class="n">nodeset</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">C1</span><span class="p">)</span>
-                    
-    <span class="n">D1</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D1</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span><span class="n">t</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">C1</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;child node of C1. belongs to p1&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;D1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>     
-    <span class="n">nodeset</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">D1</span><span class="p">)</span>
-                    
-    <span class="n">D2</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D2</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span><span class="n">t</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">C1</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;child node of C1. belongs to p2&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;D2&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">)</span> 
-    <span class="n">nodeset</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">D2</span><span class="p">)</span>
-
-    <span class="n">D2</span><span class="o">.</span><span class="n">randomCPT</span><span class="p">(</span><span class="n">setCPT</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">D2</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>
-    <span class="n">D1</span><span class="o">.</span><span class="n">randomCPT</span><span class="p">(</span><span class="n">setCPT</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">D1</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>
-    
-    <span class="n">paramsf</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;var1&#39;</span><span class="p">:</span> <span class="n">D1</span><span class="p">,</span> <span class="s">&#39;var2&#39;</span><span class="p">:</span> <span class="n">D2</span><span class="p">,</span> <span class="s">&#39;var3&#39;</span><span class="p">:</span> <span class="n">C1</span><span class="p">}</span>
-    <span class="n">F1</span> <span class="o">=</span> <span class="n">DeterNode</span><span class="p">(</span><span class="s">&#39;F1</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span><span class="n">t</span><span class="p">,</span> <span class="n">funcf</span><span class="p">,</span> <span class="n">paramsf</span><span class="p">,</span> <span class="n">continuousf</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">spacef</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;a disc. DeterNode child of D1, D2, C1&#39;</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="s">&#39;F1&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
-    <span class="n">nodeset</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">F1</span><span class="p">)</span>
-    
-<span class="k">def</span> <span class="nf">reward1</span><span class="p">(</span><span class="n">F1</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">F1</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">F1</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">x</span><span class="o">=</span><span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span> 
-            <span class="n">x</span><span class="o">=-</span><span class="mi">1</span>
-    <span class="k">elif</span> <span class="n">F1</span><span class="o">&lt;=</span><span class="mi">7</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">F1</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">x</span><span class="o">=</span><span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">x</span><span class="o">=-</span><span class="mi">1</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">F1</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">x</span><span class="o">=</span><span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">x</span><span class="o">=-</span><span class="mi">1</span>
-    <span class="k">return</span> <span class="n">x</span>
-    
-<span class="k">def</span> <span class="nf">reward2</span><span class="p">(</span><span class="n">F1</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">reward1</span><span class="p">(</span><span class="n">F1</span><span class="p">)</span>
-
-<span class="n">rfuncs</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;1&#39;</span><span class="p">:</span> <span class="n">reward1</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">:</span> <span class="n">reward2</span><span class="p">}</span>
-<span class="n">G</span> <span class="o">=</span> <span class="n">iterSemiNFG</span><span class="p">(</span><span class="n">nodeset</span><span class="p">,</span> <span class="n">rfuncs</span><span class="p">)</span>
-<span class="n">G</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-</pre></div>
 </div>
 <p>Some useful methods:</p>
 <ul class="simple">

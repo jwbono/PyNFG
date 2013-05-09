@@ -15,32 +15,7 @@ Author: Dongping Xie
 from __future__ import division
 import numpy as np
 import matplotlib.pylab as plt
-
-def q_to_cpt(qtable):
-    """Convert a Q table to a CPT
-    
-    :arg qtable: an nd numpy array in which the first n-1 dimensions represent
-       messages, and the -1 axis represents player actions. Entries represent
-       Q values.
-    :type qtable: np.ndarray
-    :returns: a normalized conditional probability distribution over actions
-       given messages.
-    
-    """
-    max_elems = qtable.max(qtable.ndim-1)
-    step_1 = np.asarray(qtable.shape)
-    step_1[-1] = 1
-    max_elems = max_elems.reshape(step_1)
-    dimension_multiplier = np.ones(qtable.ndim)
-    dimension_multiplier[-1]=qtable.shape[-1]
-    tiled_max = np.tile(max_elems, (dimension_multiplier))
-    idx = qtable == tiled_max
-    new_replaced = np.copy(qtable)
-    num_max = np.sum(qtable==tiled_max, axis=(qtable.ndim - 1)).reshape(step_1)
-    tiled_num_max = np.tile(num_max, (dimension_multiplier))
-    new_replaced[idx] = 1
-    cpt = (np.int_(new_replaced==1))/tiled_num_max
-    return cpt
+from pynfg.utilities.utilities import convert_2_pureCPT
     
 def opt_qlearning(G,bn,w,d,N,r_max = 0):
     """Solve for the optimal policy using Optimistic Q-learning
@@ -81,7 +56,8 @@ def opt_qlearning(G,bn,w,d,N,r_max = 0):
     
     for ep in xrange(N):
         print ep
-        G.bn_part[bn][T0].CPT = q_to_cpt(Q) #convert Q table to CPT
+        #convert Q table to CPT
+        G.bn_part[bn][T0].CPT = convert_2_pureCPT(Q) 
         G.sample_timesteps(T0,T0) #sample the start time step
         malist = G.bn_part[bn][T0].dict2list_vals(valueinput= \
                                                         G.bn_part[bn][T0].value)

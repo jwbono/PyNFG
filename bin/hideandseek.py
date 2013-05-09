@@ -17,8 +17,8 @@ from pynfg import DecisionNode, DeterNode, ChanceNode
 from pynfg import SemiNFG, iterSemiNFG
 import numpy as np
 import scipy.stats.distributions as randvars
-from pynfg.rlsolutions.mcrl import *
-from pynfg.pgtsolutions.intelligence.iq_coord import *
+#from pynfg.rlsolutions.mcrl import *
+from pynfg.pgtsolutions.intelligence.iterated import *
 import time
 import copy
 
@@ -36,7 +36,7 @@ right = np.array([1,0])
 stay = np.array([0,0])
 
 #time steps
-T = 10
+T = 2
 
 # a function that adjusts for moves off the grid
 def adjust(location):
@@ -176,46 +176,40 @@ def captures(G):
     num_captures = G.npv_reward('seeker', T0, 1)
     return num_captures/(T-T0)
 
-S = 1000
+S = 15
 X = 10
-M = 30
-delta = 1
-noise = .1
-burn = 200
-go = time.time()
+M = 20
+burn = 5
+noise =.2
+innoise = noise
 
-#intelMC, funcoutMC, weightMC = iq_MC_coord(G, S, noise, X, M, innoise=1, \
-#                                                            integrand=captures)
-#weightlist = np.array([weightMC[s]['hider']**-1 for s in xrange(1, S+1)])                                                           
-#probMC = weightlist/np.sum(weightlist)
-#
-#iqhiderMC = [intelMC[s]['hider'] for s in xrange(1,S+1)]
-#plt.figure()
-#plt.hist(iqhiderMC, normed=True, weights=probMC)
-#
-#social_welfare = [funcoutMC[s] for s in xrange(1,S+1)]
-#plt.figure()
-#plt.hist(social_welfare, normed=True, weights=probMC) 
-#
+tipoff = time.time()
+intelMC, funcoutMC, weightMC = iterated_MC(copy.deepcopy(G), S, noise, 
+                                                X, M, innoise, 1, captures, \
+                                                mix=False, \
+                                                satisfice=copy.deepcopy(G))
+halftime = time.time()
+print halftime-tipoff
+intelMH, funcoutMH, densMH = iterated_MH(copy.deepcopy(G), S, density, \
+                                                noise, X, M, innoise, 1, \
+                                                captures, mix=False, \
+                                                satisfice=copy.deepcopy(G))
+buzzer = time.time()
+print 'MH as percent of total time: ',(buzzer-halftime)/(buzzer-tipoff)
 
-#intelMH, funcoutMH, densMH = iq_MH_coord(G, S, density, noise, X, M, \
-#                                                innoise=.4, integrand=captures)
-#                                                
-#iqhiderMH = [intelMH[s]['hider'] for s in xrange(1,S+1)]
-#weightMH = densMH[burn::]
-#plt.figure()
-#plt.hist(iqhiderMH[burn::], normed=True, weights=weightMH)
+MCweight = [density(intelMC[s])/np.prod(weightMC[s].values()) for s in \
+            xrange(1,S+1)] 
+plt.figure()
+plt.hist(funcoutMC.values(), normed=True, weights=MCweight, alpha=.5) 
+plt.hist(funcoutMH.values()[burn::], normed=True, alpha=.5)
+plt.show()
 #
-#social_welfare = [funcoutMH[s] for s in xrange(1,S+1)]
-#plt.figure()
-#plt.hist(social_welfare[burn::], normed=True, weights=weightMH)
+#N=60
 #
-N=60
-
-G1, returnfig = ewma_mcrl(copy.deepcopy(G), 'Dseek', np.linspace(50,1,N), N, \
-                        np.linspace(.5,1,N), 1, np.linspace(.2,1,N), uni=True, \
-                        pureout=True)
-print (time.time()-go)/60
+#G1, returnfig = ewma_mcrl(copy.deepcopy(G), 'Dseek', np.linspace(50,1,N), N, \
+#                        np.linspace(.5,1,N), 1, np.linspace(.2,1,N), uni=True, \
+#                        pureout=True)
+#print (time.time()-go)/60
 #captures(G1)
 #G1.sample_timesteps(G1.starttime)
 #

@@ -68,6 +68,7 @@
 <dt id="pynfg.classes.seminfg.SemiNFG">
 <em class="property">class </em><tt class="descclassname">pynfg.classes.seminfg.</tt><tt class="descname">SemiNFG</tt><big>(</big><em>nodes</em>, <em>u_functions=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements the semi-NFG formalism created by D. Wolpert</p>
+<p>For an example, see PyNFG/bin/stackelberg.py</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -110,50 +111,6 @@ functions is called a semi-Bayes net. When initialized with
 <p class="last">For a node in nodes, the parent attribute, e.g. 
 <tt class="xref py py-attr docutils literal"><span class="pre">nodes.ChanceNode.parents</span></tt>, must not have parents that are 
 not in the set of nodes passed to <tt class="xref py py-class docutils literal"><span class="pre">seminfg.SemiNFG</span></tt>.</p>
-</div>
-<p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">nodes</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">import</span> <span class="nn">scipy.stats.distributions</span> <span class="kn">as</span> <span class="nn">randvars</span>
-<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">IntType</span>
-
-<span class="n">dist1</span> <span class="o">=</span> <span class="n">randvars</span><span class="o">.</span><span class="n">randint</span>
-<span class="n">params1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-<span class="n">distip1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist1</span><span class="p">,</span> <span class="n">params1</span><span class="p">)</span>
-<span class="n">C1</span> <span class="o">=</span> <span class="n">ChanceNode</span><span class="p">(</span><span class="s">&#39;C1&#39;</span><span class="p">,</span> <span class="n">distip</span><span class="o">=</span><span class="n">distip1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;root CN randint from 5 to 10&#39;</span><span class="p">)</span>
-
-<span class="n">D1</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D1&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">C1</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;child node of C1. belongs to p1&#39;</span><span class="p">)</span>
-                    
-<span class="n">D2</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span><span class="s">&#39;D2&#39;</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">C1</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;child node of C1. belongs to p2&#39;</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">funcf</span><span class="p">(</span><span class="n">var1</span><span class="p">,</span> <span class="n">var2</span><span class="p">,</span> <span class="n">var3</span><span class="p">):</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">var1</span><span class="o">+</span><span class="n">var2</span><span class="o">+</span><span class="n">var3</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s">&#39;even&#39;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s">&#39;odd&#39;</span>                    
-
-<span class="n">paramsf</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;var1&#39;</span><span class="p">:</span> <span class="n">D1</span><span class="p">,</span> <span class="s">&#39;var2&#39;</span><span class="p">:</span> <span class="n">D2</span><span class="p">,</span> <span class="s">&#39;var3&#39;</span><span class="p">:</span> <span class="n">C1</span><span class="p">}</span>
-<span class="n">continuousf</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">spacef</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;even&#39;</span><span class="p">,</span> <span class="s">&#39;odd&#39;</span><span class="p">]</span>
-<span class="n">F1</span> <span class="o">=</span> <span class="n">DeterNode</span><span class="p">(</span><span class="s">&#39;F1&#39;</span><span class="p">,</span> <span class="n">funcf</span><span class="p">,</span> <span class="n">paramsf</span><span class="p">,</span> <span class="n">continuousf</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">spacef</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;a disc. DeterNode child of D1, D2, C1&#39;</span><span class="p">)</span>
-               
-<span class="k">def</span> <span class="nf">ufunc1</span><span class="p">(</span><span class="n">F1</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">F1</span> <span class="ow">is</span> <span class="s">&#39;even&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">1</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
-        
-<span class="k">def</span> <span class="nf">ufunc2</span><span class="p">(</span><span class="n">F1</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">F1</span> <span class="ow">is</span> <span class="s">&#39;odd&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">1</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">reutrn</span> <span class="o">-</span><span class="mi">1</span>
-
-<span class="n">u_funcs</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;1&#39;</span><span class="p">:</span> <span class="n">ufunc1</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">:</span> <span class="n">ufunc2</span><span class="p">}</span>
-
-<span class="n">nodeset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">C1</span><span class="p">,</span> <span class="n">D1</span><span class="p">,</span> <span class="n">D2</span><span class="p">,</span> <span class="n">F1</span><span class="p">])</span>
-
-<span class="n">G</span> <span class="o">=</span> <span class="n">SemiNFG</span><span class="p">(</span><span class="n">nodeset</span><span class="p">,</span> <span class="n">ufuncs</span><span class="p">)</span>
-</pre></div>
 </div>
 <p>Some useful methods:</p>
 <ul class="simple">

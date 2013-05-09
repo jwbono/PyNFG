@@ -23,6 +23,8 @@ from pynfg import DecisionNode, DeterNode, ChanceNode
 class SemiNFG(object):
     """Implements the semi-NFG formalism created by D. Wolpert
     
+    For an example, see PyNFG/bin/stackelberg.py     
+    
     :arg nodes: members are :class:`nodes.ChanceNode`, 
        :class:`nodes.DecisionNode`, or :class:`nodes.DeterNode`.
     :type nodes: set
@@ -58,51 +60,7 @@ class SemiNFG(object):
        
        For a node in nodes, the parent attribute, e.g. 
        :py:attr:`nodes.ChanceNode.parents`, must not have parents that are 
-       not in the set of nodes passed to :class:`seminfg.SemiNFG`.
-       
-    Example::
-        
-        from nodes import *
-        import scipy.stats.distributions as randvars
-        from types import IntType
-        
-        dist1 = randvars.randint
-        params1 = [0, 1]
-        distip1 = (dist1, params1)
-        C1 = ChanceNode('C1', distip=distip1, description='root CN randint from 5 to 10')
-        
-        D1 = DecisionNode('D1', '1', [0, 1], parents=[C1], description='child node of C1. belongs to p1')
-                            
-        D2 = DecisionNode('D2', '2', [0, 1], parents=[C1], description='child node of C1. belongs to p2')
-        
-        def funcf(var1, var2, var3):
-            if (var1+var2+var3)%2 == 0:
-                return 'even'
-            else:
-                return 'odd'                    
-        
-        paramsf = {'var1': D1, 'var2': D2, 'var3': C1}
-        continuousf = False
-        spacef = ['even', 'odd']
-        F1 = DeterNode('F1', funcf, paramsf, continuousf, space=spacef, description='a disc. DeterNode child of D1, D2, C1')
-                       
-        def ufunc1(F1):
-            if F1 is 'even':
-                return 1
-            else:
-                return -1
-                
-        def ufunc2(F1):
-            if F1 is 'odd':
-                return 1
-            else:
-                reutrn -1
-        
-        u_funcs = {'1': ufunc1, '2': ufunc2}
-        
-        nodeset = set([C1, D1, D2, F1])
-        
-        G = SemiNFG(nodeset, ufuncs)
+       not in the set of nodes passed to :class:`seminfg.SemiNFG`.   
        
     Some useful methods:
     

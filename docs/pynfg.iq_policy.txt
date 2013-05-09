@@ -4,5 +4,5 @@
 Policy Intelligence
 **********************
 
-.. automodule:: pynfg.pgtsolutions.intelligence.iq_policy
+.. automodule:: pynfg.pgtsolutions.intelligence.policy
    :members:

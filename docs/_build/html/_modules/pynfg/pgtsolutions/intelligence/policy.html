@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pynfg.pgtsolutions.intelligence.policy &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pynfg.pgtsolutions.intelligence.policy</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implements PGT intelligence for policies for SemiNFG objects</span>
+
+<span class="sd">Created on Fri Mar 22 15:32:33 2013</span>
+
+<span class="sd">Copyright (C) 2013 James Bono (jwbono@gmail.com)</span>
+
+<span class="sd">GNU Affero General Public License</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pynfg</span> <span class="kn">import</span> <span class="n">DecisionNode</span><span class="p">,</span> <span class="n">iterSemiNFG</span>
+<span class="kn">from</span> <span class="nn">pynfg.utilities.utilities</span> <span class="kn">import</span> <span class="n">mh_decision</span>
+
+<div class="viewcode-block" id="policy_MC"><a class="viewcode-back" href="../../../../pynfg.iq_policy.html#pynfg.pgtsolutions.intelligence.policy.policy_MC">[docs]</a><span class="k">def</span> <span class="nf">policy_MC</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">innoise</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">integrand</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> \
+                <span class="n">mix</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">satisfice</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run MC outer loop on random policies for SemiNFG IQ calcs</span>
+<span class="sd">    </span>
+<span class="sd">    :arg G: the semiNFG to be evaluated</span>
+<span class="sd">    :type G: SemiNFG</span>
+<span class="sd">    :arg S: number of policy profiles to sample</span>
+<span class="sd">    :type S: int</span>
+<span class="sd">    :arg noise: the degree of independence of the proposal distribution on the </span>
+<span class="sd">       current value. 1 is independent, 0 returns no perturbation.</span>
+<span class="sd">    :type noise: float</span>
+<span class="sd">    :arg X: number of samples of each policy profile</span>
+<span class="sd">    :type X: int</span>
+<span class="sd">    :arg M: number of random alt policies to compare</span>
+<span class="sd">    :type M: int</span>
+<span class="sd">    :arg innoise: the perturbation noise for the loop within iq_calc to draw </span>
+<span class="sd">       alt CPTs to compare utilities to current CPT.</span>
+<span class="sd">    :type innoise: float</span>
+<span class="sd">    :arg delta: the discount factor (ignored if SemiNFG)</span>
+<span class="sd">    :type delta: float</span>
+<span class="sd">    :arg integrand: a user-supplied function of G that is evaluated for each s </span>
+<span class="sd">       in S </span>
+<span class="sd">    :type integrand: func</span>
+<span class="sd">    :arg mix: False if restricting sampling to pure strategies. True if mixed </span>
+<span class="sd">       strategies are included in sampling. Default is False.</span>
+<span class="sd">    :type mix: bool</span>
+<span class="sd">    :arg satisfice: game G such that the CPTs of G together with innoise </span>
+<span class="sd">       determine the intelligence satisficing distribution.</span>
+<span class="sd">    :type satisfice: iterSemiNFG</span>
+<span class="sd">    :returns: </span>
+<span class="sd">       * intel - a sample-keyed dictionary of player-keyed iq dictionaries</span>
+<span class="sd">       * funcout - a sample-keyed dictionary of the output of the </span>
+<span class="sd">          user-supplied integrand.</span>
+<span class="sd">       * weight - a sample-keyed dictionay of player-keyed importance weight</span>
+<span class="sd">          dictionaries.</span>
+<span class="sd">       </span>
+<span class="sd">    .. note::</span>
+<span class="sd">       </span>
+<span class="sd">       This is the policy-approach because intelligence is assigned to a </span>
+<span class="sd">       player instead of being assigned to a DecisionNode, and all DNs with </span>
+<span class="sd">       the same basename have the same CPT.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">intel</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are sample indices, vals are iq dictionaries</span>
+    <span class="n">iq</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are player names, vals are iqs</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are </span>
+    <span class="n">w</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">funcout</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are s in S, vals are eval of integrand of G(s)</span>
+    <span class="n">bndict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">T0</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">starttime</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span> <span class="c">#getting player-keyed dict of basenames</span>
+        <span class="n">bndict</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">basename</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">time</span><span class="o">==</span><span class="n">T0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">S</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span> <span class="c">#sampling S policy profiles</span>
+        <span class="k">print</span> <span class="n">s</span>
+        <span class="n">GG</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+            <span class="n">w</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">bndict</span><span class="p">[</span><span class="n">p</span><span class="p">]:</span> <span class="c">#getting importance weights for each player</span>
+                <span class="n">w</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">*=</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">perturbCPT</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">mixed</span><span class="o">=</span><span class="n">mix</span><span class="p">,</span> \
+                                                            <span class="n">returnweight</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">dn</span> <span class="ow">in</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">1</span><span class="p">::]:</span>
+                    <span class="n">dn</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span> <span class="c">#find the iq of each player&#39;s policy in turn</span>
+            <span class="n">iq</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">policy_calciq</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">GG</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">mix</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">innoise</span><span class="p">,</span> <span class="n">satisfice</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">integrand</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">funcout</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">integrand</span><span class="p">(</span><span class="n">GG</span><span class="p">)</span> <span class="c">#eval integrand G(s), assign to funcout</span>
+        <span class="n">intel</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">iq</span><span class="p">)</span>
+        <span class="n">weight</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">intel</span><span class="p">,</span> <span class="n">funcout</span><span class="p">,</span> <span class="n">weight</span>
+    </div>
+<div class="viewcode-block" id="policy_MH"><a class="viewcode-back" href="../../../../pynfg.iq_policy.html#pynfg.pgtsolutions.intelligence.policy.policy_MH">[docs]</a><span class="k">def</span> <span class="nf">policy_MH</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">innoise</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> \
+                <span class="n">integrand</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mix</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">satisfice</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run MH for SemiNFG with IQ calcs</span>
+<span class="sd">    </span>
+<span class="sd">    :arg G: the SemiNFG to be evaluated</span>
+<span class="sd">    :type G: SemiNFG</span>
+<span class="sd">    :arg S: number of MH iterations</span>
+<span class="sd">    :type S: int</span>
+<span class="sd">    :arg density: the function that assigns weights to iq</span>
+<span class="sd">    :type density: func</span>
+<span class="sd">    :arg noise: the degree of independence of the proposal distribution on the </span>
+<span class="sd">       current value. 1 is independent, 0 returns no perturbation.</span>
+<span class="sd">    :type noise: float</span>
+<span class="sd">    :arg X: number of samples of each policy profile</span>
+<span class="sd">    :type X: int</span>
+<span class="sd">    :arg M: number of random alt policies to compare</span>
+<span class="sd">    :type M: int</span>
+<span class="sd">    :arg innoise: the perturbation noise for the loop within iq_calc to draw </span>
+<span class="sd">       alt CPTs to compare utilities to current CPT.</span>
+<span class="sd">    :type innoise: float</span>
+<span class="sd">    :arg delta: the discount factor (ignored if SemiNFG)</span>
+<span class="sd">    :type delta: float</span>
+<span class="sd">    :arg integrand: a user-supplied function of G that is evaluated for each s </span>
+<span class="sd">       in S </span>
+<span class="sd">    :type integrand: func</span>
+<span class="sd">    :arg mix: if true, proposal distribution is over mixed CPTs. Default is </span>
+<span class="sd">       False.</span>
+<span class="sd">    :type mix: bool</span>
+<span class="sd">    :arg satisfice: game G such that the CPTs of G together with innoise </span>
+<span class="sd">       determine the intelligence satisficing distribution.</span>
+<span class="sd">    :type satisfice: iterSemiNFG</span>
+<span class="sd">    :returns: </span>
+<span class="sd">       * intel - a sample-keyed dictionary of player-keyed iq dictionaries</span>
+<span class="sd">       * funcout - a sample-keyed dictionary of the output of the </span>
+<span class="sd">          user-supplied integrand.</span>
+<span class="sd">       * dens - a list of the density values, one for each MH draw.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">       </span>
+<span class="sd">       This is the coordinated-approach because intelligence is assigned to a </span>
+<span class="sd">       player instead of being assigned to a DecisionNode</span>
+<span class="sd">       </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">intel</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are s in S, vals are iq dict (dict of dicts)</span>
+    <span class="n">iq</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are base names, iq timestep series</span>
+    <span class="n">funcout</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#keys are s in S, vals are eval of integrand of G(s)</span>
+    <span class="n">dens</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">S</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="c">#storing densities for return</span>
+    <span class="n">bndict</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#mapping from player name to DN basenames</span>
+    <span class="n">T0</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">starttime</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span> <span class="c">#getting player-keyed dict of basenames</span>
+        <span class="n">bndict</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">basename</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">time</span><span class="o">==</span><span class="n">T0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">S</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span> <span class="c">#sampling S sequences of policy profiles</span>
+        <span class="k">print</span> <span class="n">s</span>
+        <span class="n">GG</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span> <span class="c">#taking the new MH draw</span>
+            <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">bndict</span><span class="p">[</span><span class="n">p</span><span class="p">]:</span>
+                <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">perturbCPT</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">mixed</span><span class="o">=</span><span class="n">mix</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">dn</span> <span class="ow">in</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">1</span><span class="p">::]:</span>
+                    <span class="n">dn</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">GG</span><span class="o">.</span><span class="n">players</span><span class="p">:</span> <span class="c">#getting iq for each player with new MH draw</span>
+            <span class="n">iq</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">policy_calciq</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">GG</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">mix</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">innoise</span><span class="p">,</span> <span class="n">satisfice</span><span class="p">)</span> 
+        <span class="c"># The MH decision</span>
+        <span class="n">current_dens</span> <span class="o">=</span> <span class="n">density</span><span class="p">(</span><span class="n">iq</span><span class="p">)</span> <span class="c">#evaluating density of current draw&#39;s iq</span>
+        <span class="n">verdict</span> <span class="o">=</span> <span class="n">mh_decision</span><span class="p">(</span><span class="n">current_dens</span><span class="p">,</span> <span class="n">dens</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c">#True if accept new draw</span>
+        <span class="k">if</span> <span class="n">verdict</span><span class="p">:</span> <span class="c">#accepting new CPT</span>
+            <span class="n">intel</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">iq</span><span class="p">)</span>
+            <span class="n">G</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">GG</span><span class="p">)</span>
+            <span class="n">dens</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_dens</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">intel</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">intel</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">dens</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">dens</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">integrand</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">funcout</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">integrand</span><span class="p">(</span><span class="n">G</span><span class="p">)</span> <span class="c">#eval integrand G(s), assign to funcout</span>
+    <span class="k">return</span> <span class="n">intel</span><span class="p">,</span> <span class="n">funcout</span><span class="p">,</span> <span class="n">dens</span><span class="p">[</span><span class="mi">1</span><span class="p">::]</span>
+    </div>
+<div class="viewcode-block" id="policy_calciq"><a class="viewcode-back" href="../../../../pynfg.iq_policy.html#pynfg.pgtsolutions.intelligence.policy.policy_calciq">[docs]</a><span class="k">def</span> <span class="nf">policy_calciq</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">mix</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">innoise</span><span class="p">,</span> <span class="n">satisfice</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calc IQ of player p across all of p&#39;s decision nodes w/ given policy</span>
+<span class="sd">    </span>
+<span class="sd">    :arg p: the name of the player whose intelligence is being evaluated.</span>
+<span class="sd">    :type p: str</span>
+<span class="sd">    :arg G: the iterated semi-NFG to be evaluated</span>
+<span class="sd">    :type G: iterSemiNFG</span>
+<span class="sd">    :arg X: number of samples of each policy profile</span>
+<span class="sd">    :type X: int</span>
+<span class="sd">    :arg M: number of random alt policies with which to compare</span>
+<span class="sd">    :type M: int</span>
+<span class="sd">    :arg mix: if true, proposal distribution is over mixed CPTs. Default is </span>
+<span class="sd">       False.</span>
+<span class="sd">    :type mix: bool</span>
+<span class="sd">    :arg delta: the discount factor (ignored if SemiNFG)</span>
+<span class="sd">    :type delta: float</span>
+<span class="sd">    :arg innoise: the perturbation noise for the inner loop to draw alt CPTs</span>
+<span class="sd">    :type innoise: float</span>
+<span class="sd">    :returns: the fraction of alternative policies that have a lower npv </span>
+<span class="sd">       reward than the current policy.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">util</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">altutil</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">M</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+    <span class="n">tick</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">T0</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">starttime</span>
+    <span class="n">bnlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">basename</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">time</span><span class="o">==</span><span class="n">T0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">X</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+        <span class="n">util</span> <span class="o">+=</span> <span class="n">G</span><span class="o">.</span><span class="n">npv_reward</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">G</span><span class="o">.</span><span class="n">starttime</span><span class="p">,</span><span class="n">delta</span><span class="p">)</span><span class="o">/</span><span class="n">X</span>
+    <span class="k">if</span> <span class="n">satisfice</span><span class="p">:</span> <span class="c">#using the satisficing distribution for drawing alternatives</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">satisfice</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">):</span> <span class="c">#Sample M alt policies for the player</span>
+        <span class="n">GG</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="n">denw</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">bnlist</span><span class="p">:</span> <span class="c">#rand CPT for the DN</span>
+            <span class="c">#density for the importance sampling distribution</span>
+            <span class="k">if</span> <span class="n">innoise</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">satisfice</span><span class="p">:</span>
+                <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">perturbCPT</span><span class="p">(</span><span class="n">innoise</span><span class="p">,</span> <span class="n">mixed</span><span class="o">=</span><span class="n">mix</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">denw</span> <span class="o">*=</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">perturbCPT</span><span class="p">(</span><span class="n">innoise</span><span class="p">,</span> <span class="n">mixed</span><span class="o">=</span><span class="n">mix</span><span class="p">,</span> \
+                                                        <span class="n">returnweight</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">tick</span><span class="p">:</span>  
+                <span class="n">numw</span> <span class="o">=</span> <span class="n">denw</span> <span class="c">#scaling constant num to ~ magnitude of den</span>
+            <span class="n">weight</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">*=</span> <span class="p">(</span><span class="n">numw</span><span class="o">/</span><span class="n">denw</span><span class="p">)</span>
+            <span class="n">tick</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="c">#            import pdb; pdb.set_trace()</span>
+            <span class="k">for</span> <span class="n">dn</span> <span class="ow">in</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">1</span><span class="p">::]:</span>
+                <span class="n">dn</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">GG</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span>
+        <span class="n">GG</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c">#sample altpolicy prof. to end of net</span>
+        <span class="n">altutil</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">GG</span><span class="o">.</span><span class="n">npv_reward</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">GG</span><span class="o">.</span><span class="n">starttime</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+    <span class="c">#weight of alts worse than G</span>
+    <span class="n">worse</span> <span class="o">=</span> <span class="p">[</span><span class="n">weight</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)</span> <span class="k">if</span> <span class="n">altutil</span><span class="p">[</span><span class="n">m</span><span class="p">]</span><span class="o">&lt;</span><span class="n">util</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">worse</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span> <span class="c">#fraction of alts worse than G is IQ</span>
+    </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
