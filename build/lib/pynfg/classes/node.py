@@ -177,11 +177,11 @@ class Node(object):
                         %(str(value),self.name)
         else:
             truth = [(x==value).all() for x in self.space]
-            try: 
+            if not any(truth):
+                    raise ValueError('the value %s is not in the space of %s' \
+                                     %(str(value),self.name))
+            else: 
                 self.valueindex = truth.index(True)
-            except ValueError:
-                print 'the value %s is not in the space of %s' \
-                        %(str(value),self.name)
     
     def get_value(self):
         """Get the current value of the Node object
@@ -212,11 +212,11 @@ class Node(object):
                             %(str(value),self.name)
             else:
                 truth = [(x==value).all() for x in self.space]
-                try: 
+                if not any(truth):
+                    raise ValueError('the value %s is not in the space of %s' \
+                                     %(str(value),self.name))
+                else: 
                     ind = truth.index(True)
-                except ValueError:
-                    print 'the value %s is not in the space of %s' \
-                            %(str(value),self.name)
             return ind
         else:
             return self.valueindex
