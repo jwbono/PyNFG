@@ -108,7 +108,9 @@ valuedict = G.sample(start=['Q1'])
 ###########################################
 valuedict = G.get_values(nodenames=['Q1', 'D'])
 
-
+###########################################
+##PGT INTELLIGENCE ESTIMATION
+###########################################
 #Defining a welfare function on G
 def welfare(G):
     G.sample()
@@ -122,9 +124,7 @@ def density(iqdict):
     z = np.product(y)
     return z
 
-###########################################
-##SETTING UP PGT INTELLIGENCE ESTIMATION
-###########################################
+GG = copy.deepcopy(G)
 S = 500 #number of samples
 X = 10 #number of samples of utility of G in calculating iq
 M = 20 #number of alternative strategies sampled in calculating iq
