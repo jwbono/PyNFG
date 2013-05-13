@@ -1,5 +1,5 @@
-matplotlib
-networkx
-scipy
-numpy
-pygraphviz
+matplotlib >= 1.1.1
+networkx >= 1.7
+scipy >= 0.12
+numpy >= 1.8
+pygraphviz >= 1.1
