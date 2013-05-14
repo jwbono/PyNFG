@@ -130,14 +130,14 @@ not in the set of nodes passed to <tt class="xref py py-class docutils literal">
 </ul>
 <dl class="method">
 <dt id="pynfg.classes.seminfg.SemiNFG.ancestors">
-<tt class="descname">ancestors</tt><big>(</big><em>node</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.ancestors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.ancestors" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">ancestors</tt><big>(</big><em>nodename</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.ancestors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.ancestors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the set of ancestors of a given node.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> (<tt class="xref py py-class docutils literal"><span class="pre">nodes.ChanceNode</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">nodes.DecisionNode</span></tt>, or
-<tt class="xref py py-class docutils literal"><span class="pre">nodes.DeterNode</span></tt>) &#8211; the descendent node for which ancestors are desired.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nodename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name of the descendent node for which ancestors are 
+desired.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a set of nodes that are the ancestors of the input node in 
 the SemiNFG object.</td>
@@ -148,33 +148,32 @@ the SemiNFG object.</td>
 
 <dl class="method">
 <dt id="pynfg.classes.seminfg.SemiNFG.children">
-<tt class="descname">children</tt><big>(</big><em>node</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.children"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.children" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">children</tt><big>(</big><em>nodename</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.children"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.children" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the set of children of a given node.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> (<tt class="xref py py-class docutils literal"><span class="pre">nodes.ChanceNode</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">nodes.DecisionNode</span></tt>, or
-<tt class="xref py py-class docutils literal"><span class="pre">nodes.DeterNode</span></tt>) &#8211; the parent node for which children are desired.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nodename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the parent node for which children are desired.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a set of nodes that are the children of the input node in 
 the SemiNFG object.</td>
 </tr>
 </tbody>
 </table>
-<p>This is equivalent to calling <tt class="docutils literal"><span class="pre">SemiNFG.edges[node.name]</span></tt></p>
+<p>This is equivalent to calling <tt class="docutils literal"><span class="pre">SemiNFG.edges[nodename]</span></tt></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pynfg.classes.seminfg.SemiNFG.descendants">
-<tt class="descname">descendants</tt><big>(</big><em>node</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.descendants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.descendants" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">descendants</tt><big>(</big><em>nodename</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.descendants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.descendants" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the set of descendants of a given node.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> (<tt class="xref py py-class docutils literal"><span class="pre">nodes.ChanceNode</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">nodes.DecisionNode</span></tt>, or
-<tt class="xref py py-class docutils literal"><span class="pre">nodes.DeterNode</span></tt>) &#8211; the ancestor node for which descendants are desired.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nodename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name of the ancestor node for which descendants are 
+desired.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a set of nodes that are the descendants of the input node in 
 the SemiNFG object.</td>
@@ -287,14 +286,13 @@ which results in a divide by zero error.</p>
 
 <dl class="method">
 <dt id="pynfg.classes.seminfg.SemiNFG.parents">
-<tt class="descname">parents</tt><big>(</big><em>node</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.parents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.parents" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">parents</tt><big>(</big><em>nodename</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.parents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.parents" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the set of parents of a given node.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> (<tt class="xref py py-class docutils literal"><span class="pre">nodes.ChanceNode</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">nodes.DecisionNode</span></tt>, or
-<tt class="xref py py-class docutils literal"><span class="pre">nodes.DeterNode</span></tt>) &#8211; the child node for which parents are desired.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nodename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name of the child node for which parents are desired.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a set of nodes that are the parents of the input node in 
 the SemiNFG object.</td>
@@ -314,7 +312,7 @@ the SemiNFG object.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>start</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; (Optional) if unspecified, the entire net will be sampled 
-from the prior. Otherwise, start is a list of nodes that serve as 
+from the prior. Otherwise, start is a list of nodenodes that serve as 
 the starting points for the sampling. That is, the sampling will 
 commence from the nodes in start and continue until all of the 
 descendants of the nodes in start have been sampled exactly once.</li>
