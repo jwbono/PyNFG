@@ -6,6 +6,11 @@ chooses a quantity, Q1. Firm 2 observes Q1 and chooses a quantity, Q2. Firm 2
 does not observe market demand. Q1 and Q2 are combined wih market demand to 
 determine prices. Prices and quantities then determine profits.
 
+Note: It is better to run this script line by line or customize your own run
+script from the pieces contained herein rather than running the entire file. The
+reason is that the PGT algorithms will take a long time with a large number of 
+sample (S).
+
 Created on Mon Feb 25 17:58:20 2013
 
 Copyright (C) 2013 James Bono (jwbono@gmail.com)
@@ -20,6 +25,7 @@ from pynfg import DecisionNode, ChanceNode, DeterNode
 from pynfg import SemiNFG
 import matplotlib.pyplot as plt
 import time
+import copy
 
 ###########################################
 ##PARAMETERS AND FUNCTIONS
@@ -125,7 +131,7 @@ def density(iqdict):
     return z
 
 GG = copy.deepcopy(G)
-S = 500 #number of samples
+S = 50 #number of samples
 X = 10 #number of samples of utility of G in calculating iq
 M = 20 #number of alternative strategies sampled in calculating iq
 noise = .2 #noise in the perturbations of G for MH or MC sampling
@@ -162,8 +168,8 @@ print 'MH took:', T,  'sec., ', T/60, 'min., or', T/3600, 'hr.'
 ##PLOTTING PGT RESULTS
 ###########################################
 #selecting output into appropriate lists
-MCiqQ1 = [intelMC[s]['Q1'] for s in xrange(1,S+1)] 
-MHiqQ1 = [intelMH[s]['Q1'] for s in xrange(1,S+1)]
+MCiqQ1 = [intelMC[s]['1'] for s in xrange(1,S+1)] 
+MHiqQ1 = [intelMH[s]['1'] for s in xrange(1,S+1)]
 #creating the importance sampling weights from MC
 MCweight = [density(intelMC[s])/np.prod(weightMC[s].values()) for s in \
             xrange(1,S+1)] 

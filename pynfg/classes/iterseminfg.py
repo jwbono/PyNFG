@@ -208,7 +208,7 @@ class iterSemiNFG(SemiNFG):
                 for n in self.time_partition[t]:
                     n.draw_value()
 
-    def get_values(self, names=None):
+    def get_values(self, nodenames=None):
         """Retrieve the values of the nodes comprising the SemiNFG.
         
         :arg nodenames: (Optional) The names of the nodes whose values should 
@@ -217,11 +217,11 @@ class iterSemiNFG(SemiNFG):
         :returns: dict where keys are node names and values are node values
         
         """
-        if not names:
+        if not nodenames:
             return dict(map(lambda x: (x.name, x.get_value()), self.nodes))
         else:
             adict = {}
-            for name in names:
+            for name in nodenames:
                 if name in self.node_dict.keys():
                     adict[name] = self.node_dict[name].get_value()
                 elif name in self.bn_part.keys():
