@@ -50,6 +50,8 @@ class rlk(object):
     def __init__(self, G, player_specs):
         self.player_specs = player_specs
         self.G = copy.copy(G)
+        self._set_new_attributes
+        self._set_L0_CPT
 
     def _set_new_attributes(self):
         """ Sets the level and rationality of a decision node
@@ -58,22 +60,30 @@ class rlk(object):
         node.
         """
         G = self.G
+        ps = self.player_specs
         for player in self.player_specs:
-            G.node_dict[list(G.partition[player])[0]].Level = player['Level']
-            G.node_dict[list(G.partition[player])[0]].M = player['M']
-            G.node_dict[list(G.partition[player])[0]].Mprime = player['Mprime']
+            G.node_dict[list(G.partition[player])[0]].Level = ps[player]['Level']
+            G.node_dict[list(G.partition[player])[0]].M = ps[player]['M']
+            G.node_dict[list(G.partition[player])[0]].Mprime = ps[player]['Mprime']
 
     def _set_L0_CPT(self):
         G = self.G
-        for player in self.player_specs:
+        ps = self.player_specs
+        for player in ps:
             try:
-                if player['L0Dist'] is None:
-                    list(G.partition[player])[0].L0CPT = \
-                        list(G.partition[player])[0].uniformCPT(setCPT=False)
+                if ps[player]['L0Dist'] is None:
+                    list(G.partition[player])[0].uniformCPT()
                 else:
-                    list(G.partition[player])[0].L0CPT = player['L0Dist']
+                    list(G.partition[player])[0].CPT = ps[player]['L0Dist']
             except KeyError:
                 warnings.warn("No entry for L0Dist for player %s,\
                     setting to uniform" % player)
-                list(G.partition[player])[0].L0CPT = \
-                        list(G.partition[player])[0].uniformCPT(setCPT=False)
+                list(G.partition[player])[0].uniformCPT()
+
+    def _set_satisficing_func(self):
+        G = self.G
+        ps = self.player_specs
+        for player in ps:
+            if hasattr(ps[player]['SDist'], '__call__'):
+                list(G.partition[player])[0].SDist = ps[player]['SDist']
+
