@@ -1,5 +1,6 @@
 import copy as copy
 import warnings
+import numpy as np
 
 
 class rlk(object):
@@ -50,8 +51,9 @@ class rlk(object):
     def __init__(self, G, player_specs):
         self.player_specs = player_specs
         self.G = copy.copy(G)
-        self._set_new_attributes
-        self._set_L0_CPT
+        self._set_new_attributes()
+        self._set_L0_CPT()
+        self._set_satisficing_func()
 
     def _set_new_attributes(self):
         """ Sets the level and rationality of a decision node
@@ -62,9 +64,12 @@ class rlk(object):
         G = self.G
         ps = self.player_specs
         for player in self.player_specs:
-            G.node_dict[list(G.partition[player])[0]].Level = ps[player]['Level']
-            G.node_dict[list(G.partition[player])[0]].M = ps[player]['M']
-            G.node_dict[list(G.partition[player])[0]].Mprime = ps[player]['Mprime']
+            list(G.partition[player])[0].Level = \
+                ps[player]['Level']
+            list(G.partition[player])[0].M = \
+                ps[player]['M']
+            list(G.partition[player])[0].Mprime = \
+                ps[player]['Mprime']
 
     def _set_L0_CPT(self):
         G = self.G
@@ -84,6 +89,45 @@ class rlk(object):
         G = self.G
         ps = self.player_specs
         for player in ps:
-            if hasattr(ps[player]['SDist'], '__call__'):
-                list(G.partition[player])[0].SDist = ps[player]['SDist']
+            sd = ps[player]['SDist']
+            if hasattr(sd, '__call__'):  # If a function
+                list(G.partition[player])[0].SDist = sd
+            elif type(sd) == np.ndarray:
+                list(G.partition[player])[0].SDist = \
+                    self.sfunc(player, G, 'all pure')
+            elif sd == 'all pure':
+                list(G.partition[player])[0].SDist = \
+                    self.sfunc(player, G, 'all pure')
+            elif sd == 'all mixed':
+                list(G.partition[player])[0].SDist = \
+                    self.sfunc(player, G, 'all mixed')
 
+    def _draw_from_array(self, plyr, G, ndar):
+        s0shape = ndar.shape
+        if s0shape[1] != len(list(G.partition[plyr])[0].space):
+            raise ValueError('ndarray second dimension needs be \
+            the same as the number of elements in the player\'s space')
+        line = np.random.randint(0, s0shape[1])
+        yield ndar[line]
+
+    def _draw_all_pure(self, plyr, G, ndar=None):
+        s0shape = len(list(G.partition[plyr])[0].space)
+        strat = np.zeros(s0shape)
+        strat[np.random.randint(0, s0shape)] = 1
+        return strat
+
+    def _draw_all_mixed(self, plyr, G, ndar=None):
+        s0shape = len(list(G.partition[plyr])[0].space)
+        strat = np.random.random(s0shape)
+        strat = strat/sum(strat)
+        return strat
+
+    def sfunc(self, plyr, G, form, ndar=None):
+        def sgen(*args):
+            if form == 'arr':
+                return self._draw_from_array(plyr, G, ndar)
+            if form == 'all pure':
+                return self._draw_all_pure(plyr, G)
+            if form == 'all mixed':
+                return self._draw_all_mixed(plyr, G)
+        return sgen
