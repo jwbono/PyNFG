@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 setup(
     name='PyNFG',
-    version='0.1.1',
+    version='0.1.1.1',
     author='James Bono',
     author_email='jwbono@gmail.com',
     packages= find_packages(),
@@ -15,8 +15,8 @@ setup(
     install_requires=[
         "matplotlib >= 1.1.1",
         "networkx >= 1.7",
-        "scipy >= 0.12",
-        "numpy >= 1.8",
+        "scipy >= 0.7.0",
+        "numpy >= 1.7",
         "pygraphviz >= 1.1",
         ],
     classifiers = [

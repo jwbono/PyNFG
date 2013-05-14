@@ -173,42 +173,40 @@ class SemiNFG(object):
         u = self.u_functions[player](**kw)
         return u
             
-    def children(self, node):
+    def children(self, nodename):
         """Retrieve the set of children of a given node.
         
-        :arg node: the parent node for which children are desired.
-        :type node: :class:`nodes.ChanceNode`, :class:`nodes.DecisionNode`, or
-           :class:`nodes.DeterNode`
+        :arg nodename: the parent node for which children are desired.
+        :type nodename: str
         :returns: a set of nodes that are the children of the input node in 
            the SemiNFG object.
         
-        This is equivalent to calling ``SemiNFG.edges[node.name]``
+        This is equivalent to calling ``SemiNFG.edges[nodename]``
         
         """
-        kids = self.edges[node.name]
+        kids = self.edges[nodename]
         return kids
         
-    def parents(self, node):
+    def parents(self, nodename):
         """Retrieve the set of parents of a given node.
         
-        :arg node: the child node for which parents are desired.
-        :type node: :class:`nodes.ChanceNode`, :class:`nodes.DecisionNode`, or
-           :class:`nodes.DeterNode`
+        :arg nodename: the name of the child node for which parents are desired.
+        :type nodename: str
         :returns: a set of nodes that are the parents of the input node in 
            the SemiNFG object.
         
         This is equivalent to calling ``set(node.parents)``
         
         """
-        parents = set(node.parents)
+        parents = set(self.node_dict[nodename].parents)
         return parents
     
-    def descendants(self, node):
+    def descendants(self, nodename):
         """Retrieve the set of descendants of a given node.
         
-        :arg node: the ancestor node for which descendants are desired.
-        :type node: :class:`nodes.ChanceNode`, :class:`nodes.DecisionNode`, or
-           :class:`nodes.DeterNode`
+        :arg nodename: the name of the ancestor node for which descendants are 
+           desired.
+        :type nodename: str
         :returns: a set of nodes that are the descendants of the input node in 
            the SemiNFG object.
         
@@ -235,16 +233,16 @@ class SemiNFG(object):
                 future.add(n)
             return future, visit_dict
         
-        for kid in self.edges[node.name]:
+        for kid in self.edges[nodename]:
             future, visit_dict = kid_visit(kid, future, visit_dict)
         return future
         
-    def ancestors(self, node):
+    def ancestors(self, nodename):
         """Retrieve the set of ancestors of a given node.
         
-        :arg node: the descendent node for which ancestors are desired.
-        :type node: :class:`nodes.ChanceNode`, :class:`nodes.DecisionNode`, or
-           :class:`nodes.DeterNode`
+        :arg nodename: the name of the descendent node for which ancestors are 
+           desired.
+        :type nodename: str
         :returns: a set of nodes that are the ancestors of the input node in 
            the SemiNFG object.
         
@@ -271,7 +269,7 @@ class SemiNFG(object):
                 past.add(n)
             return past, visit_dict
                 
-        for par in node.parents.values():
+        for par in self.node_dict[nodename].parents.values():
             past, visit_dict = par_visit(par, past, visit_dict)
         return past
 
@@ -379,7 +377,7 @@ class SemiNFG(object):
         """Sample the net to obtain a draw from the joint distribution.
         
         :arg start: (Optional) if unspecified, the entire net will be sampled 
-           from the prior. Otherwise, start is a list of nodes that serve as 
+           from the prior. Otherwise, start is a list of nodenodes that serve as 
            the starting points for the sampling. That is, the sampling will 
            commence from the nodes in start and continue until all of the 
            descendants of the nodes in start have been sampled exactly once.
@@ -399,10 +397,11 @@ class SemiNFG(object):
                 n.draw_value()
         else:
             children = set()
-            for n in start:
-                chidren = children.update(self.descendants(n))
+            starters = set([self.node_dict[nam] for nam in start])
+            for nam in start:
+                chidren = children.update(self.descendants(nam))
             for n in self.iterator:
-                if n in children.union(set(start)):
+                if n in children.union(starters):
                     n.draw_value()
         if nodenames:
             outdict = dict(zip(nodenames, [self.node_dict[x].get_value() for \
@@ -428,7 +427,7 @@ class SemiNFG(object):
         """
         G = nx.DiGraph()
         if not subgraph:
-            nodelist = self.node_dict.keys()
+            nodelist = self.node_dict.values()
         else:
             nodelist = []
             for name in subgraph:

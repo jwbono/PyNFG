@@ -10,6 +10,10 @@ result in an associated location change of one grid step. A player on the
 "northern" boundary that chooses up remains as is. Similiar rules apply to 
 other moves that would result in locations off the grid.
 
+Note: It is better to run this script line by line or customize your own run
+script from the pieces contained herein rather than running the entire file. The
+reason is that the PGT and RL algorithms will take a long time.
+
 Created on Mon Jan 28 16:22:43 2013
 
 Copyright (C) 2013 James Bono (jwbono@gmail.com)
@@ -23,8 +27,6 @@ from pynfg import DecisionNode, DeterNode, ChanceNode
 from pynfg import SemiNFG, iterSemiNFG
 import numpy as np
 import scipy.stats.distributions as randvars
-#from pynfg.rlsolutions.mcrl import *
-from pynfg.pgtsolutions.intelligence.iterated import *
 import time
 import copy
 
@@ -47,7 +49,7 @@ stay = np.array([0,0])
 actionspace = [up, down, left, right, stay] 
 
 # time steps
-T = 1
+T = 10
 
 # starting locations
 startingloc = np.array([[east,north-1], [0,north-1]])
@@ -115,7 +117,7 @@ Chide = ChanceNode('Chide0', CPTip=CPTiphide, basename='Chide', time=0)
 paramsseek = {'noise': Cseek, 'loc': Froot}
 continuousseek = False
 Fseek = DeterNode('Fseek0', adjust_seeker, paramsseek, continuousseek, \
-                  space=actionspace, basename='Fseek', time=0)
+                  space=statespace, basename='Fseek', time=0)
 #COMBINE OBS NOISE FOR SEEKER, DeterNode Fseek
 paramshide = {'noise': Chide, 'loc': Froot}
 Fhide = DeterNode('Fhide0', adjust_hider, paramshide, continuousseek, \
@@ -133,9 +135,10 @@ paramsf = {'seekmove': Dseek, 'hidemove': Dhide, 'loc': Froot}
 F = DeterNode('F0', newloc, paramsf, continuousf, space=statespace, \
               basename='F', time=0)
                 
+#adding time 0 nodes to nodeset
 nodeset = set([F,Froot,Fseek,Fhide,Cseek,Chide,Dseek,Dhide])
 
-# iteratively building up the net               
+#BUILD time steps 1 to T-1 iteratively               
 for t in range(1,T):
                     
     Cseek = ChanceNode('Cseek%s' %t, CPTip=CPTipseek, basename='Cseek', time=t)
@@ -159,9 +162,12 @@ for t in range(1,T):
     paramsf = {'seekmove': Dseek, 'hidemove': Dhide, 'loc': F}
     F = DeterNode('F%s' %t, newloc, paramsf, continuousf, space=statespace, \
                   basename='F', time=t)
-                  
+    #adding time t nodes to nodeset             
     nodeset.update([F,Fseek,Fhide,Cseek,Chide,Dseek,Dhide])
 
+##########################
+##REWARD FUNCTIONS
+##########################
 # seeker's reward function    
 def seek_reward(F):
     if np.array_equal(F[0], F[1]):
@@ -172,67 +178,134 @@ def seek_reward(F):
 def hide_reward(F):
     return -1*seek_reward(F)
 
+#rewards dictionary
 rfuncs = {'seeker': seek_reward, 'hider': hide_reward}
+
+##################################
+##CREATING THE iterSemiNFG
+##################################
 G = iterSemiNFG(nodeset, rfuncs)
 
+#making a set of the names of the first two time steps for visualization
+drawset = set([n.name for n in G.time_partition[0]]).union(set([n.name for \
+                                                    n in G.time_partition[1]]))
+G.draw_graph(drawset) #visualizing the first two time steps of the net
+
+###########################################
+##MANIPULATING CPTs
+###########################################
+#Giving hider a uniform CPT
 G.bn_part['Dhide'][0].uniformCPT()
-G.bn_part['Dseek'][0].randomCPT()
-for t in xrange(1, G.endtime+1):
-    G.bn_part['Dhide'][t].CPT = copy.copy(G.bn_part['Dhide'][0].CPT)
-    G.bn_part['Dseek'][t].CPT = copy.copy(G.bn_part['Dseek'][0].CPT)
+#Giving seeker a pure random CPT
+G.bn_part['Dseek'][0].randomCPT(mixed=False)
+#pointing all CPTs to time 0 CPT
+for t in xrange(1, T):
+    G.bn_part['Dhide'][t].CPT = G.bn_part['Dhide'][0].CPT
+    G.bn_part['Dseek'][t].CPT = G.bn_part['Dseek'][0].CPT
 
-drawset = set([n.name for n in G.time_partition[0]])
-G.draw_graph(drawset)
+###########################################
+##SAMPLING 
+###########################################
+#Sample the entire Bayesian Network
+G.sample()
+#sample entire net and return a dict of sampled values for node Dhide8 and F1
+valuedict = G.sample(nodenames=['Dhide8', 'F1'])
+#Sample timesteps 3 through 6 and returning a dict with values for specific basenames
+valuedict = G.sample_timesteps(3, 6, basenames=['Dhide', 'F', 'Cseek'])  
+#sample F4 and all of its descendants
+valuedict = G.sample(start=['F4'])
 
-#def density(iq):
-#    x = iq.values()
-#    y = np.power(x, 2)
-#    z = np.prod(y)
-#    return z
-#
-#def captures(G):
-#    T0 = G.starttime
-#    T = G.endtime
-#    G.sample()
-#    num_captures = G.npv_reward('seeker', T0, 1)
-#    return num_captures/(T-T0)
-#
-#S = 15
-#X = 10
-#M = 20
-#burn = 5
-#noise =.2
-#innoise = noise
-#
-#tipoff = time.time()
-#intelMC, funcoutMC, weightMC = iterated_MC(copy.deepcopy(G), S, noise, 
-#                                                X, M, innoise, 1, captures, \
-#                                                mix=False, \
-#                                                satisfice=copy.deepcopy(G))
-#halftime = time.time()
-#print halftime-tipoff
-#intelMH, funcoutMH, densMH = iterated_MH(copy.deepcopy(G), S, density, \
-#                                                noise, X, M, innoise, 1, \
-#                                                captures, mix=False, \
-#                                                satisfice=copy.deepcopy(G))
-#buzzer = time.time()
-#print 'MH as percent of total time: ',(buzzer-halftime)/(buzzer-tipoff)
-#
-#MCweight = [density(intelMC[s])/np.prod(weightMC[s].values()) for s in \
-#            xrange(1,S+1)] 
-#plt.figure()
-#plt.hist(funcoutMC.values(), normed=True, weights=MCweight, alpha=.5) 
-#plt.hist(funcoutMH.values()[burn::], normed=True, alpha=.5)
-#plt.show()
+###########################################
+##GETTING VALUES
+###########################################
+valuedict = G.get_values(nodenames=['Cseek0', 'Dhide8'])
 
-#N=60
-#
-#G1, returnfig = ewma_mcrl(copy.deepcopy(G), 'Dseek', np.linspace(50,1,N), N, \
-#                        np.linspace(.5,1,N), 1, np.linspace(.2,1,N), uni=True, \
-#                        pureout=True)
-#print (time.time()-go)/60
-#captures(G1)
-#G1.sample_timesteps(G1.starttime)
-#
-#for t in range(G1.starttime, G1.endtime+1):
+#####################################################
+##TRAINING LEVEL 1 with ewma_mcrl
+#####################################################
+from pynfg.rlsolutions.mcrl import *
+
+N=80
+GG = copy.deepcopy(G) #NOTE: setting uni=True below starts Dseek as uniform
+#Train Seeker against L0 Hider
+GseekL1, returnfig = ewma_mcrl(GG, 'Dseek', np.linspace(50,1,N), N, \
+                              np.linspace(.5,1,N), 1, np.linspace(.2,1,N), \
+                              uni=True, pureout=True)
+GG = copy.deepcopy(G) #NOTE: setting uni=True below starts Dseek as uniform
+#Train Hider against L0 Seeker
+GhideL1, returnfig = ewma_mcrl(GG, 'Dhide', np.linspace(50,1,N), N, \
+                              np.linspace(.5,1,N), 1, np.linspace(.2,1,N), \
+                              uni=True, pureout=True)
+#Create G1 from GhideL1 by "importing" L1 seeker's CPT
+G1 = copy.deepcopy(GhideL1)
+for n in GhideL1.bn_part['Dseek']:
+    n.CPT = GseekL1.bn_part['Dseek'][0].CPT
+
+############################################
+###PGT INTELLIGENCE ESTIMATION
+############################################
+#defining a welfare metric on G
+def captures(G):
+    T0 = G.starttime
+    T = G.endtime
+    G.sample()
+    num_captures = G.npv_reward('seeker', T0, 1)
+    return num_captures/(T-T0)
+
+#Defining a PGT posterior on iq profiles (dict) 
+def density(iq):
+    x = iq.values()
+    y = np.power(x, 2)
+    z = np.prod(y)
+    return z
+    
+GG = copy.deepcopy(G1) #NOTE: the CPTs of G are seeds for MH and MC sampling
+S = 500 #number of samples
+X = 10 #number of samples of utility of G in calculating iq
+M = 20 #number of alternative strategies sampled in calculating iq
+noise = .2 #noise in the perturbations of G for MH or MC sampling
+innoise = noise #satisficing distribution noise for iq calculations
+burn = 100 #number of draws to burn for MH
+
+from pynfg.pgtsolutions.intelligence.policy import *
+
+tipoff = time.time() #starting a timer
+#Importance Samping estimation of PGT posterior
+intelMC, funcoutMC, weightMC = policy_MC(GG, S, noise, X, M, \
+                                        innoise=.2, \
+                                        delta=1, \
+                                        integrand=captures, \
+                                        mix=False, \
+                                        satisfice=GG)
+halftime = time.time()
+print halftime-tipoff
+#Metropolis-Hastings estimation of PGT posterior
+intelMH, funcoutMH, densMH = policy_MH(GG, S, density, noise, X, M, \
+                                       innoise=.2, \
+                                       delta=1, \
+                                       integrand=captures, \
+                                       mix=False, \
+                                       satisfice=GG)
+buzzer = time.time()
+#Printing elapsed times
+T = halftime-tipoff
+print 'MC took:', T,  'sec., ', T/60, 'min., or', T/3600, 'hr.'
+T = buzzer-halftime
+print 'MH took:', T,  'sec., ', T/60, 'min., or', T/3600, 'hr.'
+
+###########################################
+##PLOTTING PGT RESULTS
+###########################################
+#creating the importance sampling weights from MC
+MCweight = [density(intelMC[s])/np.prod(weightMC[s].values()) for s in \
+            xrange(1,S+1)]
+#the PGT distributions over welfare values
+plt.figure()
+plt.hist(funcoutMC.values(), normed=True, weights=MCweight, alpha=.5) 
+plt.hist(funcoutMH.values()[burn::], normed=True, alpha=.5)
+plt.show()
+
+
+
+
     

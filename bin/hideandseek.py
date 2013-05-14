@@ -10,6 +10,10 @@ result in an associated location change of one grid step. A player on the
 "northern" boundary that chooses up remains as is. Similiar rules apply to 
 other moves that would result in locations off the grid.
 
+Note: It is better to run this script line by line or customize your own run
+script from the pieces contained herein rather than running the entire file. The
+reason is that the PGT and RL algorithms will take a long time.
+
 Created on Mon Jan 28 16:22:43 2013
 
 Copyright (C) 2013 James Bono (jwbono@gmail.com)
@@ -184,7 +188,7 @@ G = iterSemiNFG(nodeset, rfuncs)
 
 #making a set of the names of the first two time steps for visualization
 drawset = set([n.name for n in G.time_partition[0]]).union(set([n.name for \
-                                                    n in G.time_partition[1]]]))
+                                                    n in G.time_partition[1]]))
 G.draw_graph(drawset) #visualizing the first two time steps of the net
 
 ###########################################
@@ -204,8 +208,8 @@ for t in xrange(1, T):
 ###########################################
 #Sample the entire Bayesian Network
 G.sample()
-#sample entire net and return a dict of sampled values for node Dhide8 and basename F
-valuedict = G.sample(nodenames=['Dhide8', 'F'])
+#sample entire net and return a dict of sampled values for node Dhide8 and F1
+valuedict = G.sample(nodenames=['Dhide8', 'F1'])
 #Sample timesteps 3 through 6 and returning a dict with values for specific basenames
 valuedict = G.sample_timesteps(3, 6, basenames=['Dhide', 'F', 'Cseek'])  
 #sample F4 and all of its descendants
@@ -237,9 +241,9 @@ G1 = copy.deepcopy(GhideL1)
 for n in GhideL1.bn_part['Dseek']:
     n.CPT = GseekL1.bn_part['Dseek'][0].CPT
 
-###########################################
-##PGT INTELLIGENCE ESTIMATION
-###########################################
+############################################
+###PGT INTELLIGENCE ESTIMATION
+############################################
 #defining a welfare metric on G
 def captures(G):
     T0 = G.starttime
@@ -267,12 +271,12 @@ from pynfg.pgtsolutions.intelligence.policy import *
 
 tipoff = time.time() #starting a timer
 #Importance Samping estimation of PGT posterior
-intelMC, funcoutMC, weightMC = poliy_MC(GG, S, noise, X, M, \
+intelMC, funcoutMC, weightMC = policy_MC(GG, S, noise, X, M, \
                                         innoise=.2, \
                                         delta=1, \
                                         integrand=captures, \
                                         mix=False, \
-                                        atisfice=GG)
+                                        satisfice=GG)
 halftime = time.time()
 print halftime-tipoff
 #Metropolis-Hastings estimation of PGT posterior
