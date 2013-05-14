@@ -6,6 +6,7 @@ Copyright (C) 2013 James Bono (jwbono@gmail.com)
 GNU Affero General Public License
 
 """
+import copy as copy
 
 class rlk(object):
     """ Finds the relaxed level-k solution for a semi-NFG.
@@ -34,9 +35,8 @@ class rlk(object):
     M' : int
         The number of times to sample the net for each satisficing
         distribution.
-    L0Dist : ndarray
-        If 'uni' then the level 0 distribution is set to a uniform
-        distribution. If ndarray, then the level 0 CPT is set to
+    L0Dist : ndarray, None
+        If ndarray, then the level 0 CPT is set to
         L0Dist. If no distribution is specified,
         then the level 0 CPT is set to the uniform distribution.
     SDist : function, 2darray, or  str
@@ -54,4 +54,9 @@ class rlk(object):
 
     """
     def __init__(self, G, player_specs):
+        self.player_specs = player_specs
+        self.G = copy.copy(G)
         pass
+
+    def _set_level():
+
