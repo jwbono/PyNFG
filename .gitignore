@@ -4,3 +4,5 @@
 build/
 dist/
 PyNFG.egg-info/
+MANIFEST.in
+COPYING.txt
