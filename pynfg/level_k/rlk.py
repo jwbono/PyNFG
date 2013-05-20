@@ -52,6 +52,9 @@ class rlk(object):
         are the names of the parent nodes and values are the value
         of the parent node.
 
+    TODO: Allow the user to enter a game and have the level 0 CPT's
+    the one's in the game.
+
     """
     def __init__(self, G, player_specs):
         self.player_specs = player_specs
@@ -150,20 +153,73 @@ class rlk(object):
                 return self._draw_all_mixed(nd)
         return sgen
 
-    def train_player(self, node):
-        other_level = 'Level%s' %str(node.Level-1)
+    def sample_CPT(self, node, level):
+        """ Samples entire CPT according to Deifnition 7 in Lee and Wolpert"""
         G = self.G
-        sp = self.player_specs
-        Y  = copy.deepcopy(G.node_dict)
+        other_level = 'Level%s' %str(level-1)
+        for player in G.players:   # Sets all players to lower level
+            for controlled in G.partition[player]:
+                controlled.CPT = controlled.LevelCPT[other_level]
+        Y = copy.copy(G.node_dict)  # Create Y
         Y.pop(node.name)
         [Y.pop(pa) for pa in node.parents.keys()]
         [Y.pop(suc.name) for suc in G.descendants(node.name)]
         parent_space = []
         for par in node.parents.values():
             parent_space.append(par.space)
-        parent_combs = itertools.product(*parent_space)
-        for combo in len(parent_combs): # Also row of CPT
-            parents = parent_combs[combo]
+            parent_combs = itertools.product(*parent_space) # Iterate through pa(node)
+        CPT_row = 0
+        trainedCPT = [ ]
+        for combo in parent_combs: # For each value of the parent
+            max_util = - np.inf
+            G.set_values(dict(zip(node.parents.keys(), combo)))  # Sets parents
+            Y_vals  = self.sample_set(Y.keys(), node.Mprime)     # STEP 2
+            satis_set = []
+            for m in range(node.M):  # STEP 1
+                sdist = node.SDist()
+                if list(sdist) not in satis_set:
+                    satis_set.append((list(sdist)))
+            for sdraw in satis_set: # For each sDist
+                node.CPT[CPT_row] = sdraw
+                node.draw_value() # set CPT and draw
+                weu = []
+                for y in Y_vals:
+                    G.set_values(y)
+                    wt = np.prod([n.prob() for n in node.parents.values()]) #STEP 2 B
+                    succ_samp = self.sample_set(map(lambda x: x.name,
+                                                    G.descendants(node.name)), 1)[0]
+                    G.set_values(succ_samp) # STEP 3
+                    weu.append(wt * G.utility(node.player))
+                EU = np.mean(weu)
+                if weu > max_util:
+                    max_util = weu
+                    best_strat = sdraw
+
+
+            node.CPT[CPT_row] = best_strat
+            CPT_row +=1
+
+        return node.CPT
+
+
+
+    def sample_set(self, nodes, Mprime):
+        """ Returns a list with length Mprime
+        whose elements are a dictionary of samples of nodes.
+        """
+        G = copy.deepcopy(self.G)
+        set_dicts = []
+        for i in range(Mprime):
+            set_samp = {}
+            for n in self.G.iterator:
+                if n.name in nodes:
+                    set_samp[n.name] = n.draw_value()
+            set_dicts.append(set_samp)
+        return set_dicts
+
+
+
+
 
 
 
@@ -189,3 +245,5 @@ def rlk_dict(G, M=None, Mprime=None, Level=None, L0Dist=None, SDist=None):
                                             'Level': Level, 'L0Dist': L0Dist,
                                             'SDist': SDist}
     return rlk_input
+
+
