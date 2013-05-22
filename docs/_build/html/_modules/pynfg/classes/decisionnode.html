@@ -54,8 +54,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Implements the DecisionNode class</span>
 
-<span class="sd">Part of: PyNFG - a Python package for modeling and solving Network Form Games</span>
-
 <span class="sd">Created on Mon Feb 18 10:31:17 2013</span>
 
 <span class="sd">Copyright (C) 2013 James Bono (jwbono@gmail.com)</span>
@@ -67,8 +65,10 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">scipy.stats.distributions</span> <span class="kn">as</span> <span class="nn">randvars</span>
 <span class="kn">from</span> <span class="nn">node</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pynfg.utilities.utilities</span> <span class="kn">import</span> <span class="n">convert_2_pureCPT</span>
 
 <div class="viewcode-block" id="DecisionNode"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode">[docs]</a><span class="k">class</span> <span class="nc">DecisionNode</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Implements a decision node of the semi-NFG formalism by D. Wolpert</span>
@@ -141,25 +141,32 @@
 <span class="sd">    * :py:meth:`classes.DecisionNode.perturbCPT()`</span>
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">space</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[],</span> \
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">space</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> \
                  <span class="n">description</span><span class="o">=</span><span class="s">&#39;no description&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> \
                  <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">print</span> <span class="s">&#39;Name: &#39;</span><span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Description: &#39;</span><span class="o">+</span> <span class="n">description</span> <span class="o">+</span> \
-                    <span class="s">&#39;</span><span class="se">\n</span><span class="s">Player: &#39;</span><span class="o">+</span><span class="n">player</span> 
+                    <span class="s">&#39;</span><span class="se">\n</span><span class="s">Player: &#39;</span><span class="o">+</span> <span class="n">player</span> 
             <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;name, description, player should be strings&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;name, description, </span><span class="se">\</span>
+<span class="s">                                     player should be strings&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">basename</span> <span class="o">=</span> <span class="n">basename</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">player</span> <span class="o">=</span> <span class="n">player</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="n">space</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">space</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="n">space</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;The space must be a list&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parents</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">parents</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_parent_dict</span><span class="p">(</span><span class="n">parents</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_createCPT</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_disc_parents</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c">#        self.set_value(self.space[0])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span> <span class="o">=</span> <span class="bp">False</span>
         
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -180,7 +187,7 @@
         <span class="n">CPT_shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">CPT_shape</span><span class="p">)</span>
         
-<div class="viewcode-block" id="DecisionNode.draw_value"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode.draw_value">[docs]</a>    <span class="k">def</span> <span class="nf">draw_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">setvalue</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="DecisionNode.draw_value"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode.draw_value">[docs]</a>    <span class="k">def</span> <span class="nf">draw_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">setvalue</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Draw a value from the :class:`classes.DecisionNode` object</span>
 <span class="sd">        </span>
 <span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
@@ -208,21 +215,28 @@
 <span class="sd">           manually before calling this method.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">parentinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">parentinput</span><span class="o">=</span><span class="p">{}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;CPT for </span><span class="si">%s</span><span class="s"> is just a zeros array&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">valslist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict2list_vals</span><span class="p">(</span><span class="n">parentinput</span><span class="p">)</span>
-        <span class="n">indo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_CPTindex</span><span class="p">(</span><span class="n">valslist</span><span class="p">,</span> <span class="n">onlyparents</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">indo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_CPTindex</span><span class="p">(</span><span class="n">parentinput</span><span class="p">,</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">mode</span><span class="p">:</span>
             <span class="n">cdf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">[</span><span class="n">indo</span><span class="p">])</span>
             <span class="n">cutoff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+<span class="c">#            if cdf[-1] &lt; cutoff:</span>
+<span class="c">#                raise ValueError(self.name, cdf[-1], cutoff, indo, self.CPT[indo]) </span>
+<span class="c">#            try:</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span> <span class="n">cdf</span> <span class="o">&gt;=</span> <span class="n">cutoff</span> <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="c">#            except IndexError:</span>
+<span class="c">#                print self.name, cdf[-1], cutoff, indo, self.CPT[indo]    </span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">setvalue</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">r</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_value</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">r</span>
         </div>
@@ -259,7 +273,7 @@
             <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yy</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">M</span>
         <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">z</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">z</span>
             </div>
@@ -275,11 +289,12 @@
         <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="n">z</span> <span class="o">+=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">z</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">z</span>
         </div>
-<div class="viewcode-block" id="DecisionNode.perturbCPT"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode.perturbCPT">[docs]</a>    <span class="k">def</span> <span class="nf">perturbCPT</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mixed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">sliver</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="DecisionNode.perturbCPT"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode.perturbCPT">[docs]</a>    <span class="k">def</span> <span class="nf">perturbCPT</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mixed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">sliver</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> \
+                   <span class="n">returnweight</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a perturbation of the CPT attribute.</span>
 <span class="sd">        </span>
 <span class="sd">        :arg noise: The noise determines the mixture between the current CPT </span>
@@ -295,25 +310,46 @@
 <span class="sd">           to perturb the current CPT. Keys are parent names. Values are parent </span>
 <span class="sd">           values. If empty, the entire CPT is perturbed. If sliver is nonempty, </span>
 <span class="sd">           but specifies values for only a subset of parents, the current values </span>
-<span class="sd">           are used for the remaining parents.</span>
+<span class="sd">           are used for the remaining parents. Note that for pure perturbations</span>
+<span class="sd">           the noise parameter is ignored and a different action is selected </span>
+<span class="sd">           with probability 1.</span>
 <span class="sd">        :type sliver: dict</span>
 <span class="sd">        </span>
+<span class="sd">        .. note::</span>
+<span class="sd">           </span>
+<span class="sd">           If setCPT is True, then there is no CPT output. If setCPT is True, </span>
+<span class="sd">           and returnweight is False, then there is no output. If setCPT is </span>
+<span class="sd">           True, and returnweight is True, then the weight is the only output. </span>
+<span class="sd">           If setCPT is False, and returnweight is False, then the only output</span>
+<span class="sd">           is the CPT output. Finally, if setCPT is False, and returnweight is </span>
+<span class="sd">           True, then there is both CPT and weight output, and the weight is </span>
+<span class="sd">           first in the list.</span>
+<span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">copiedCPT</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">)</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">mixed</span><span class="p">:</span> <span class="c">#pure CPT</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">sliver</span><span class="p">:</span> <span class="c">#perturbing the whole CPT</span>
-<span class="c">#                shape_last = self.CPT.shape[-1] #number of actions</span>
-<span class="c">#                altCPT = self.randomCPT(mixed=False, setCPT=False) #alt pure CPT</span>
-<span class="c">#                flat = self.CPT.flatten() #flattening both along last axis</span>
-<span class="c">#                flatalt = altCPT.flatten()</span>
-<span class="c">#                for j in xrange(0,len(flat),shape_last): #step through par values </span>
-<span class="c">#                    if np.random.rand() &lt; noise: #prob of using altCPT</span>
-<span class="c">#                        flat[j:j+shape_last] = flatalt[j:j+shape_last]</span>
-<span class="c">#                z = flat.reshape(self.CPT.shape)</span>
-                <span class="n">z</span> <span class="o">=</span> <span class="n">perturbpure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">,</span> <span class="n">noise</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">returnweight</span><span class="p">:</span>
+                    <span class="n">copiedCPT</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">perturbpure</span><span class="p">(</span><span class="n">copiedCPT</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> \
+                                                    <span class="n">returnweight</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">copiedCPT</span> <span class="o">=</span> <span class="n">perturbpure</span><span class="p">(</span><span class="n">copiedCPT</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">returnweight</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">par</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sliver</span><span class="p">:</span>
+                        <span class="n">sliver</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">get_value</span><span class="p">()</span>
+                <span class="n">ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_CPTindex</span><span class="p">(</span><span class="n">sliver</span><span class="p">,</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="n">zeroind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">copiedCPT</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">actind</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;The specified sliver has no 0 entries&#39;</span><span class="p">)</span>
+                <span class="n">newactind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">actind</span><span class="p">))</span>
+                <span class="n">copiedCPT</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">copiedCPT</span><span class="p">[</span><span class="n">ind</span><span class="p">]))</span>
+                <span class="n">copiedCPT</span><span class="p">[</span><span class="n">ind</span><span class="p">][</span><span class="n">zeroind</span><span class="p">[</span><span class="n">newactind</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span> <span class="c">#mixed CPT</span>
             <span class="n">randCPT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">randomCPT</span><span class="p">(</span><span class="n">mixed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">sliver</span><span class="p">:</span> <span class="c">#perturbing the whole thing</span>
-                <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">noise</span><span class="p">)</span> <span class="o">+</span> <span class="n">randCPT</span><span class="o">*</span><span class="n">noise</span>
+                <span class="n">copiedCPT</span> <span class="o">=</span> <span class="n">copiedCPT</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">noise</span><span class="p">)</span> <span class="o">+</span> <span class="n">randCPT</span><span class="o">*</span><span class="n">noise</span>
             <span class="k">else</span><span class="p">:</span> <span class="c">#perturbing only sliver</span>
                 <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
@@ -322,19 +358,24 @@
                                                         <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">space</span><span class="p">]</span>
                         <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">truth</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">True</span><span class="p">))</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">get_value</span><span class="p">()</span>
                         <span class="n">truth</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="o">==</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> \
                                                         <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">space</span><span class="p">]</span>
                         <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">truth</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">True</span><span class="p">))</span>
                 <span class="n">indo</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
-                <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span>
-                <span class="n">z</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">noise</span><span class="p">)</span> <span class="o">+</span> <span class="n">randCPT</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span><span class="o">*</span><span class="n">noise</span>
+                <span class="n">copiedCPT</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span> <span class="o">=</span> <span class="n">copiedCPT</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">noise</span><span class="p">)</span> <span class="o">+</span> \
+                                                            <span class="n">randCPT</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span><span class="o">*</span><span class="n">noise</span>
         <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">copiedCPT</span>
+            <span class="k">if</span> <span class="n">returnweight</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">weight</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">z</span>
+            <span class="k">if</span> <span class="n">returnweight</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">copiedCPT</span><span class="p">,</span> <span class="n">weight</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">copiedCPT</span>
         </div>
-<div class="viewcode-block" id="DecisionNode.prob"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode.prob">[docs]</a>    <span class="k">def</span> <span class="nf">prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DecisionNode.prob"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode.prob">[docs]</a>    <span class="k">def</span> <span class="nf">prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute the conditional probability of the current or specified value</span>
 <span class="sd">        </span>
 <span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
@@ -362,17 +403,16 @@
 <span class="sd">           set the CPT wih :py:meth:`classes.DecisionNode.randomCPT()` or </span>
 <span class="sd">           manually before calling this method.</span>
 <span class="sd">        </span>
-<span class="sd">        &quot;&quot;&quot;</span>        
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">parentinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">parentinput</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&#39;CPT for </span><span class="si">%s</span><span class="s"> is just a zeros array&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">valueinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">valueinput</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
-        <span class="n">valslist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict2list_vals</span><span class="p">(</span><span class="n">parentinput</span><span class="p">,</span> <span class="n">valueinput</span><span class="p">)</span>
-        <span class="n">indo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_CPTindex</span><span class="p">(</span><span class="n">valslist</span><span class="p">)</span>
+        <span class="n">indo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_CPTindex</span><span class="p">(</span><span class="n">parentinput</span><span class="p">,</span> <span class="n">valueinput</span><span class="p">)</span>
         <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">[</span><span class="n">indo</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">p</span>  
         </div>
-<div class="viewcode-block" id="DecisionNode.logprob"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode.logprob">[docs]</a>    <span class="k">def</span> <span class="nf">logprob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DecisionNode.logprob"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode.logprob">[docs]</a>    <span class="k">def</span> <span class="nf">logprob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute the conditional logprob of the current or specified value</span>
 <span class="sd">        </span>
 <span class="sd">        :arg parentinput: Optional. Specify values of the parents at which to </span>
@@ -400,48 +440,78 @@
 <span class="sd">           set the CPT wih :py:meth:`classes.DecisionNode.randomCPT()` or </span>
 <span class="sd">           manually before calling this method.</span>
 <span class="sd">        </span>
-<span class="sd">        &quot;&quot;&quot;</span>        
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">parentinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">parentinput</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob</span><span class="p">(</span><span class="n">parentinput</span><span class="p">,</span> <span class="n">valueinput</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         </div>
-<div class="viewcode-block" id="DecisionNode.set_value"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newvalue</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the current value of the DecisionNode object</span>
+<div class="viewcode-block" id="DecisionNode.makeCPTpure"><a class="viewcode-back" href="../../../pynfg.decisionnode.html#pynfg.classes.decisionnode.DecisionNode.makeCPTpure">[docs]</a>    <span class="k">def</span> <span class="nf">makeCPTpure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert mixed CPT to pure CPT, </span>
 <span class="sd">        </span>
-<span class="sd">        :arg newvalue: a legitimate value of the DecisionNode object, i.e. the </span>
-<span class="sd">           value must be in :py:attr:`classes.ChanceNode.space`.</span>
+<span class="sd">        :arg setCPT: if True (default), then the CPT attribute is converted to </span>
+<span class="sd">           a pure CPT. Otherwise, the output is a pure CPT.</span>
+<span class="sd">        :type setCPT: bool</span>
 <span class="sd">        </span>
-<span class="sd">        .. warning::</span>
-<span class="sd">            </span>
-<span class="sd">           When arbitrarily setting values, some children may have zero </span>
-<span class="sd">           probability given their parents. This means the logprob may be -inf. </span>
-<span class="sd">           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a </span>
-<span class="sd">           divide by zero error.</span>
+<span class="sd">        .. note::</span>
+<span class="sd">           </span>
+<span class="sd">           whenever there are multiple argmax&#39;s, each gets equal probability in</span>
+<span class="sd">           the resuling &quot;pure&quot; CPT.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">newvalue</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">newvalue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newvalue</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">errorstring</span> <span class="o">=</span> <span class="s">&quot;the new value is not in &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&quot;&#39;s space&quot;</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">errorstring</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">any</span><span class="p">((</span><span class="n">newvalue</span><span class="o">==</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newvalue</span>
+        <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">convert_2_pureCPT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">errorstring</span> <span class="o">=</span> <span class="s">&quot;the new value is not in &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&quot;&#39;s space&quot;</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">errorstring</span><span class="p">)</span>  
+            <span class="k">return</span> <span class="n">convert_2_pureCPT</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CPT</span><span class="p">))</span>
+        
+<span class="c">#    def set_value(self, newvalue):</span>
+<span class="c">#        &quot;&quot;&quot;Set the current value of the DecisionNode object</span>
+<span class="c">#        </span>
+<span class="c">#        :arg newvalue: a legitimate value of the DecisionNode object, i.e. the </span>
+<span class="c">#           value must be in :py:attr:`classes.ChanceNode.space`.</span>
+<span class="c">#        </span>
+<span class="c">#        .. warning::</span>
+<span class="c">#            </span>
+<span class="c">#           When arbitrarily setting values, some children may have zero </span>
+<span class="c">#           probability given their parents. This means the logprob may be -inf. </span>
+<span class="c">#           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a </span>
+<span class="c">#           divide by zero error.</span>
+<span class="c">#        </span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#        if type(newvalue==self.space[0]) is bool:</span>
+<span class="c">#            if newvalue in self.space:</span>
+<span class="c">#                self.set_value(newvalue)</span>
+<span class="c">#            else:</span>
+<span class="c">#                errorstring = &quot;the new value is not in &quot;+self.name+&quot;&#39;s space&quot;</span>
+<span class="c">#                raise ValueError(errorstring)</span>
+<span class="c">#        elif any((newvalue==y).all() for y in self.space):</span>
+<span class="c">#            self.set_value(newvalue)</span>
+<span class="c">#        else:</span>
+<span class="c">#            errorstring = &quot;the new value is not in &quot;+self.name+&quot;&#39;s space&quot;</span>
+<span class="c">#            raise ValueError(errorstring)  </span>
         </div></div>
-<span class="k">def</span> <span class="nf">perturbpure</span><span class="p">(</span><span class="n">CPT</span><span class="p">,</span> <span class="n">noise</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">perturbpure</span><span class="p">(</span><span class="n">CPT</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">returnweight</span><span class="p">):</span>
     <span class="c"># Generate noise for each possible combination of parent node values and reshape</span>
-    <span class="n">noises</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">CPT</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])))</span>
-    <span class="n">noises</span> <span class="o">=</span> <span class="n">noises</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">CPT</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">oldCPT</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">CPT</span><span class="p">)</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">CPT</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">nmessages</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">noises</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">nmessages</span><span class="p">))</span>
+    <span class="n">noises</span> <span class="o">=</span> <span class="n">noises</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
     <span class="c"># Which ones should we switch?</span>
     <span class="n">switch</span> <span class="o">=</span> <span class="n">noises</span> <span class="o">&lt;</span><span class="n">noise</span>
-    <span class="n">randcpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">switch</span><span class="p">),</span> <span class="n">CPT</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">nswitch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">switch</span><span class="p">)</span>
+    <span class="n">randcpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nswitch</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
     <span class="c"># Pick the pure strategy for switching rows</span>
-    <span class="n">randcpt</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">switch</span><span class="p">)),</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">CPT</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">switch</span><span class="p">))]</span><span class="o">=</span><span class="mi">1</span>
+    <span class="n">randcpt</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nswitch</span><span class="p">),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">nswitch</span><span class="p">)]</span><span class="o">=</span><span class="mi">1</span>
     <span class="n">CPT</span><span class="p">[</span><span class="n">switch</span><span class="p">,:]</span><span class="o">=</span><span class="n">randcpt</span>
-    <span class="k">return</span> <span class="n">CPT</span>
+    <span class="k">if</span> <span class="n">returnweight</span><span class="p">:</span> <span class="c">#prob of totswitch changes | nmessages, noise, shape[-1]</span>
+        <span class="n">totswitch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">CPT</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">oldCPT</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">noise</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c">#prob of selection * prob of diff action</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="n">prob</span><span class="o">**</span><span class="n">totswitch</span><span class="o">+</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">prob</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">nmessages</span><span class="o">-</span><span class="n">totswitch</span><span class="p">)</span>       
+        <span class="k">return</span> <span class="n">CPT</span><span class="p">,</span> <span class="n">weight</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">CPT</span>
 </pre></div>
 
           </div>
