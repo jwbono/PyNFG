@@ -132,6 +132,8 @@ class DecisionNode(Node):
         CPT_shape = []
         for par in self.parents:
             CPT_shape.append(len(self.parents[par].space))
+        if not CPT_shape:
+            CPT_shape.append(1)
         CPT_shape.append(len(self.space))
         self.CPT = np.zeros(CPT_shape)
         
