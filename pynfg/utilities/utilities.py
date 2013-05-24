@@ -44,8 +44,6 @@ def mceu(Game, dn, N, tol=30, delta=1):
         uargs = player
     while np.min(visits)<tol and n<N:
         n += 1
-        print 'n = ', n
-        print 'min visits = ', np.min(visits)
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
@@ -56,6 +54,8 @@ def mceu(Game, dn, N, tol=30, delta=1):
                 G.sample(start=childnames)
                 idy = idx[:-1]+(a,)
                 Utable[idy] += ufoo(uargs)
+    print ('number of unvisited messages:', \
+            (np.size(visits)-np.count_nonzero(visits))/CPT_shape[-1])
     idx = (visits==0)
     visits[idx] = 1
     return Utable/visits

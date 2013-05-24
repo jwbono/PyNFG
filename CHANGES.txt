@@ -1,6 +1,6 @@
-v0.1.2, 5/22/13 -- Changed directory structure. rlsolutions became levelksolutions. The modules in rlsolutions are located in levelksolutions.isnfg.
+v0.1.2, 5/22/13 -- Changed directory structure. pynfg.rlsolutions became pynfg.levelksolutions. 
 v0.1.2, 5/22/13 -- Fixed DecisionNode._createCPT so that DNs without parents have first dimension of size 1.
-v0.1.2, 5/22/13 -- Added levelksolutions.snfg. and levelksolutions.snfg.levelk. This is where level-k best response (bestresponse_node), level-k logit response (logitresponse_node), and level-k d-relaxed (?) algorithms are located.
+v0.1.2, 5/22/13 -- Created best response (bestresponse), logit response (logitresponse). These are located in pynfg.levelksolutions. This is also where we will put d-relaxed (name?).
 v0.1.2, 5/23/13 -- Added mceu to pynfg.utilities.utilities. It computes the move-conditioned expected utilities for a decision node given the game.
 v0.1.2, 5/23/13 -- Bug fixes in SemiNFG.sample, DeterNode.prob, ChanceNode.draw_value, ChanceNode.prob, pgtsolutions.intelligence.coordinated and uncoordinated
 v0.1.2, 5/23/13 -- New error handling in Node.get_valueindex

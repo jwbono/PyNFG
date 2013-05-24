@@ -18,7 +18,7 @@ import numpy as np
 import matplotlib.pylab as plt
 from pynfg.utilities.utilities import convert_2_pureCPT, mceu
 
-def bestresponse_node(Game, dn, N, delta=1, tol=30):
+def bestresponse_node(Game, dn, N, delta=1, tol=30, verbose=False):
     """Compute level-k best response at the DN given Game
     
     :arg Game: the Network Form Game of interest
@@ -32,11 +32,11 @@ def bestresponse_node(Game, dn, N, delta=1, tol=30):
     
     """
     G = copy.deepcopy(Game)
-    EUtable = mceu(G, dn, N, tol, delta)
+    EUtable = mceu(G, dn, N, tol, delta, verbose)
     G.node_dict[dn].CPT = convert_2_pureCPT(EUtable)
     return G    
 
-def logitresponse_node(Game, dn, N, delta=1, beta=1, tol=30):
+def logitresponse_node(Game, dn, N, delta=1, beta=1, tol=30, verbose=False):
     """Compute level-k logit response at the DN given Game
 
     :arg Game: the Network Form Game of interest
@@ -50,7 +50,7 @@ def logitresponse_node(Game, dn, N, delta=1, beta=1, tol=30):
     
     """
     G = copy.deepcopy(Game)
-    EUtable = mceu(G, dn, N, tol, delta)
+    EUtable = mceu(G, dn, N, tol, delta, verbose)
     weight = np.exp(beta*EUtable)
     norm = np.sum(weight, axis=-1)
     G.node_dict[dn].CPT = weight/norm[...,np.newaxis]
