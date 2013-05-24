@@ -15,7 +15,7 @@ from __future__ import division
 import numpy as np
 import copy
 
-def mceu(Game, dn, N, tol=30, delta=1):
+def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     """Compute the move-conditioned expected utilities for all parent values
     
     :arg Game: the SemiNFG of interest
@@ -54,8 +54,10 @@ def mceu(Game, dn, N, tol=30, delta=1):
                 G.sample(start=childnames)
                 idy = idx[:-1]+(a,)
                 Utable[idy] += ufoo(uargs)
-    print ('number of unvisited messages:', \
-            (np.size(visits)-np.count_nonzero(visits))/CPT_shape[-1])
+    if verbose:
+        print('number of unvisited messages:', \
+              (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
+        print('least number of visits:', np.min(visits[np.nonzeros(visits)])) 
     idx = (visits==0)
     visits[idx] = 1
     return Utable/visits
