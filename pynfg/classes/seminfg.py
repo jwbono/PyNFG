@@ -195,10 +195,10 @@ class SemiNFG(object):
         :returns: a set of nodes that are the parents of the input node in 
            the SemiNFG object.
         
-        This is equivalent to calling ``set(node.parents)``
+        This is equivalent to calling ``set(node.parents.values())``
         
         """
-        parents = set(self.node_dict[nodename].parents)
+        parents = set(self.node_dict[nodename].parents.values())
         return parents
     
     def descendants(self, nodename):
@@ -399,7 +399,7 @@ class SemiNFG(object):
             children = set()
             starters = set([self.node_dict[nam] for nam in start])
             for nam in start:
-                chidren = children.update(self.descendants(nam))
+                children.update(self.descendants(nam))
             for n in self.iterator:
                 if n in children.union(starters):
                     n.draw_value()
@@ -431,11 +431,7 @@ class SemiNFG(object):
         else:
             nodelist = []
             for name in subgraph:
-                try: 
-                    n = self.node_dict[name]
-                except ValueError:
-                    print "%s is not a valid node name" %n
-                nodelist.append(n)
+                nodelist.append(self.node_dict[name])
         nodeset = set(nodelist)
         for n in nodeset:
             for child in nodeset.intersection(self.edges[n.name]):

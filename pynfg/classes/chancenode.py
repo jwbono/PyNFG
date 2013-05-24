@@ -181,25 +181,33 @@ class ChanceNode(Node):
         if parentinput is None:
             parentinput = {}
         if self.CPT is None:
-            if not parentinput:
-                arglist = map(lambda x: x.get_value() 
-                              if isinstance(x,Node) else x, self.params)
-            else:
-                arglist = map(lambda x: parentinput[x.name] \
-                              if isinstance(x,Node) else x, self.params)
+            arglist = []
+            for val in self.params:
+                if isinstance(val,Node):
+                    if val.name in parentinput.keys():
+                        arglist.append(parentinput[val.name])
+                    else:
+                        arglist.append(val.get_value)
+                else:
+                    arglist.append(val)
             argtuple = tuple(arglist)
             r = self.distribution.rvs(*argtuple)
+            if setvalue:
+                self.set_value(r)
+                return self.get_value()
+            else:
+                return r
         else:
             indo = self.get_CPTindex(parentinput, valueinput=False)
             cdf = np.cumsum(self.CPT[indo])
             cutoff = np.random.rand()
             idx = np.nonzero( cdf >= cutoff )[0][0]
-            r = self.space[idx]
-        if setvalue:
-            self.set_value(r)
-            return self.get_value()
-        else:
-            return r
+            if setvalue:
+                self.set_valueindex(idx)
+                return self.get_value()
+            else:
+                return self.space[idx]
+            
         
     def prob(self, parentinput=None, valueinput=None):
         """Compute the conditional probability of the current or specified value

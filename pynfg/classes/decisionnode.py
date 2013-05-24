@@ -175,17 +175,11 @@ class DecisionNode(Node):
         if not mode:
             cdf = np.cumsum(self.CPT[indo])
             cutoff = np.random.rand()
-#            if cdf[-1] < cutoff:
-#                raise ValueError(self.name, cdf[-1], cutoff, indo, self.CPT[indo]) 
-#            try:
-            idx = np.nonzero( cdf >= cutoff )[0][0]
-#            except IndexError:
-#                print self.name, cdf[-1], cutoff, indo, self.CPT[indo]    
+            idx = np.nonzero( cdf >= cutoff )[0][0]  
         else:
             idx = self.CPT[indo].argmax()
-        r = self.space[idx]
         if setvalue:
-            self.set_value(r)
+            self.set_valueindex(idx)
             return self.get_value()
         else:
             return r
@@ -413,32 +407,6 @@ class DecisionNode(Node):
             self.CPT = convert_2_pureCPT(self.CPT)
         else:
             return convert_2_pureCPT(copy.copy(self.CPT))
-        
-#    def set_value(self, newvalue):
-#        """Set the current value of the DecisionNode object
-#        
-#        :arg newvalue: a legitimate value of the DecisionNode object, i.e. the 
-#           value must be in :py:attr:`classes.ChanceNode.space`.
-#        
-#        .. warning::
-#            
-#           When arbitrarily setting values, some children may have zero 
-#           probability given their parents. This means the logprob may be -inf. 
-#           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a 
-#           divide by zero error.
-#        
-#        """
-#        if type(newvalue==self.space[0]) is bool:
-#            if newvalue in self.space:
-#                self.set_value(newvalue)
-#            else:
-#                errorstring = "the new value is not in "+self.name+"'s space"
-#                raise ValueError(errorstring)
-#        elif any((newvalue==y).all() for y in self.space):
-#            self.set_value(newvalue)
-#        else:
-#            errorstring = "the new value is not in "+self.name+"'s space"
-#            raise ValueError(errorstring)  
         
 def perturbpure(CPT, noise, returnweight):
     # Generate noise for each possible combination of parent node values and reshape

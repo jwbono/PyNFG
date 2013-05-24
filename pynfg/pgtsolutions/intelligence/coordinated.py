@@ -238,12 +238,12 @@ def coordinated_calciq(p, G, X, M, mix, delta, innoise, satisfice=None):
     altutil = [0]*M
     weight = np.ones(M)
     tick = 0
-    if isinstance(G, iterSemiNFG):
+    try:
         ufoo = G.npv_reward
         uargs = [p, G.starttime, delta]
-    else:
+    except AttributeError:
         ufoo = G.utility
-        uargs = [p]
+        uargs = p
     for x in xrange(1,X+1):
         G.sample()
         util = (ufoo(*uargs)+(x-1)*util)/x
