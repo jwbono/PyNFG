@@ -47,7 +47,10 @@ def opt_qlearning(G,bn,w,d,N,r_max = 0):
     T = G.endtime + 1 #get the end time
     player = G.bn_part[bn][T0].player #the player
     shape = G.bn_part[bn][T0].CPT.shape #the shape of CPT
-    Q0 = r_max/(1-d) #the initial q value
+    if d<1:
+        Q0 = r_max*((1-d**(T-T0))/(1-d)) #the initial q value
+    else:
+        Q0 = r_max*(T-T0)
     Q = Q0 * np.ones(shape) #the initial q table
     visit = np.zeros(shape) 
     #the number of times each (m,a) pair has been visited.                            
@@ -67,7 +70,7 @@ def opt_qlearning(G,bn,w,d,N,r_max = 0):
             r_av_new = r_av + (r-r_av)/((T-1)*ep) #update the dynamic reward
         Qmax = Q[mapair] #get the maximum q value
         for t in xrange(T0+1,T):
-            G.bn_part[bn][t].CPT = q_to_cpt(Q) #convert Q table to CPT
+            G.bn_part[bn][t].CPT = convert_2_pureCPT(Q) #convert Q table to CPT
             G.sample_timesteps(t,t) #sample the current time step
             if t!= (T-1): #required by Q-learning
                 r = d**t*G.reward(player,t) # get the (discounted) reward

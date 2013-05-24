@@ -5,3 +5,4 @@ v0.1.2, 5/23/13 -- Added mceu to pynfg.utilities.utilities. It computes the move
 v0.1.2, 5/23/13 -- Bug fixes in SemiNFG.sample, DeterNode.prob, ChanceNode.draw_value, ChanceNode.prob, pgtsolutions.intelligence.coordinated and uncoordinated
 v0.1.2, 5/23/13 -- New error handling in Node.get_valueindex
 v0.1.2, 5/23/13 -- New internal structure for setting and getting node values and valueindex.
+v0.1.2, 5/23/13 -- Bug fix in ChanceNode.draw_value

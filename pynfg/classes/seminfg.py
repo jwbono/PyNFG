@@ -368,12 +368,15 @@ class SemiNFG(object):
         if nodeinput is None:
             nodeinput = {}
         problist = []
-        for n in self.nodes:
-                problist.append(n.logprob(nodeinput))
+        for n in self.iterator:
+            if n.name in nodeinput:
+                problist.append(n.logprob(valueinput=nodeinput[n.name]))
+            else:
+                problist.append(n.logprob())
         r = np.sum(problist)
         return r
         
-    def sample(self, start=None, nodenames=None):
+    def sample(self, start=None, nodenames=None, exclude=None):
         """Sample the net to obtain a draw from the joint distribution.
         
         :arg start: (Optional) if unspecified, the entire net will be sampled 
@@ -381,9 +384,13 @@ class SemiNFG(object):
            the starting points for the sampling. That is, the sampling will 
            commence from the nodes in start and continue until all of the 
            descendants of the nodes in start have been sampled exactly once.
-        :type start: list
+        :type start: list or set
         :arg nodenames: a list of node names for which output is desired. By
            default, no output is provided.
+        :type nodenames: list or set
+        :arg exclude: a list of node names that are to be held constant at their
+           current values, i.e. excluded from the sampling.
+        :type exclude: list or set
         :returns: a dict keyed by node names in nodenames input. Values are 
            values of nodes in node names.
         
@@ -392,9 +399,12 @@ class SemiNFG(object):
            The decision nodes must have CPTs before using this function.
         
         """
+        if not exclude:
+            exclude = []
         if not start:
             for n in self.iterator:
-                n.draw_value()
+                if n.name not in exclude:
+                    n.draw_value()
         else:
             children = set()
             starters = set([self.node_dict[nam] for nam in start])
@@ -402,7 +412,8 @@ class SemiNFG(object):
                 children.update(self.descendants(nam))
             for n in self.iterator:
                 if n in children.union(starters):
-                    n.draw_value()
+                    if n.name not in exclude:
+                        n.draw_value()
         if nodenames:
             outdict = dict(zip(nodenames, [self.node_dict[x].get_value() for \
                                             x in nodenames]))

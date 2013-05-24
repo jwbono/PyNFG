@@ -204,9 +204,9 @@ class DeterNode(Node):
         if valueinput is None:
             valueinput = self.get_value()
         try:
+            r = 1*(self.dfunction(**funinput) == valueinput).all()
+        except AttributeError:
             r = 1*(self.dfunction(**funinput) == valueinput)
-        except ValueError:
-            r = 1*(self.dfunction(**funinput)==valueinput).all()
         return r
         
     def logprob(self, parentinput=None, valueinput=None):

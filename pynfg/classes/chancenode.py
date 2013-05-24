@@ -77,6 +77,7 @@ class ChanceNode(Node):
     
     Example::
         
+        import pynfg
         import scipy.stats.distributions as randvars
                         
         D1 = DecisionNode('D1', '1', [-1, 0, 1], parents=[], 
@@ -84,12 +85,13 @@ class ChanceNode(Node):
         
         dist1 = randvars.norm
         params1 = [D1, 2]
-        distip1 = (dist2, params2)
+        distip1 = (dist1, params1)
         C1 = ChanceNode('C1', distip=distip1, 
                         description='CN norm rv with scale=2 and loc=D1')
                         
     or::
         
+        import pynfg
         import scipy.stats.distributions as randvars
         
         dist1 = randvars.randint
@@ -187,7 +189,7 @@ class ChanceNode(Node):
                     if val.name in parentinput.keys():
                         arglist.append(parentinput[val.name])
                     else:
-                        arglist.append(val.get_value)
+                        arglist.append(val.get_value())
                 else:
                     arglist.append(val)
             argtuple = tuple(arglist)
@@ -207,8 +209,7 @@ class ChanceNode(Node):
                 return self.get_value()
             else:
                 return self.space[idx]
-            
-        
+                   
     def prob(self, parentinput=None, valueinput=None):
         """Compute the conditional probability of the current or specified value
         
