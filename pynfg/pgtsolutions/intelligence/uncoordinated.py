@@ -271,10 +271,10 @@ def uncoordinated_calciq(dn, G, X, M, mix, delta, innoise, satisfice=None):
         weight[m] *= (numw/denw)
         tick += 1
         GG.sample() #sample altpolicy prof. to end of net
-#        try:
-        altutil[m] = ufoo(p, GG.starttime, delta)
-#        except AttributeError:
-#            altutil[m] = GG.utility(p)
+        try:
+            altutil[m] = GG.npv_reward(p, GG.starttime, delta)
+        except AttributeError:
+            altutil[m] = GG.utility(p)
         GG.node_dict[dn].CPT = oldCPT #resetting the CPT for the next draw
     #weight of alts worse than G
     worse = [weight[m] for m in range(M) if altutil[m]<util]

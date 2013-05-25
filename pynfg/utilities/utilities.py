@@ -47,17 +47,17 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
-        Utable[idx] += ufoo(uargs)
+        Utable[idx] += ufoo(*uargs)
         for a in xrange(CPT_shape[-1]):
             if a != idx[-1]:
                 G.node_dict[dn].set_value(space[a])
                 G.sample(start=childnames)
                 idy = idx[:-1]+(a,)
-                Utable[idy] += ufoo(uargs)
+                Utable[idy] += ufoo(*uargs)
     if verbose:
         print('number of unvisited messages:', \
               (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
-        print('least number of visits:', np.min(visits[np.nonzeros(visits)])) 
+        print('least number of visits:', np.min(visits[np.nonzero(visits)])) 
     idx = (visits==0)
     visits[idx] = 1
     return Utable/visits
