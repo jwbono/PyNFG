@@ -209,18 +209,18 @@ class Node(object):
             i = 0
             found = False
             while i<len(self.space) and not found:
-                if type(self.space[i])==type(value):
-                    try:
-                        found = (self.space[i]==value).all()
-                    except AttributeError:
-                        found = (self.space[i]==value)
-                    if found:
-                        idx = i
-                    else:
-                        i += 1
-                        found = False
+#                if type(self.space[i])==type(value):
+                try:
+                    found = (self.space[i]==value).all()
+                except AttributeError:
+                    found = (self.space[i]==value)
+                if found:
+                    idx = i
                 else:
                     i += 1
+                    found = False
+#                else:
+#                    i += 1
             if not found:
                 raise ValueError('the value %s is not in the space of %s' \
                                     %(str(value),self.name))
