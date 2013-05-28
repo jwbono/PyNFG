@@ -237,7 +237,7 @@ class DecisionNode(Node):
         else:
             return z
         
-    def perturbCPT(self, noise, mixed=True, sliver=None, setCPT=True, \
+    def perturbCPT(self, noise, mixed=True, setCPT=True, \
                    returnweight=False):
         """Create a perturbation of the CPT attribute.
         
@@ -250,14 +250,6 @@ class DecisionNode(Node):
            weights shifted to other values. If mixed, then the perturbed CPT is 
            a mixed CPT with positive weight on all values. 
         :type mixed: bool
-        :arg sliver: Optional. Determines the values of the parents for which 
-           to perturb the current CPT. Keys are parent names. Values are parent 
-           values. If empty, the entire CPT is perturbed. If sliver is nonempty, 
-           but specifies values for only a subset of parents, the current values 
-           are used for the remaining parents. Note that for pure perturbations
-           the noise parameter is ignored and a different action is selected 
-           with probability 1.
-        :type sliver: dict
         
         .. note::
            
@@ -269,46 +261,26 @@ class DecisionNode(Node):
            True, then there is both CPT and weight output, and the weight is 
            first in the list.
         
-        """
+        """        
+#        :arg sliver: Optional. Determines the values of the parents for which 
+#           to perturb the current CPT. Keys are parent names. Values are parent 
+#           values. If empty, the entire CPT is perturbed. If sliver is nonempty, 
+#           but specifies values for only a subset of parents, the current values 
+#           are used for the remaining parents. Note that for pure perturbations
+#           the noise parameter is ignored and a different action is selected 
+#           with probability 1.
+#        :type sliver: dict
         copiedCPT = copy.copy(self.CPT)
         weight = 1
         if not mixed: #pure CPT
-            if not sliver: #perturbing the whole CPT
-                if returnweight:
-                    copiedCPT, weight = perturbpure(copiedCPT, noise, \
-                                                    returnweight)
-                else:
-                    copiedCPT = perturbpure(copiedCPT, noise, returnweight)
+            if returnweight:
+                copiedCPT, weight = perturbpure(copiedCPT, noise, \
+                                                returnweight)
             else:
-                for par in self.parents:
-                    if par not in sliver:
-                        sliver[par] = self.parents[par].get_value()
-                ind = self.get_CPTindex(sliver, valueinput=False)
-                zeroind = np.nonzero(copiedCPT[ind]==0)
-                if len(actind) == 0:
-                    raise ValueError('The specified sliver has no 0 entries')
-                newactind = np.random.uniform(0,len(actind))
-                copiedCPT[ind] = np.zeros(len(copiedCPT[ind]))
-                copiedCPT[ind][zeroind[newactind]] = 1
+                copiedCPT = perturbpure(copiedCPT, noise, returnweight)
         else: #mixed CPT
             randCPT = self.randomCPT(mixed=True, setCPT=False)
-            if not sliver: #perturbing the whole thing
-                copiedCPT = copiedCPT*(1-noise) + randCPT*noise
-            else: #perturbing only sliver
-                ind = []
-                for par in self.parents:
-                    if par in sliver:
-                        truth = [(x==sliver[par]).all() for x in \
-                                                        self.parents[par].space]
-                        ind.append(truth.index(True))
-                    else:
-                        value = self.parents[par].get_value()
-                        truth = [(x==value).all() for x in \
-                                                        self.parents[par].space]
-                        ind.append(truth.index(True))
-                indo = tuple(ind)
-                copiedCPT[indo] = copiedCPT[indo]*(1-noise) + \
-                                                            randCPT[indo]*noise
+            copiedCPT = copiedCPT*(1-noise) + randCPT*noise
         if setCPT:
             self.CPT[:] = copiedCPT
             if returnweight:
