@@ -164,7 +164,7 @@ class rlk(object):
                     for controlled in G.partition[player]:
                         controlled.CPT = np.copy(controlled.LevelCPT[other_level])
                 except KeyError:
-                    raise KeyError('Need to train other player\'s at level -1')
+                    raise KeyError('Need to train other players at level %s' %str(level-1))
         Y = copy.copy(G.node_dict)  # Create Y
         Y.pop(node.name)
         [Y.pop(pa) for pa in node.parents.keys()]
@@ -229,6 +229,7 @@ class rlk(object):
 
     def train_node(self, nodename, level):
         G = self.G
+        print "Training " + nodename + " at level " + str(level)
         node = G.node_dict[nodename]
         CPT = np.zeros(node.CPT.shape)
         for mcsamp in xrange(self.N):
