@@ -195,10 +195,10 @@ class SemiNFG(object):
         :returns: a set of nodes that are the parents of the input node in 
            the SemiNFG object.
         
-        This is equivalent to calling ``set(node.parents)``
+        This is equivalent to calling ``set(node.parents.values())``
         
         """
-        parents = set(self.node_dict[nodename].parents)
+        parents = set(self.node_dict[nodename].parents.values())
         return parents
     
     def descendants(self, nodename):
@@ -368,12 +368,15 @@ class SemiNFG(object):
         if nodeinput is None:
             nodeinput = {}
         problist = []
-        for n in self.nodes:
-                problist.append(n.logprob(nodeinput))
+        for n in self.iterator:
+            if n.name in nodeinput:
+                problist.append(n.logprob(valueinput=nodeinput[n.name]))
+            else:
+                problist.append(n.logprob())
         r = np.sum(problist)
         return r
         
-    def sample(self, start=None, nodenames=None):
+    def sample(self, start=None, nodenames=None, exclude=None):
         """Sample the net to obtain a draw from the joint distribution.
         
         :arg start: (Optional) if unspecified, the entire net will be sampled 
@@ -381,9 +384,13 @@ class SemiNFG(object):
            the starting points for the sampling. That is, the sampling will 
            commence from the nodes in start and continue until all of the 
            descendants of the nodes in start have been sampled exactly once.
-        :type start: list
+        :type start: list or set
         :arg nodenames: a list of node names for which output is desired. By
            default, no output is provided.
+        :type nodenames: list or set
+        :arg exclude: a list of node names that are to be held constant at their
+           current values, i.e. excluded from the sampling.
+        :type exclude: list or set
         :returns: a dict keyed by node names in nodenames input. Values are 
            values of nodes in node names.
         
@@ -392,17 +399,21 @@ class SemiNFG(object):
            The decision nodes must have CPTs before using this function.
         
         """
+        if not exclude:
+            exclude = []
         if not start:
             for n in self.iterator:
-                n.draw_value()
+                if n.name not in exclude:
+                    n.draw_value()
         else:
             children = set()
             starters = set([self.node_dict[nam] for nam in start])
             for nam in start:
-                chidren = children.update(self.descendants(nam))
+                children.update(self.descendants(nam))
             for n in self.iterator:
                 if n in children.union(starters):
-                    n.draw_value()
+                    if n.name not in exclude:
+                        n.draw_value()
         if nodenames:
             outdict = dict(zip(nodenames, [self.node_dict[x].get_value() for \
                                             x in nodenames]))
@@ -431,11 +442,7 @@ class SemiNFG(object):
         else:
             nodelist = []
             for name in subgraph:
-                try: 
-                    n = self.node_dict[name]
-                except ValueError:
-                    print "%s is not a valid node name" %n
-                nodelist.append(n)
+                nodelist.append(self.node_dict[name])
         nodeset = set(nodelist)
         for n in nodeset:
             for child in nodeset.intersection(self.edges[n.name]):

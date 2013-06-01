@@ -123,12 +123,9 @@
             <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">continuous</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;The parent named </span><span class="si">%s</span><span class="s"> is continuous!&quot;</span> <span class="o">%</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
                 
-<div class="viewcode-block" id="Node.dict2list_vals"><a class="viewcode-back" href="../../../pynfg.node.html#pynfg.classes.node.Node.dict2list_vals">[docs]</a>    <span class="k">def</span> <span class="nf">dict2list_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="p">{},</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.dict2list_vals"><a class="viewcode-back" href="../../../pynfg.node.html#pynfg.classes.node.Node.dict2list_vals">[docs]</a>    <span class="k">def</span> <span class="nf">dict2list_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Convert parent/value dict entered by user to a list of values</span>
 <span class="sd">        </span>
-<span class="sd">        :arg parentdict: the parents OrderedDict attribute for the node, e.g.</span>
-<span class="sd">           `:py:attr:DecisionNode.parents` or `:py:attr:ChanceNode.parents`</span>
-<span class="sd">        :type parentdict: dict</span>
 <span class="sd">        :arg parentinput: Optional. Specify values of the parents. Keys are </span>
 <span class="sd">           parent names. Values are parent values. To specify values for only a </span>
 <span class="sd">           subset of the parents, only enter those parents in the dictionary. </span>
@@ -136,55 +133,145 @@
 <span class="sd">           values are used for the remaining parents.</span>
 <span class="sd">        :type parentinput: dict</span>
 <span class="sd">        :arg valueinput: Optional. A legitimate value of the decision node </span>
-<span class="sd">           object. If no valueinput is specified, then the output does not include a </span>
-<span class="sd">           value for the node itself.</span>
+<span class="sd">           object. If no valueinput is specified, then the output does not </span>
+<span class="sd">           include a value for the node itself.</span>
 <span class="sd">        :returns: a list of the values for the parents and the decision node </span>
 <span class="sd">           itself in the order determine by the :py:attr:DecisionNode.parents` </span>
 <span class="sd">           OrderedDict.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">parentinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">parentinput</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">valuelist</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">parentinput</span><span class="p">:</span>
                 <span class="n">valuelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parentinput</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">])</span> 
             <span class="k">else</span><span class="p">:</span>            
-                <span class="n">valuelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> 
+                <span class="n">valuelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">get_value</span><span class="p">())</span> 
         <span class="k">if</span> <span class="n">valueinput</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">valuelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">valueinput</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">valuelist</span>
     </div>
-<div class="viewcode-block" id="Node.get_CPTindex"><a class="viewcode-back" href="../../../pynfg.node.html#pynfg.classes.node.Node.get_CPTindex">[docs]</a>    <span class="k">def</span> <span class="nf">get_CPTindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">onlyparents</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get the CPT index that corresponds to the (parent, node) values</span>
+<div class="viewcode-block" id="Node.get_CPTindex"><a class="viewcode-back" href="../../../pynfg.node.html#pynfg.classes.node.Node.get_CPTindex">[docs]</a>    <span class="k">def</span> <span class="nf">get_CPTindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentinput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">valueinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the CPT index of (parent[, node]) values from user-supplied dict</span>
 <span class="sd">        </span>
-<span class="sd">        :arg parentdict: the parents OrderedDict attribute for the node, e.g.</span>
-<span class="sd">           `:py:attr:DecisionNode.parents` or `:py:attr:ChanceNode.parents`</span>
-<span class="sd">        :type parentdict: dict</span>
-<span class="sd">        :arg onlyparents: set to true if </span>
-<span class="sd">        :type onlyparents: bool</span>
-<span class="sd">        :arg values: a list whose members are values for the parents of the </span>
-<span class="sd">           decision node and the decision node itself, in the order given by </span>
-<span class="sd">           the `:py:attr:DecisionNode.parents` OrderedDict</span>
+<span class="sd">        :arg parentinput: Optional. Specify values of the parents. If input is </span>
+<span class="sd">           dict, keys are parent names. Values are parent values. To specify </span>
+<span class="sd">           values for only a subset of the parents, only enter those parents </span>
+<span class="sd">           in the dictionary. If only a subset of parent values are specified, </span>
+<span class="sd">           then the current values are used for the remaining parents. If input</span>
+<span class="sd">           is list, then the list members are valid values of the parents, and </span>
+<span class="sd">           the order is given by the parent dictionary.</span>
+<span class="sd">        :type parentinput: dict or list</span>
+<span class="sd">        :arg valueinput: Optional. A legitimate value of the decision node </span>
+<span class="sd">           object. If no valueinput is specified, then the output </span>
+<span class="sd">           includes the current value for the node itself. If False is given, </span>
+<span class="sd">           then the output index does not include an entry for the node itself.</span>
+<span class="sd">        :returns: a tuple CPT index for the values for the parents and the node</span>
+<span class="sd">           itself in the order determined by the parents OrderedDict.</span>
 <span class="sd">           </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;cont. nodes do not have CPTs&#39;</span><span class="p">)</span>
         <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
-                <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">parentinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">parentinput</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parentinput</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parentinput</span><span class="p">)</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;parentinput as list must have at least as&#39;</span><span class="p">,</span> \
+                                 <span class="s">&#39;many entries as the parent dict&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">truth</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="o">==</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="p">]</span>
-                <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">truth</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">True</span><span class="p">))</span>
-            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">onlyparents</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
-                <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">truth</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="o">==</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">]</span>
-                <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">truth</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">True</span><span class="p">))</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">get_valueindex</span><span class="p">(</span><span class="n">parentinput</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">parentinput</span><span class="p">:</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">get_valueindex</span><span class="p">(</span><span class="n">parentinput</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">]))</span> 
+                <span class="k">else</span><span class="p">:</span>            
+                    <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">get_valueindex</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">valueinput</span> <span class="ow">or</span> <span class="n">valueinput</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_valueindex</span><span class="p">(</span><span class="n">valueinput</span><span class="p">))</span>
         <span class="n">indo</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">indo</span></div></div>
+        <span class="k">return</span> <span class="n">indo</span>
+        </div>
+<div class="viewcode-block" id="Node.set_value"><a class="viewcode-back" href="../../../pynfg.node.html#pynfg.classes.node.Node.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the current value of the Node object</span>
+<span class="sd">        </span>
+<span class="sd">        :arg value: a legitimate value of the Node object, i.e. the </span>
+<span class="sd">           value must be in :py:attr:`classes.Node.space`.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning::</span>
+<span class="sd">            </span>
+<span class="sd">           When arbitrarily setting values, some children may have zero </span>
+<span class="sd">           probability given their parents. This means the logprob may be -inf. </span>
+<span class="sd">           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a </span>
+<span class="sd">           divide by zero error.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_valueindex</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>                
+        </div>
+<div class="viewcode-block" id="Node.set_valueindex"><a class="viewcode-back" href="../../../pynfg.node.html#pynfg.classes.node.Node.set_valueindex">[docs]</a>    <span class="k">def</span> <span class="nf">set_valueindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the valueindex attribute of the discrete Node object</span>
+<span class="sd">        </span>
+<span class="sd">        :arg value: a legitimate value of the Node object, i.e. the value must </span>
+<span class="sd">           be in :py:attr:`classes.Node.space`. Otherwise an error occurs</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">valueindex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;the value </span><span class="si">%s</span><span class="s"> is not in the space of </span><span class="si">%s</span><span class="s">&#39;</span> \
+                        <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">truth</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="o">==</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">truth</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;the value </span><span class="si">%s</span><span class="s"> is not in the space of </span><span class="si">%s</span><span class="s">&#39;</span> \
+                                     <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">valueindex</span> <span class="o">=</span> <span class="n">truth</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Node.get_value"><a class="viewcode-back" href="../../../pynfg.node.html#pynfg.classes.node.Node.get_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the current value of the Node object</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span><span class="p">:</span>
+<span class="c">#            try:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+<span class="c">#            except AttributeError:</span>
+<span class="c">#                print self.name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">valueindex</span><span class="p">]</span>
+        </div>
+<div class="viewcode-block" id="Node.get_valueindex"><a class="viewcode-back" href="../../../pynfg.node.html#pynfg.classes.node.Node.get_valueindex">[docs]</a>    <span class="k">def</span> <span class="nf">get_valueindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the valueindex attribute of the discrete Node object</span>
+<span class="sd">        </span>
+<span class="sd">        :arg value: a legitimate value of the Node object, i.e. the value must </span>
+<span class="sd">           be in :py:attr:`classes.Node.space`. Otherwise an error occurs. If </span>
+<span class="sd">           no value is provided, the current valueindex is returned.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span> 
+                    <span class="n">ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="s">&#39;the value </span><span class="si">%s</span><span class="s"> is not in the space of </span><span class="si">%s</span><span class="s">&#39;</span> \
+                            <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">truth</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="o">==</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">truth</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;the value </span><span class="si">%s</span><span class="s"> is not in the space of </span><span class="si">%s</span><span class="s">&#39;</span> \
+                                     <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span> 
+                    <span class="n">ind</span> <span class="o">=</span> <span class="n">truth</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ind</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">valueindex</span></div></div>
 </pre></div>
 
           </div>

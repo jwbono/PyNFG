@@ -70,9 +70,12 @@
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pynfg</span> <span class="kn">import</span> <span class="n">DecisionNode</span><span class="p">,</span> <span class="n">DeterNode</span><span class="p">,</span> <span class="n">ChanceNode</span>
 
 <div class="viewcode-block" id="SemiNFG"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG">[docs]</a><span class="k">class</span> <span class="nc">SemiNFG</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Implements the semi-NFG formalism created by D. Wolpert</span>
+<span class="sd">    </span>
+<span class="sd">    For an example, see PyNFG/bin/stackelberg.py     </span>
 <span class="sd">    </span>
 <span class="sd">    :arg nodes: members are :class:`nodes.ChanceNode`, </span>
 <span class="sd">       :class:`nodes.DecisionNode`, or :class:`nodes.DeterNode`.</span>
@@ -109,51 +112,7 @@
 <span class="sd">       </span>
 <span class="sd">       For a node in nodes, the parent attribute, e.g. </span>
 <span class="sd">       :py:attr:`nodes.ChanceNode.parents`, must not have parents that are </span>
-<span class="sd">       not in the set of nodes passed to :class:`seminfg.SemiNFG`.</span>
-<span class="sd">       </span>
-<span class="sd">    Example::</span>
-<span class="sd">        </span>
-<span class="sd">        from nodes import *</span>
-<span class="sd">        import scipy.stats.distributions as randvars</span>
-<span class="sd">        from types import IntType</span>
-<span class="sd">        </span>
-<span class="sd">        dist1 = randvars.randint</span>
-<span class="sd">        params1 = [0, 1]</span>
-<span class="sd">        distip1 = (dist1, params1)</span>
-<span class="sd">        C1 = ChanceNode(&#39;C1&#39;, distip=distip1, description=&#39;root CN randint from 5 to 10&#39;)</span>
-<span class="sd">        </span>
-<span class="sd">        D1 = DecisionNode(&#39;D1&#39;, &#39;1&#39;, [0, 1], parents=[C1], description=&#39;child node of C1. belongs to p1&#39;)</span>
-<span class="sd">                            </span>
-<span class="sd">        D2 = DecisionNode(&#39;D2&#39;, &#39;2&#39;, [0, 1], parents=[C1], description=&#39;child node of C1. belongs to p2&#39;)</span>
-<span class="sd">        </span>
-<span class="sd">        def funcf(var1, var2, var3):</span>
-<span class="sd">            if (var1+var2+var3)%2 == 0:</span>
-<span class="sd">                return &#39;even&#39;</span>
-<span class="sd">            else:</span>
-<span class="sd">                return &#39;odd&#39;                    </span>
-<span class="sd">        </span>
-<span class="sd">        paramsf = {&#39;var1&#39;: D1, &#39;var2&#39;: D2, &#39;var3&#39;: C1}</span>
-<span class="sd">        continuousf = False</span>
-<span class="sd">        spacef = [&#39;even&#39;, &#39;odd&#39;]</span>
-<span class="sd">        F1 = DeterNode(&#39;F1&#39;, funcf, paramsf, continuousf, space=spacef, description=&#39;a disc. DeterNode child of D1, D2, C1&#39;)</span>
-<span class="sd">                       </span>
-<span class="sd">        def ufunc1(F1):</span>
-<span class="sd">            if F1 is &#39;even&#39;:</span>
-<span class="sd">                return 1</span>
-<span class="sd">            else:</span>
-<span class="sd">                return -1</span>
-<span class="sd">                </span>
-<span class="sd">        def ufunc2(F1):</span>
-<span class="sd">            if F1 is &#39;odd&#39;:</span>
-<span class="sd">                return 1</span>
-<span class="sd">            else:</span>
-<span class="sd">                reutrn -1</span>
-<span class="sd">        </span>
-<span class="sd">        u_funcs = {&#39;1&#39;: ufunc1, &#39;2&#39;: ufunc2}</span>
-<span class="sd">        </span>
-<span class="sd">        nodeset = set([C1, D1, D2, F1])</span>
-<span class="sd">        </span>
-<span class="sd">        G = SemiNFG(nodeset, ufuncs)</span>
+<span class="sd">       not in the set of nodes passed to :class:`seminfg.SemiNFG`.   </span>
 <span class="sd">       </span>
 <span class="sd">    Some useful methods:</span>
 <span class="sd">    </span>
@@ -240,7 +199,7 @@
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">S</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span><span class="p">,</span> <span class="n">visit_dict</span> <span class="o">=</span> <span class="n">top_visit</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span><span class="p">,</span> <span class="n">visit_dict</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SemiNFG.utility"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.utility">[docs]</a>    <span class="k">def</span> <span class="nf">utility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">nodeinput</span><span class="o">=</span><span class="p">{}):</span>
+<div class="viewcode-block" id="SemiNFG.utility"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.utility">[docs]</a>    <span class="k">def</span> <span class="nf">utility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">nodeinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluate the utility of the specified player</span>
 
 <span class="sd">        :arg player: The name of a player with a utility function specified.</span>
@@ -252,6 +211,8 @@
 <span class="sd">        :type nodeinput: dict</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">nodeinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">nodeinput</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_functions</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;This is a semi-Bayes net, not a semi-NFG&#39;</span><span class="p">)</span>
         <span class="n">kw</span> <span class="o">=</span> <span class="p">{}</span>
@@ -260,46 +221,44 @@
             <span class="k">if</span> <span class="n">nam</span> <span class="ow">in</span> <span class="n">nodeinput</span><span class="p">:</span>
                 <span class="n">kw</span><span class="p">[</span><span class="n">nam</span><span class="p">]</span> <span class="o">=</span> <span class="n">nodeinput</span><span class="p">[</span><span class="n">nam</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">kw</span><span class="p">[</span><span class="n">nam</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nam</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                <span class="n">kw</span><span class="p">[</span><span class="n">nam</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nam</span><span class="p">]</span><span class="o">.</span><span class="n">get_value</span><span class="p">()</span>
         <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_functions</span><span class="p">[</span><span class="n">player</span><span class="p">](</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">u</span>
             </div>
-<div class="viewcode-block" id="SemiNFG.children"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.children">[docs]</a>    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+<div class="viewcode-block" id="SemiNFG.children"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.children">[docs]</a>    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the set of children of a given node.</span>
 <span class="sd">        </span>
-<span class="sd">        :arg node: the parent node for which children are desired.</span>
-<span class="sd">        :type node: :class:`nodes.ChanceNode`, :class:`nodes.DecisionNode`, or</span>
-<span class="sd">           :class:`nodes.DeterNode`</span>
+<span class="sd">        :arg nodename: the parent node for which children are desired.</span>
+<span class="sd">        :type nodename: str</span>
 <span class="sd">        :returns: a set of nodes that are the children of the input node in </span>
 <span class="sd">           the SemiNFG object.</span>
 <span class="sd">        </span>
-<span class="sd">        This is equivalent to calling ``SemiNFG.edges[node.name]``</span>
+<span class="sd">        This is equivalent to calling ``SemiNFG.edges[nodename]``</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">kids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">kids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">kids</span>
         </div>
-<div class="viewcode-block" id="SemiNFG.parents"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.parents">[docs]</a>    <span class="k">def</span> <span class="nf">parents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+<div class="viewcode-block" id="SemiNFG.parents"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.parents">[docs]</a>    <span class="k">def</span> <span class="nf">parents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the set of parents of a given node.</span>
 <span class="sd">        </span>
-<span class="sd">        :arg node: the child node for which parents are desired.</span>
-<span class="sd">        :type node: :class:`nodes.ChanceNode`, :class:`nodes.DecisionNode`, or</span>
-<span class="sd">           :class:`nodes.DeterNode`</span>
+<span class="sd">        :arg nodename: the name of the child node for which parents are desired.</span>
+<span class="sd">        :type nodename: str</span>
 <span class="sd">        :returns: a set of nodes that are the parents of the input node in </span>
 <span class="sd">           the SemiNFG object.</span>
 <span class="sd">        </span>
 <span class="sd">        This is equivalent to calling ``set(node.parents)``</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">parents</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
+        <span class="n">parents</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">parents</span>
     </div>
-<div class="viewcode-block" id="SemiNFG.descendants"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.descendants">[docs]</a>    <span class="k">def</span> <span class="nf">descendants</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+<div class="viewcode-block" id="SemiNFG.descendants"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.descendants">[docs]</a>    <span class="k">def</span> <span class="nf">descendants</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the set of descendants of a given node.</span>
 <span class="sd">        </span>
-<span class="sd">        :arg node: the ancestor node for which descendants are desired.</span>
-<span class="sd">        :type node: :class:`nodes.ChanceNode`, :class:`nodes.DecisionNode`, or</span>
-<span class="sd">           :class:`nodes.DeterNode`</span>
+<span class="sd">        :arg nodename: the name of the ancestor node for which descendants are </span>
+<span class="sd">           desired.</span>
+<span class="sd">        :type nodename: str</span>
 <span class="sd">        :returns: a set of nodes that are the descendants of the input node in </span>
 <span class="sd">           the SemiNFG object.</span>
 <span class="sd">        </span>
@@ -326,16 +285,16 @@
                 <span class="n">future</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">future</span><span class="p">,</span> <span class="n">visit_dict</span>
         
-        <span class="k">for</span> <span class="n">kid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">kid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">nodename</span><span class="p">]:</span>
             <span class="n">future</span><span class="p">,</span> <span class="n">visit_dict</span> <span class="o">=</span> <span class="n">kid_visit</span><span class="p">(</span><span class="n">kid</span><span class="p">,</span> <span class="n">future</span><span class="p">,</span> <span class="n">visit_dict</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">future</span>
         </div>
-<div class="viewcode-block" id="SemiNFG.ancestors"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.ancestors">[docs]</a>    <span class="k">def</span> <span class="nf">ancestors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+<div class="viewcode-block" id="SemiNFG.ancestors"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.ancestors">[docs]</a>    <span class="k">def</span> <span class="nf">ancestors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the set of ancestors of a given node.</span>
 <span class="sd">        </span>
-<span class="sd">        :arg node: the descendent node for which ancestors are desired.</span>
-<span class="sd">        :type node: :class:`nodes.ChanceNode`, :class:`nodes.DecisionNode`, or</span>
-<span class="sd">           :class:`nodes.DeterNode`</span>
+<span class="sd">        :arg nodename: the name of the descendent node for which ancestors are </span>
+<span class="sd">           desired.</span>
+<span class="sd">        :type nodename: str</span>
 <span class="sd">        :returns: a set of nodes that are the ancestors of the input node in </span>
 <span class="sd">           the SemiNFG object.</span>
 <span class="sd">        </span>
@@ -362,7 +321,7 @@
                 <span class="n">past</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">past</span><span class="p">,</span> <span class="n">visit_dict</span>
                 
-        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">past</span><span class="p">,</span> <span class="n">visit_dict</span> <span class="o">=</span> <span class="n">par_visit</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">past</span><span class="p">,</span> <span class="n">visit_dict</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">past</span>
 </div>
@@ -392,13 +351,22 @@
                 <span class="n">roots</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">roots</span>
         </div>
-<div class="viewcode-block" id="SemiNFG.get_values"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.get_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SemiNFG.get_values"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.get_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodenames</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the values of the nodes comprising the SemiNFG.</span>
 <span class="sd">        </span>
+<span class="sd">        :arg nodenames: (Optional) The names of the nodes whose values should </span>
+<span class="sd">           be returned. If no names are specified, all node values are returned.</span>
+<span class="sd">        :type nodenames: set or list</span>
 <span class="sd">        :returns: dict where keys are node names and values are node values</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">nodenames</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">get_value</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">adict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">nodenames</span><span class="p">:</span>
+                <span class="n">adict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">get_value</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">adict</span>
         </div>
 <div class="viewcode-block" id="SemiNFG.set_values"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.set_values">[docs]</a>    <span class="k">def</span> <span class="nf">set_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value_dict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the values of a subset of the nodes comprising the SemiNFG.</span>
@@ -423,7 +391,7 @@
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">value_dict</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">value_dict</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>
     </div>
-<div class="viewcode-block" id="SemiNFG.loglike"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.loglike">[docs]</a>    <span class="k">def</span> <span class="nf">loglike</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodeinput</span><span class="o">=</span><span class="p">{}):</span>
+<div class="viewcode-block" id="SemiNFG.loglike"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.loglike">[docs]</a>    <span class="k">def</span> <span class="nf">loglike</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodeinput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute the log likelihood of the net using the values in nodeinput.</span>
 <span class="sd">        </span>
 <span class="sd">        :arg nodeinput: Keys are node names. Values are node values. This </span>
@@ -449,25 +417,27 @@
 <span class="sd">           The decision nodes must have CPTs before using this function.</span>
 <span class="sd">           </span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">nodeinput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">nodeinput</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">problist</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
                 <span class="n">problist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">logprob</span><span class="p">(</span><span class="n">nodeinput</span><span class="p">))</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">problist</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">r</span>
         </div>
-<div class="viewcode-block" id="SemiNFG.sample"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SemiNFG.sample"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nodenames</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sample the net to obtain a draw from the joint distribution.</span>
 <span class="sd">        </span>
 <span class="sd">        :arg start: (Optional) if unspecified, the entire net will be sampled </span>
-<span class="sd">           from the prior. Otherwise, start is a list of nodes that serve as </span>
+<span class="sd">           from the prior. Otherwise, start is a list of nodenodes that serve as </span>
 <span class="sd">           the starting points for the sampling. That is, the sampling will </span>
 <span class="sd">           commence from the nodes in start and continue until all of the </span>
 <span class="sd">           descendants of the nodes in start have been sampled exactly once.</span>
 <span class="sd">        :type start: list</span>
-<span class="sd">        :returns: a list of values drawn from the joint distribution given by </span>
-<span class="sd">           the net. The order of the values in the list is given by the order </span>
-<span class="sd">           of the nodes in the attribute list </span>
-<span class="sd">           :py:attr:`seminfg.SemiNFG.iterator`.</span>
+<span class="sd">        :arg nodenames: a list of node names for which output is desired. By</span>
+<span class="sd">           default, no output is provided.</span>
+<span class="sd">        :returns: a dict keyed by node names in nodenames input. Values are </span>
+<span class="sd">           values of nodes in node names.</span>
 <span class="sd">        </span>
 <span class="sd">        .. warning::</span>
 <span class="sd">           </span>
@@ -475,27 +445,30 @@
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">start</span><span class="p">:</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span><span class="p">:</span>
-                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">draw_value</span><span class="p">())</span>
-            <span class="k">return</span> <span class="n">values</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">children</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">start</span><span class="p">:</span>
-                <span class="n">chidren</span> <span class="o">=</span> <span class="n">children</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">descendants</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+            <span class="n">starters</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nam</span><span class="p">]</span> <span class="k">for</span> <span class="n">nam</span> <span class="ow">in</span> <span class="n">start</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">nam</span> <span class="ow">in</span> <span class="n">start</span><span class="p">:</span>
+                <span class="n">chidren</span> <span class="o">=</span> <span class="n">children</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">descendants</span><span class="p">(</span><span class="n">nam</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">children</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">start</span><span class="p">)):</span>
-                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">draw_value</span><span class="p">())</span>
-                <span class="k">else</span><span class="p">:</span> 
-                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">values</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">children</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">starters</span><span class="p">):</span>
+                    <span class="n">n</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">nodenames</span><span class="p">:</span>
+            <span class="n">outdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">nodenames</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">get_value</span><span class="p">()</span> <span class="k">for</span> \
+                                            <span class="n">x</span> <span class="ow">in</span> <span class="n">nodenames</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="n">outdict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outdict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_values</span><span class="p">()</span>
+        
             </div>
 <div class="viewcode-block" id="SemiNFG.draw_graph"><a class="viewcode-back" href="../../../pynfg.seminfg.html#pynfg.classes.seminfg.SemiNFG.draw_graph">[docs]</a>    <span class="k">def</span> <span class="nf">draw_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgraph</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Draw the DAG representing the topology of the SemiNFG.</span>
 
-<span class="sd">        :arg subgraph: (Optional) a set or list of nodes to be graphed. If not</span>
-<span class="sd">           specified, all nodes are graphed.</span>
+<span class="sd">        :arg subgraph: (Optional) node names of subset of nodes to include in </span>
+<span class="sd">           drawing. Default is self.nodes. If not specified, all nodes are </span>
+<span class="sd">           graphed. </span>
 <span class="sd">        :type subgraph: set or list</span>
 <span class="sd">        </span>
 <span class="sd">        .. note::</span>
@@ -506,14 +479,24 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">subgraph</span><span class="p">:</span>
-            <span class="n">subgraph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span>
-        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">subgraph</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">subgraph</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="p">]):</span>
+            <span class="n">nodelist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nodelist</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">subgraph</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span> 
+                    <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> is not a valid node name&quot;</span> <span class="o">%</span><span class="n">n</span>
+                <span class="n">nodelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">nodeset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodelist</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodeset</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">nodeset</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="p">]):</span>
                 <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">spring_layout</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
  <span class="c">#       nx.draw_networkx(G, pos)</span>
-        <span class="n">nx</span><span class="o">.</span><span class="n">draw_graphviz</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="s">&#39;dot&#39;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div></div>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">draw_graphviz</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="s">&#39;dot&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">fig</span></div></div>
 </pre></div>
 
           </div>

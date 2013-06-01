@@ -138,9 +138,11 @@ class Node(object):
                 if par.name in parentinput:
                     ind.append(par.get_valueindex(parentinput[par.name])) 
                 else:            
-                    ind.append(par.get_valueindex())
-        if valueinput or valueinput==None:
+                    ind.append(par.valueindex)
+        if valueinput:
             ind.append(self.get_valueindex(valueinput))
+        elif valueinput is None:
+            ind.append(self.valueindex)
         indo = tuple(ind)
         return indo
         
@@ -159,31 +161,26 @@ class Node(object):
         
         """
         if not self.continuous:
-            self.set_valueindex(value)
+            self.set_valueindex(self.get_valueindex(value))
         self.value = value                
         
-    def set_valueindex(self, value):
+    def set_valueindex(self, index):
         """Set the valueindex attribute of the discrete Node object
         
-        :arg value: a legitimate value of the Node object, i.e. the value must 
-           be in :py:attr:`classes.Node.space`. Otherwise an error occurs
+        :arg index: the index for the current value
+        :type index: int
         
         """
-        if isinstance(value==self.space[0], bool):
-            try: 
-                self.valueindex = self.space.index(value)
-            except ValueError:
-                print 'the value %s is not in the space of %s' \
-                        %(str(value),self.name)
+        if self.continuous:
+            raise AttributeError('continuous nodes don\'t have valueindex'+ 
+                                ' attribute')
+        elif index>=0 and index<len(self.space):
+            self.valueindex = index
+            self.value = self.space[self.valueindex]
         else:
-            truth = [(x==value).all() for x in self.space]
-            if not any(truth):
-                    raise ValueError('the value %s is not in the space of %s' \
-                                     %(str(value),self.name))
-            else: 
-                self.valueindex = truth.index(True)
+            raise ValueError('the index exceeds the size of the space')
     
-    def get_value(self):
+    def get_value(self, index=None):
         """Get the current value of the Node object
         
         """
@@ -192,6 +189,8 @@ class Node(object):
             return self.value
 #            except AttributeError:
 #                print self.name
+        elif index:
+            return self.space[index]
         else:
             return self.space[self.valueindex]
         
@@ -201,22 +200,31 @@ class Node(object):
         :arg value: a legitimate value of the Node object, i.e. the value must 
            be in :py:attr:`classes.Node.space`. Otherwise an error occurs. If 
            no value is provided, the current valueindex is returned.
+        :returns: the index of the supplied value in the node's space
         
         """
-        if value:
-            if isinstance(value==self.space[0], bool):
-                try: 
-                    ind = self.space.index(value)
-                except ValueError:
-                    print 'the value %s is not in the space of %s' \
-                            %(str(value),self.name)
-            else:
-                truth = [(x==value).all() for x in self.space]
-                if not any(truth):
-                    raise ValueError('the value %s is not in the space of %s' \
-                                     %(str(value),self.name))
-                else: 
-                    ind = truth.index(True)
-            return ind
-        else:
+        if value is None:
             return self.valueindex
+        else:
+            i = 0
+            found = False
+            while i<len(self.space) and not found:
+#                if type(self.space[i])==type(value):
+                try:
+                    found = (self.space[i]==value).all()
+                except AttributeError:
+                    found = (self.space[i]==value)
+                if found:
+                    idx = i
+                else:
+                    i += 1
+                    found = False
+#                else:
+#                    i += 1
+            if not found:
+                raise ValueError('the value %s is not in the space of %s' \
+                                    %(str(value),self.name))
+            return idx
+                
+                
+    

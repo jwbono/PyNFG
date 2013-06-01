@@ -15,7 +15,7 @@ import copy
 import numpy as np
 import matplotlib.pylab as plt
 
-def ewma_mcrl(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
+def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     """ Use EWMA MC RL to approximate the optimal CPT at bn given G
     
     :arg Game: The iterated semi-NFG on which to perform the RL
@@ -45,14 +45,13 @@ def ewma_mcrl(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         
         import copy
         GG = copy.deepcopy(G)
-        from pynfg.rlsolutions.mcrl import ewma_mcrl
-        G1, Rseries = ewma_mcrl(GG, 'D1', J=np.floor(linspace(300,100,num=50)),
+        from pynfg.rlsolutions.mcrl import mcrl_ewma
+        G1, Rseries = mcrl_ewma(GG, 'D1', J=np.floor(linspace(300,100,num=50)), 
                                 N=50, alpha=1, delta=0.8, eps=0.4, 
                                 pureout=True)
     
     """
     G = copy.deepcopy(Game)
-    timepassed = np.zeros(N)
     # initializing training schedules from scalar inputs
     if isinstance(J, (int)):
         J = J*np.ones(N)
@@ -71,14 +70,7 @@ def ewma_mcrl(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     for dn in G.bn_part[bn]: #pointing all CPTs to T0, i.e. single policy
         dn.CPT = G.bn_part[bn][0].CPT
     visit = set() #dict of the messages and mapairs visited throughout training
-    averew = 0
-#    for x in xrange(30):
-#        rew = 0
-#        G.sample()
-#        for t in xrange(T0,T):
-#            rew += G.reward(player, t)/(T-T0-1)
-#        averew += rew/(30)
-    R = averew #average reward
+    R = 0 #average reward with initial value of zero
     A = 0 #normalizing constant for average reward
     B = {} #dict associates messages and mapairs with beta exponents
     D = {} #dict associates messages and mapairs with norm constants for Q,V

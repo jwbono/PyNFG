@@ -58,8 +58,9 @@ startingloc = np.array([[east,north-1], [0,north-1]])
 obsnoiseCPT = np.array([.1, .1, .1, .1, .6])
 
 # the space for the state nodes below, Froot and F
-statespace = [np.array([[w,x], [y,z]]) for w in range(east+1) for x in \
-            range(north+1) for y in range(east+1) for z in range(north+1)]
+statespace = [np.array([[w,x],[y,z]]) \
+                for w in range(east+1) for x in range(north+1) \
+                for y in range(east+1) for z in range(north+1)]
 
 # a function that adjusts for moves off the grid
 def adjust_loc(location):
@@ -80,19 +81,19 @@ def newloc(seekmove=np.array([0,0]), hidemove=np.array([0,0]), \
             loc=startingloc):
     locseek = adjust_loc(seekmove+loc[0])
     lochide = adjust_loc(hidemove+loc[1])
-    return [locseek, lochide]
+    return np.vstack((locseek, lochide))
 
 # Combines observational noise and location to give a valid location on-grid
 # for seeker's observation of hider's location
 def adjust_seeker(noise, loc):
     opponent = adjust_loc(noise+loc[1]) 
-    return [loc[0], opponent]
+    return np.vstack((loc[0], opponent))
 
 # Combines observational noise and location to give a valid location on-grid.
 # for hider's observation of seeker's location
 def adjust_hider(noise, loc):
     opponent = adjust_loc(noise+loc[0])
-    return [opponent, loc[1]]                 
+    return np.vstack((opponent, loc[1]))                 
 
 ##################################################
 ##THE NODES - first time 0, then 1 to T in a loop
@@ -213,7 +214,7 @@ valuedict = G.sample(nodenames=['Dhide8', 'F1'])
 #Sample timesteps 3 through 6 and returning a dict with values for specific basenames
 valuedict = G.sample_timesteps(3, 6, basenames=['Dhide', 'F', 'Cseek'])  
 #sample F4 and all of its descendants
-valuedict = G.sample(start=['F4'])
+G.sample(start=['F4'])
 
 ###########################################
 ##GETTING VALUES
@@ -260,12 +261,12 @@ def density(iq):
     return z
     
 GG = copy.deepcopy(G1) #NOTE: the CPTs of G are seeds for MH and MC sampling
-S = 500 #number of samples
+S = 50 #number of samples
 X = 10 #number of samples of utility of G in calculating iq
 M = 20 #number of alternative strategies sampled in calculating iq
 noise = .2 #noise in the perturbations of G for MH or MC sampling
 innoise = noise #satisficing distribution noise for iq calculations
-burn = 100 #number of draws to burn for MH
+burn = 10 #number of draws to burn for MH
 
 from pynfg.pgtsolutions.intelligence.policy import *
 

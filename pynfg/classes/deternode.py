@@ -159,7 +159,7 @@ class DeterNode(Node):
         r = self.dfunction(**funinput)
         if setvalue:
             self.set_value(r)
-            return self.get_value()
+            return self.value
         else:
             return r
         
@@ -194,25 +194,23 @@ class DeterNode(Node):
             parentinput = {}
         funinput = {}
         for par in self.params:
-            if par in self.parents:
+            if isinstance(self.params[par], Node):
                 if par in parentinput:
-                    funinput[par] = pareninput[par].get_value()
+                    funinput[par] = parentinput[par]
                 else:
                     funinput[par] = self.params[par].get_value()
             else:
                 funinput[par] = self.params[par]
         if valueinput is None:
             valueinput = self.get_value()
-        if self.dfunction(**funinput) == valueinput:
-            r=1
-        else:
-            r=0
+        try:
+            r = 1*(self.dfunction(**funinput) == valueinput).all()
+        except AttributeError:
+            r = 1*(self.dfunction(**funinput) == valueinput)
         return r
         
     def logprob(self, parentinput=None, valueinput=None):
         """Compute the conditional logprob of the current or specified value
-        
-
         
         :arg parentinput: Optional. Specify values of the parents at which to 
            compute the logprob of the value of the DeterNode. Keys are parent 
@@ -246,32 +244,3 @@ class DeterNode(Node):
             parentinput = {}
         r = self.prob(parentinput, valueinput)
         return np.log(r)
-        
-#    def set_value(self, newvalue):
-#        """Set the current value of the DeterNode object
-#        
-#        :arg newvalue: a legitimate value of the DeterNode object. If the 
-#           DeterNode object is discrete, then newvalue must be in 
-#           :py:attr:`classes.DeterNode.space`. If the DeterNode object is 
-#           continuous, no corrections are made for unattainable values.
-#        
-#        .. warning::
-#            
-#           When arbitrarily setting values, some children may have zero 
-#           probability given their parents. This means the logprob may be -inf. 
-#           If using, :py:meth:`seminfg.SemiNFG.loglike()`, this results in a 
-#           divide by zero error.
-#        
-#        """
-#        if self.continuous:
-#            self.set_value(newvalue)
-#        elif type(newvalue==self.space[0]) is bool:
-#            if newvalue in self.space:
-#                self.set_value(newvalue)
-#            else:
-#                errorstring = "the new value is not in "+self.name+"'s space"
-#                raise ValueError(errorstring)
-#        elif any((newvalue==y).all() for y in self.space):
-#            self.set_value(newvalue)
-#        else:
-#            raise ValueError("the new value is not in "+self.name+"'s space")
