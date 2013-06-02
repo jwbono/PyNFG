@@ -2,31 +2,6 @@ import copy as copy
 import warnings
 import numpy as np
 import itertools
-from pynfg import SemiNFG
-
-
-
-# def _pickle_method(method):
-#     func_name = method.im_func.__name__
-#     obj = method.im_self
-#     cls = method.im_class
-#     cls_name = cls.__name__.lstrip('_')
-#     func_name = '_' + cls_name + func_name
-#     return _unpickle_method, (func_name, obj, cls)
-
-# def _unpickle_method(func_name, obj, cls):
-#     for cls in cls.__mro__:
-#         try:
-#             func = cls.__dict__[func_name]
-#         except KeyError:
-#             pass
-#         else:
-#             break
-#     return func.__get__(obj, cls)
-
-# import copy_reg
-# import types
-# copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 
 class rlk(object):
@@ -81,11 +56,20 @@ class rlk(object):
     def __init__(self, G, player_specs, N, parallel=False):
         self.parallel = parallel
         self.player_specs = player_specs
-        self.G = copy.deepcopy(G)  # New attributes not permanent
-        self.high_level = self._set_new_attributes() #also sets attributes
-        self._set_L0_CPT()
-        self._set_satisficing_func()
         self.N = N
+        if not parallel:
+            self.G = copy.deepcopy(G)
+            self.high_level = self._set_new_attributes()  # also sets attributes
+            self._set_L0_CPT()
+            self._set_satisficing_func()
+        if parallel:
+            self.G = G
+            try:
+                self.high_level
+            except AttributeError:
+                self.high_level = self._set_new_attributes()
+                self._set_L0_CPT()
+                self._set_satisficing_func()
 
     def _set_new_attributes(self):
         """ Sets the level and rationality of a decision node
@@ -100,14 +84,13 @@ class rlk(object):
             node_set = list(G.partition[player])
             for node in node_set:
                 nodename = node.name
-                if self.parallel == False:
-                    node.Level, node.M, node.Mprime, node.LevelCPT =  \
-                      ps[player][nodename]['Level'], ps[player][nodename]['M'],\
-                      ps[player][nodename]['Mprime'], {}
-                else:
-                    node.Level, node.M, node.Mprime =  \
-                      ps[player][nodename]['Level'], ps[player][nodename]['M'],\
-                      ps[player][nodename]['Mprime']
+                node.Level, node.M, node.Mprime =  \
+                    ps[player][nodename]['Level'], ps[player][nodename]['M'],\
+                    ps[player][nodename]['Mprime']
+                try:
+                    node.LevelCPT
+                except AttributeError:
+                    node.LevelCPT = {}
             levels.append(ps[player][nodename]['Level'])
         return max(levels)
 
@@ -118,15 +101,18 @@ class rlk(object):
         for player in ps:
             node_set = list(G.partition[player])
             for node in node_set:
-                nodename = node.name
-                if ps[player][nodename]['L0Dist'] == 'uniform':
-                    node.LevelCPT['Level0'] = \
-                        node.uniformCPT(setCPT=False)
-                elif ps[player][nodename]['L0Dist'] is None:
-                    warnings.warn("No entry for L0Dist for player %s,\
-                    setting to current CPT" % player)
-                    node.LevelCPT['Level0'] = G.node_dict[nodename].CPT
-                elif type(ps[player][nodename]['L0Dist']) == np.ndarray:
+                try:
+                    node.LevelCPT['Level0']
+                except KeyError:
+                    nodename = node.name
+                    if ps[player][nodename]['L0Dist'] == 'uniform':
+                        node.LevelCPT['Level0'] = \
+                            node.uniformCPT(setCPT=False)
+                    elif ps[player][nodename]['L0Dist'] is None:
+                        warnings.warn("No entry for L0Dist for player %s,\
+                        setting to current CPT" % player)
+                        node.LevelCPT['Level0'] = G.node_dict[nodename].CPT
+                    elif type(ps[player][nodename]['L0Dist']) == np.ndarray:
                         node.LevelCPT['Level0'] = \
                             ps[player][nodename]['L0Dist']
 
@@ -226,8 +212,9 @@ class rlk(object):
                 for y in Y_vals:
                     G.set_values(y)             # Step 2 B (below)
                     wt = np.prod([n.prob() for n in node.parents.values()])
-                    succ_samp = self.sample_set([n.name for n in G.descendants(node.name)],
-                                                1)[0]
+                    succ_samp = self.sample_set([n.name
+                                                for n in G.descendants(
+                                                    node.name)], 1)[0]
                     G.set_values(succ_samp)  # STEP 3
                     weu.append(wt * G.utility(node.player))
                 EU = np.mean(weu)
@@ -248,39 +235,32 @@ class rlk(object):
         """ Returns a list with length Mprime
         whose elements are a dictionary of samples of nodes.
         """
-        print 'it started'
         G = copy.deepcopy(self.G)
         set_dicts = []
         for i in range(Mprime):
             set_samp = {}
             for n in G.iterator:
                 if n.name in nodenames:
-                    print n.CPT
                     set_samp[n.name] = n.draw_value(setvalue=False)
-
             set_dicts.append(set_samp)
 
         return set_dicts
 
-    def train_node(self, nodename, level):
-        print 'one'
+    def train_node(self, nodename, level, setCPT=False):
         G = self.G
-        print 'two'
-        level = 1
         print "Training " + nodename + " at level " + str(level)
         node = G.node_dict[nodename]
         CPT = np.zeros(node.CPT.shape)
         for mcsamp in xrange(self.N):
             new_CPT = self.sample_CPT(nodename, level)
             CPT = CPT * float(mcsamp)/float(mcsamp+1) + \
-                 new_CPT / float(mcsamp + 1)
+                new_CPT / float(mcsamp + 1)
         Levelkey = 'Level' + str(level)
         node.LevelCPT[Levelkey] = CPT
+        if setCPT:
+            node.CPT = CPT
 
-
-
-
-    def solve_game(self):
+    def solve_game(self, setCPT=False):
         G = self.G
         for level in np.arange(1, self.high_level):
             for player in G.players:
@@ -290,8 +270,11 @@ class rlk(object):
             for controlled in G.partition[player]:
                 if controlled.Level == self.high_level:
                     self.train_node(controlled.name, self.high_level)
-
-
+        if setCPT:
+            for player in G.players:
+                for node in G.partition[player]:
+                    G.node_dict[node.name].CPT = G.node_dict[node.name].LevelCPT['Level' +
+                                                    str(G.node_dict[node.name].Level)]
 
 def rlk_dict(G, M=None, Mprime=None, Level=None, L0Dist=None, SDist=None):
     """ A helper function to generate the player_spec dictionary
@@ -314,41 +297,54 @@ def rlk_dict(G, M=None, Mprime=None, Level=None, L0Dist=None, SDist=None):
     return rlk_input
 
 
+def _rlk_parallel(il):
+    newgame = rlk(il[0], il[1], il[2], parallel=True)
+    newgame.train_node(il[3], il[4])
+    return newgame.G.node_dict[il[3]].LevelCPT
 
 
+def rlk_parallel(G, ps, N, level_stop, level_start=1):
+    """ Solves RLK in parallel.  Returns a Game where each node has
+    attribute LevelCPT with entries from level_start to level_stop
 
-# class parallel_test(object):
-#     def __init__(self, x,oclass):
-#         self.oclass= oclass
-#         self.x=x
-#     def addnums(self, n):
-#         return self.oclass.y +n
-#     def addinparallel(self):
-#         from multiprocessing import Pool
-#         p=Pool(4)
-#         return p.map(wrapparallel, [self.oclass])
+    :arg G:  A semi-NFG
+    :type G: semiNFG
+    :arg player_specs: dictionary of dictionaries containing
+    the level, satisficing distribution, level-0 strategy,
+    and degrees of rationality of each player.
+    :type player_specs: dict
+    :arg level_stop: How high to train all player.
+    :type level_stop: int
+    :level_start: The starting level.  If level_start>1, the nodes in G
+    must already have an attribute LevelCPT with a key
+    'Level' + str(level_start-1)
+    :type level_start: int
 
+   For details on ps, see pynfg.levelksolutions.rlk
 
-def rlk_parallel(il):
-    newgame = rlk(il[0], il[1], il[2], parallel=False)
-    newgame.train_node(il[3])
-    return newgame.G.node_dict[il[3]].LevelCPT['Level1']
+   """
 
-def solve_parallel(G, ps, N):
+    G1 = copy.deepcopy(G)
     from multiprocessing import Pool
-    p=Pool()
     import pynfg
-    dnode_list = [node.name for node in G.nodes
-                      if type(node)==pynfg.classes.decisionnode.DecisionNode]
-    inputlist = [G, ps, N, 'Q1']
-    # endlist = []
+    dnode_list = [node.name for node in G1.nodes
+                  if type(node) == pynfg.classes.decisionnode.DecisionNode]
+    for lvl in np.arange(level_start, level_stop + 1):
+        endlist = []
+        inputlist = [G1, ps, N]
+        p=Pool()
+        for nd in dnode_list:
+            holder = copy.deepcopy(inputlist)
+            holder.extend([nd, lvl])
+            endlist.append(holder)
+        CPTs = p.map(_rlk_parallel, endlist)
+        cpt_idx = 0
+        for node in dnode_list:
+            try:
+                G1.node_dict[node].LevelCPT
+            except AttributeError:
+                G1.node_dict[node].LevelCPT = {}
+            G1.node_dict[node].LevelCPT = CPTs[cpt_idx]
+            cpt_idx += 1
 
-    # for nd in dnode_list:
-    #     holder = copy.deepcopy(inputlist)
-    #     holder.append(nd)
-    #     endlist.append(holder)
-
-    return p.map(rlk_parallel, [inputlist])
-
-
-
+    return G1
