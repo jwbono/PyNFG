@@ -171,7 +171,6 @@ class DecisionNode(Node):
             raise AttributeError('CPT for %s is just a zeros array' % self.name)
         ind = []
         indo = self.get_CPTindex(parentinput, valueinput=False)
-        idx = 0
         if not mode:
             cdf = np.cumsum(self.CPT[indo])
             cutoff = np.random.rand()
@@ -182,7 +181,7 @@ class DecisionNode(Node):
             self.set_valueindex(idx)
             return self.get_value()
         else:
-            return r
+            return self.space[idx]
         
     def randomCPT(self, mixed=False, setCPT=True):
         """Create a random CPT for the :class:`classes.DecisionNode` object
