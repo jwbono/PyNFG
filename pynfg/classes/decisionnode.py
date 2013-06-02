@@ -210,6 +210,7 @@ class DecisionNode(Node):
             else:
                 z.reshape((-1, shape_last))[0, y]=1
         else:
+            simplex_draws = np.random.dirichlet(np.ones(shape_last), np.prod(other_dims))
             M = 100000000
             x = randvars.randint.rvs(1, M, size=other_dims+(shape_last-1,))
             y = np.concatenate((np.zeros(other_dims+(1,)), x, \
