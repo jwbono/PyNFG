@@ -128,11 +128,11 @@ class rlk(object):
                 if hasattr(sd, '__call__'):  # If a function
                     node.SDist = sd
                 elif type(sd) == np.ndarray:
-                    node.SDist = self.sfunc(node, 'arr', sd)
+                    node.SDist = self._sfunc(node, 'arr', sd)
                 elif sd == 'all pure':
-                    node.SDist = self.sfunc(node, 'all pure')
+                    node.SDist = self._sfunc(node, 'all pure')
                 elif sd == 'all mixed':
-                    node.SDist = self.sfunc(node, 'all mixed')
+                    node.SDist = self._sfunc(node, 'all mixed')
 
     def _draw_from_array(self, nd,  ndar):
         """ A draw from a satisficing distribution"""
@@ -156,7 +156,7 @@ class rlk(object):
         strat = np.random.dirichlet(np.ones(s0shape))
         return strat
 
-    def sfunc(self, nd, form, ndar=None):
+    def _sfunc(self, nd, form, ndar=None):
         """Wrapper to draw from satisficing distribution """
         def sgen(*args):
             if form == 'arr':
@@ -167,7 +167,7 @@ class rlk(object):
                 return self._draw_all_mixed(nd)
         return sgen
 
-    def sample_CPT(self, nodename, level):
+    def _sample_CPT(self, nodename, level):
         """ Samples entire CPT according to Deifnition 7 in Lee and Wolpert"""
         G = self.G
         node = G.node_dict[nodename]
@@ -198,7 +198,7 @@ class rlk(object):
                 ix = tuple(ix)  # Used to set CPT 'row' to draw value
             max_util = - np.inf
             G.set_values(dict(p_node_val))  # Sets parents
-            Y_vals = self.sample_set(Y.keys(), node.Mprime)     # STEP 2
+            Y_vals = self._sample_set(Y.keys(), node.Mprime)     # STEP 2
             satis_set = []
             for m in range(node.M):  # STEP 1
                 sdist = node.SDist()
@@ -212,9 +212,9 @@ class rlk(object):
                 for y in Y_vals:
                     G.set_values(y)             # Step 2 B (below)
                     wt = np.prod([n.prob() for n in node.parents.values()])
-                    succ_samp = self.sample_set([n.name
-                                                for n in G.descendants(
-                                                    node.name)], 1)[0]
+                    succ_samp = self._sample_set([n.name
+                                                  for n in G.descendants(
+                                                      node.name)], 1)[0]
                     G.set_values(succ_samp)  # STEP 3
                     weu.append(wt * G.utility(node.player))
                 EU = np.mean(weu)
@@ -231,7 +231,7 @@ class rlk(object):
             trained_CPT[ix] = best_strat
         return trained_CPT
 
-    def sample_set(self, nodenames, Mprime):
+    def _sample_set(self, nodenames, Mprime):
         """ Returns a list with length Mprime
         whose elements are a dictionary of samples of nodes.
         """
@@ -247,12 +247,23 @@ class rlk(object):
         return set_dicts
 
     def train_node(self, nodename, level, setCPT=False):
+        """
+        Trains a node at a specified level
+
+        :arg nodename: The name of the node to be trained
+        :type nodename: string
+        :arg level: The level at which to train that player
+        :type level: int
+        :arg setCPT: If the trained CPT should be set as the current CPT.
+        Otherwise, it can be accessed through node.LevelCPT.  Default is False
+        :type setCPT: bool
+        """
         G = self.G
         print "Training " + nodename + " at level " + str(level)
         node = G.node_dict[nodename]
         CPT = np.zeros(node.CPT.shape)
         for mcsamp in xrange(self.N):
-            new_CPT = self.sample_CPT(nodename, level)
+            new_CPT = self._sample_CPT(nodename, level)
             CPT = CPT * float(mcsamp)/float(mcsamp+1) + \
                 new_CPT / float(mcsamp + 1)
         Levelkey = 'Level' + str(level)
@@ -273,8 +284,9 @@ class rlk(object):
         if setCPT:
             for player in G.players:
                 for node in G.partition[player]:
-                    G.node_dict[node.name].CPT = G.node_dict[node.name].LevelCPT['Level' +
-                                                    str(G.node_dict[node.name].Level)]
+                    G.node_dict[node.name].CPT = G.node_dict[node.name].\
+                        LevelCPT['Level' + str(G.node_dict[node.name].Level)]
+
 
 def rlk_dict(G, M=None, Mprime=None, Level=None, L0Dist=None, SDist=None):
     """ A helper function to generate the player_spec dictionary
@@ -332,7 +344,7 @@ def rlk_parallel(G, ps, N, level_stop, level_start=1):
     for lvl in np.arange(level_start, level_stop + 1):
         endlist = []
         inputlist = [G1, ps, N]
-        p=Pool()
+        p = Pool()
         for nd in dnode_list:
             holder = copy.deepcopy(inputlist)
             holder.extend([nd, lvl])
