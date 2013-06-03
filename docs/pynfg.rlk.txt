@@ -1,0 +1,135 @@
+.. _RelaxedLevelK:
+
+***************
+Relaxed Level K
+***************
+
+Introduction
+------------
+
+Relaxed Level K (rlk) is a solution concept in which players have bounded rationality.  Instead of
+sampling from all possible strategies, players sample from a (possibly proper) subset of
+their strategy space known as their satisficing distribution.  The players sample their
+satisficing distribution M times for each possible value of the parents.  They then
+sample the rest of the net M' times.  They then record which strategy yielded the highest
+utility.  This process is repeated N times and the player's final strategy is the expected
+value of maximal strategies 1...N.
+
+References
+^^^^^^^^^^
+
+The main reference for rlk is::
+
+    Lee and Wolpert, "Game theoretic modeling of pilot behavior during mid-air encounters," Decision-Making with Imperfect Decision Makers, T. Guy, M. Karny and D.H.Wolpert, Springer (2011).
+
+Extended Example
+----------------
+
+Suppose we are interested in using rlk to estimate the strategies of the players in the Stackelberg game.  Let G be the SemiNFG created in the Stackelberg game included in this package.  First, we have to specify, M, Mprime, the satisficing distribution the level and the level 0 distribution of all players.  The format is to specify the parameters in a triply-nested dictionary where the outer layer keys are player names.  For each player, the nested dictionary keys are node names and for each node, keys are M, Mprime, Level, SDist, L0Dist.  However, the rlk_dict function creates the shell for this dictionary so the end user can just modify keys.
+
+.. code-block:: ipython
+
+   In [1]: player_info = rlk_dict(G, M=10, Mprime=10, Level=2, SDist =   'all pure', L0Dist = 'uniform')
+   In [2]: player_info
+   Out[2]:
+	{'1': {'Q1': {'L0Dist': 'uniform',
+   	'Level': 2,
+   	'M': 10,
+   	'Mprime': 10,
+   	'SDist': 'all pure'}},
+   	'2': {'Q2': {'L0Dist': 'uniform',
+   	'Level': 2,
+   	'M': 10,
+   	'Mprime': 10,
+   	'SDist': 'all pure'}}}
+
+The inputs to rlk_dict are set for all players.  However, modifying the dictionary is simple.  For example
+
+.. code-block:: ipython
+
+   In [3]: player_info['2']['Q2']['Level']=3
+   In [4]: player_info
+   Out[4]:
+	{'1': {'Q1': {'L0Dist': 'uniform',
+   	'Level': 2,
+   	'M': 10,
+   	'Mprime': 10,
+   	'SDist': 'all pure'}},
+   	'2': {'Q2': {'L0Dist': 'uniform',
+   	'Level': 3,
+   	'M': 10,
+   	'Mprime': 10,
+   	'SDist': 'all pure'}}}
+
+Now that the details of the game are specified, it is possible to solve the game.  To do this, just create an rlk instance and call method solve_game()
+
+.. code-block:: ipython
+
+   In [5]: solver = rlk(G,player_info, 10)
+   In [6]: solver.solve_game()
+   Training Q1 at level 1
+   Training Q2 at level 1
+   Training Q1 at level 2
+   Training Q2 at level 2
+   Training Q2 at level 3
+
+To see the solved CPT for a player, access the rlk's instance of the game (not the original inputted game.  Then select a decision node and view its new attribute LevelCPT
+
+.. code-block:: ipython
+
+   In [7]: solver.G.node_dict['Q1'].LevelCPT
+   Out[7]: {'Level0': array([[ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667, 0.16666667], [ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667, 0.16666667], [ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667,0.16666667]]), 'Level1': array([[ 0. ,  0. ,  0. ,  0.5,  0.4,  0.1], [ 0. ,  0. ,  0.3,  0.4,  0.3,  0. ], [ 0. ,  0. ,  0.8,  0.1,  0.1,  0. ]]), 'Level2': array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.43333333, 0.56666667], [ 0.        ,  0.        ,  0.        ,  0.26666667,  0.5       , 0.23333333], [ 0.        ,  0.3       ,  0.7       ,  0.        ,  0.        , 0.        ]])}
+
+
+The result is a dictionary consisting of the player's strategies for each level trained.  Note that even if a player is level 1, LevelCPT might also contain a level 2 strategy if other players are level 3 or greater.
+
+To train player 1 to level three without resolving the entire game, just do
+
+.. code-block:: ipython
+
+   In [8]: solver.train_node('Q1',3)
+   Training Q1 at level 3
+
+Now calling **solver.G.node_dict['Q1']** will have an entry for Level 3.
+
+Since, each player can be trained independently of the others at a given level, rlk is a prime candidate for parallel computing.  Using PyNFg makes this even easier.  To solve a game in parallel just do
+
+.. code-block:: ipython
+
+   In [9]: G_parallel = rlk_parallel(G, player_info, 10,3,1)
+   Training Q1 at level 1
+   Training Q2 at level 1
+   Training Q1 at level 2
+   Training Q2 at level 2
+   Training Q1 at level 3
+   Training Q2 at level 3
+
+G_parallel is similar in nature to solver.G.  Making both players level 3, note the speedup
+
+.. code-block:: ipython
+
+   In [10]: %timeit -r1 -n1 G_parallel = rlk_parallel(G, player_info, 10,3,1)
+   Training Q1 at level 1
+   Training Q2 at level 1
+   Training Q1 at level 2
+   Training Q2 at level 2
+   Training Q1 at level 3
+   Training Q2 at level 3
+   1 loops, best of 1: 6.35 s per loop
+
+   In [11]: %timeit -r1 -n1 solver.solve_game()
+   Training Q1 at level 1
+   Training Q2 at level 1
+   Training Q1 at level 2
+   Training Q2 at level 2
+   Training Q1 at level 3
+   Training Q2 at level 3
+   1 loops, best of 1: 12.8 s per loop
+
+
+
+Detailed Documentation
+----------------------
+
+.. automodule:: pynfg.levelksolutions.rlk
+   :members:

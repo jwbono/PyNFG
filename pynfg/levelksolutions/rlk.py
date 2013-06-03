@@ -1,3 +1,4 @@
+
 import copy as copy
 import warnings
 import numpy as np
@@ -7,25 +8,20 @@ import itertools
 class rlk(object):
     """ Finds the relaxed level-k solution for a semi-NFG.
 
-    References
-    ----------
-    Lee and Wolpert, "Game theoretic modeling of pilot behavior
-    during mid-air encounters," Decision-Making with Imperfect
-    Decision Makers, T. Guy, M. Karny and D.H.Wolpert,
-    Springer (2011).
-
     :arg G:  A semi-NFG
     :type G: semiNFG
     :arg player_specs: dictionary of dictionaries containing
-    the level, satisficing distribution, level-0 strategy,
-    and degrees of rationality of each player.
-    See below for details.
+        the level, satisficing distribution, level-0 strategy,
+        and degrees of rationality of each player.
+        See below for details.
     :type player_specs: dict
+    :arg N: Number of times to repeat sampling algorithm
+    :type N: int
 
     player_spec is a triply-nested dictionary.  The first set of keys
     are the player names.  For each player key, there is a dictionary
     whose keys are the names of nodes that belong to that player.
-    For each node, the dictionary has five entries:
+    For each node, the dictionary has five entries
 
     Level : int
         The level of the player
@@ -255,7 +251,7 @@ class rlk(object):
         :arg level: The level at which to train that player
         :type level: int
         :arg setCPT: If the trained CPT should be set as the current CPT.
-        Otherwise, it can be accessed through node.LevelCPT.  Default is False
+            Otherwise, it can be accessed through node.LevelCPT.  Default is False
         :type setCPT: bool
         """
         G = self.G
@@ -272,6 +268,7 @@ class rlk(object):
             node.CPT = CPT
 
     def solve_game(self, setCPT=False):
+        """ Solves the game for specified player levels"""
         G = self.G
         for level in np.arange(1, self.high_level):
             for player in G.players:
@@ -297,7 +294,7 @@ def rlk_dict(G, M=None, Mprime=None, Level=None, L0Dist=None, SDist=None):
     :type G: SemiNFG
 
     .. seealso::
-        See the rlk (TODO: Sphinx link)  for definition of optional arguments
+        See the rlk documentation (above) for details of the  optional arguments
     """
     rlk_input = {}
     for player in G.players:
@@ -321,18 +318,20 @@ def rlk_parallel(G, ps, N, level_stop, level_start=1):
 
     :arg G:  A semi-NFG
     :type G: semiNFG
-    :arg player_specs: dictionary of dictionaries containing
-    the level, satisficing distribution, level-0 strategy,
-    and degrees of rationality of each player.
-    :type player_specs: dict
+    :arg ps: dictionary of dictionaries containing
+        the level, satisficing distribution, level-0 strategy,
+        and degrees of rationality of each player.
+    :type ps: dict
+    :arg N: Number of times to repeat sampling algorithm
+    :type N: int
     :arg level_stop: How high to train all player.
     :type level_stop: int
     :level_start: The starting level.  If level_start>1, the nodes in G
-    must already have an attribute LevelCPT with a key
-    'Level' + str(level_start-1)
+        must already have an attribute LevelCPT with a key
+        'Level' + str(level_start-1)
     :type level_start: int
 
-   For details on ps, see pynfg.levelksolutions.rlk
+    For details on the ps parameter, see pynfg.levelksolutions.rlk
 
    """
 
