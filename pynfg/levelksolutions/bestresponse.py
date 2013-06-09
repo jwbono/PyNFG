@@ -21,6 +21,44 @@ import pynfg
 
 
 class BestResponse(object):
+    """ Finds the best solution for a semi-NFG.
+
+    :arg G:  A semi-NFG
+    :type G: semiNFG
+    :arg specs: dictionary of dictionaries containing specifications
+        the level, level-0 strategy, tolerance
+        and degrees of rationality of each player.
+        See below for details.
+    :type specs: dict
+    :arg N: Number of times to repeat sampling algorithm
+    :type N: int
+
+    specs is a triply-nested dictionary.  The first set of keys
+    are the player names.  For each player key, there are keys:
+
+    Level : int
+        The player's Level
+    delta : int
+        ????
+
+    The rest of the keys for each player are the names of nodes that belong to that
+    player.  For each node, the dictionary has three  entries with one optional entry:
+
+
+    L0Dist : ndarray, str, None
+        If ndarray, then the level 0 CPT is set to
+        L0Dist. If L0Dist is 'uniform', then all Level 0 CPTs are set to
+        the uniform distribution.  If L0Dist is None, then the level 0 CPT
+        is set to the CPT of the inputted game.
+    tol : int
+        the minimum number of samples per parent value
+    N : int
+        The max number of iterations for the estimation.
+
+    beta : float
+        (Optional)  Logit best response parameter
+
+    """
 
     def __init__(self, G, specs, logit=False):
         self.G = copy.deepcopy(G)
@@ -129,7 +167,17 @@ class BestResponse(object):
                         LevelCPT['Level' + str(G.node_dict[node.name].Level)]
 
 
-def br_dict(G, N, Level, L0Dist=None, delta=20, tol=30, beta=None):
+def br_dict(G, N, Level, L0Dist=None, delta=1, tol=30, beta=None):
+    """A helper function to generate the player_spec dictionary
+    for relaxed level K.  If optional arguments are specified, they are
+    set for all decision nodes.
+
+    :arg G: A SemiNFG
+    :type G: SemiNFG
+
+    .. seealso::
+        See the BestResponse documentation (above) for details of the  optional arguments
+    """
     if beta is None:
         return input_dict(G, [('Level', Level), ('delta', delta)],
                           [('L0Dist', L0Dist), ('N', N), ('tol', tol)])

@@ -11,19 +11,19 @@ class rlk(object):
 
     :arg G:  A semi-NFG
     :type G: semiNFG
-    :arg player_specs: dictionary of dictionaries containing
+    :arg specs: dictionary of dictionaries containing specifications of
         the level, satisficing distribution, level-0 strategy,
         and degrees of rationality of each player.
         See below for details.
-    :type player_specs: dict
+    :type specs: dict
     :arg N: Number of times to repeat sampling algorithm
     :type N: int
 
-    player_spec is a triply-nested dictionary.  The first set of keys
+    specs is a triply-nested dictionary.  The first set of keys
     are the player names.  For each player key, there is 'Level' key that
-    specifies the player's level.  The rest of the keys for each player are
-    the names of nodes that belong to that player. For each node, the dictionary has
-    four entries
+    specifies the player's level.  The rest of the
+    keys for each player are the names of nodes that belong to that player.
+    For each node, the dictionary has four entries
 
     M : int
         The number of times to sample the satisficing distribution
@@ -49,9 +49,9 @@ class rlk(object):
         of the parent node.
 
     """
-    def __init__(self, G, player_specs, N, parallel=False):
+    def __init__(self, G, specs, N, parallel=False):
         self.parallel = parallel
-        self.player_specs = player_specs
+        self.player_specs = specs
         self.N = N
         if not parallel:
             self.G = copy.deepcopy(G)
