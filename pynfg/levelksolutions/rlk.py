@@ -3,6 +3,7 @@ import copy as copy
 import warnings
 import numpy as np
 import itertools
+from pynfg.utilities.utilities import input_dict
 
 
 class rlk(object):
@@ -295,15 +296,9 @@ def rlk_dict(G, M=None, Mprime=None, Level=None, L0Dist=None, SDist=None):
     .. seealso::
         See the rlk documentation (above) for details of the  optional arguments
     """
-    rlk_input = {}
-    for player in G.players:
-        rlk_input[player] = {}
-        rlk_input[player]['Level'] = Level
-        for node in G.partition[player]:
-            rlk_input[player][node.name] = {'M': M, 'Mprime': Mprime,
-                                             'L0Dist': L0Dist,
-                                            'SDist': SDist}
-    return rlk_input
+
+    return input_dict(G, [('Level', Level)], [('M', M), ('Mprime', Mprime),
+                                              ('L0Dist', L0Dist), ('SDist', SDist)])
 
 
 def _rlk_parallel(il):
