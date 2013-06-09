@@ -19,12 +19,11 @@ class rlk(object):
     :type N: int
 
     player_spec is a triply-nested dictionary.  The first set of keys
-    are the player names.  For each player key, there is a dictionary
-    whose keys are the names of nodes that belong to that player.
-    For each node, the dictionary has five entries
+    are the player names.  For each player key, there is 'Level' key that
+    specifies the player's level.  The rest of the keys for each player are
+    the names of nodes that belong to that player. For each node, the dictionary has
+    four entries
 
-    Level : int
-        The level of the player
     M : int
         The number of times to sample the satisficing distribution
     Mprime : int
@@ -81,13 +80,13 @@ class rlk(object):
             for node in node_set:
                 nodename = node.name
                 node.Level, node.M, node.Mprime =  \
-                    ps[player][nodename]['Level'], ps[player][nodename]['M'],\
+                    ps[player]['Level'], ps[player][nodename]['M'],\
                     ps[player][nodename]['Mprime']
                 try:
                     node.LevelCPT
                 except AttributeError:
                     node.LevelCPT = {}
-            levels.append(ps[player][nodename]['Level'])
+            levels.append(ps[player]['Level'])
         return max(levels)
 
     def _set_L0_CPT(self):
@@ -299,9 +298,10 @@ def rlk_dict(G, M=None, Mprime=None, Level=None, L0Dist=None, SDist=None):
     rlk_input = {}
     for player in G.players:
         rlk_input[player] = {}
+        rlk_input[player]['Level'] = Level
         for node in G.partition[player]:
             rlk_input[player][node.name] = {'M': M, 'Mprime': Mprime,
-                                            'Level': Level, 'L0Dist': L0Dist,
+                                             'L0Dist': L0Dist,
                                             'SDist': SDist}
     return rlk_input
 
