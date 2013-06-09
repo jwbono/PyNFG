@@ -154,7 +154,7 @@ class rlk(object):
 
     def _sfunc(self, nd, form, ndar=None):
         """Wrapper to draw from satisficing distribution """
-        def sgen(*args):
+        def sgen(*args, **kwargs):
             if form == 'arr':
                 return self._draw_from_array(nd, ndar)
             if form == 'all pure':
@@ -197,7 +197,7 @@ class rlk(object):
             Y_vals = self._sample_set(Y.keys(), node.Mprime)     # STEP 2
             satis_set = []
             for m in range(node.M):  # STEP 1
-                sdist = node.SDist()
+                sdist = node.SDist(**dict(p_node_val))
                 if list(sdist) not in satis_set:
                     satis_set.append((list(sdist)))
 
