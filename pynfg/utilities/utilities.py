@@ -115,3 +115,14 @@ def input_dict(G, player_spec, node_spec):
             solver_input[player][node.name] = dict(node_spec)
     return solver_input
 
+def iterated_input_dict(G, player_spec, bn_spec):
+    solver_input = {}
+    player_keys = [key[0] for key in player_spec]
+    node_keys = [key[0] for key in bn_spec]
+    for player in G.players:
+        solver_input[player]= dict(player_spec)
+        basenames = set(map(lambda x: x.basename ,G.partition[player]))
+        for bn in basenames:
+            solver_input[player][bn] = dict(bn_spec)
+    return solver_input
+

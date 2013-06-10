@@ -186,10 +186,10 @@ class rlk(object):
             parent_space.append(par.space)
             parent_combs = itertools.product(*parent_space)  # Iterate pa(node)
         trained_CPT = np.zeros(node.CPT.shape)
-        for combo in parent_combs:  # For each parent
+        for combo in parent_combs:  # For each parent combo
             ix = []
-            p_node_val = zip(node.parents.keys(), combo)
-            for elem in p_node_val:
+            p_node_val = zip(node.parents.keys(), combo) # keys and values
+            for elem in p_node_val:                      # same order as above
                 ix.append(G.node_dict[elem[0]].space.index(elem[1]))
                 ix = tuple(ix)  # Used to set CPT 'row' to draw value
             max_util = - np.inf

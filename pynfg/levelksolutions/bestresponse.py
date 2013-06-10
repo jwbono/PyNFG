@@ -42,7 +42,7 @@ class BestResponse(object):
         ????
 
     The rest of the keys for each player are the names of nodes that belong to that
-    player.  For each node, the dictionary has three  entries with one optional entry:
+    player.  For each node, the dictionary has three entries with one optional entry:
 
 
     L0Dist : ndarray, str, None
