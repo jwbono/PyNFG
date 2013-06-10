@@ -17,6 +17,7 @@ import matplotlib.pylab as plt
 from pynfg.utilities.utilities import iterated_input_dict
 import warnings
 
+
 class mcrl_ewma(object):
     """
     :arg Game: The iterated semi-NFG on which to perform the RL
@@ -60,9 +61,9 @@ class mcrl_ewma(object):
         self.specs = specs
         self.trained_CPTs = {}
         for player in G.players:
-            basenames = set(map(lambda x: x.basename ,G.partition[player]))
+            basenames = set(map(lambda x: x.basename, G.partition[player]))
             for bn in basenames:
-                self.trained_CPTs[player]= {}
+                self.trained_CPTs[player] = {}
                 self.trained_CPTs[player][bn] = {}
                 self.trained_CPTs[player][bn]['Level0'] = self._set_L0_CPT()
         self.figs = {}
@@ -98,14 +99,15 @@ class mcrl_ewma(object):
         basedict = specs[player][bn]
         J, N, alpha, delta, eps, uni, pureout = basedict['J'], basedict['N'], \
             basedict['alpha'], basedict['delta'], basedict['eps'], \
-                basedict['uni'], basedict['pureout']
+            basedict['uni'], basedict['pureout']
         #Set other CPTs to level-1
         for o_player in G.players:
             bn_list = map(lambda x: x.basename, G.partition[o_player])
             for base in bn_list:
                 if base != bn:
                     G.bn_part[base][0].CPT = \
-                    self.trained_CPTs[o_player][base]['Level' + str(level -1)]
+                        self.trained_CPTs[o_player][base]['Level' +
+                                                          str(level - 1)]
         # initializing training schedules from scalar inputs
         if isinstance(J, (int)):
             J = J*np.ones(N)
@@ -119,62 +121,62 @@ class mcrl_ewma(object):
         shape = G.bn_part[bn][0].CPT.shape
         shape_last = shape[-1]
         if uni:
-            G.bn_part[bn][0].uniformCPT() #starting with a uniform CPT
-        for dn in G.bn_part[bn]: #pointing all CPTs to T0, i.e. single policy
+            G.bn_part[bn][0].uniformCPT()  # starting with a uniform CPT
+        for dn in G.bn_part[bn]:  # pointing all CPTs to T0, i.e. single policy
             dn.CPT = G.bn_part[bn][0].CPT
-        visit = set() #dict of the messages and mapairs visited throughout training
-        R = 0 #average reward with initial value of zero
-        A = 0 #normalizing constant for average reward
-        B = {} #dict associates messages and mapairs with beta exponents
-        D = {} #dict associates messages and mapairs with norm constants for Q,V
-        Q = np.zeros(shape) #Qtable
-        V = np.zeros(shape[:-1]) #Value table
-        Rseries = np.zeros(N) #tracking average reward for plotting convergence
+        visit = set()  # dict of the messages and mapairs visited throughout training
+        R = 0  # average reward with initial value of zero
+        A = 0  # normalizing constant for average reward
+        B = {}  # dict associates messages and mapairs with beta exponents
+        D = {}  # dict associates messages and mapairs with norm constants for Q,V
+        Q = np.zeros(shape)  # Qtable
+        V = np.zeros(shape[:-1])  # Value table
+        Rseries = np.zeros(N)  # tracking average reward for plotting convergence
         for n in xrange(N):
             print n
 
-            indicaten = np.zeros(Q.shape) #indicates visited mapairs
-            visitn = set() #dict of messages and mapairs visited in episode n
-            Rseries[n] = R #adding the most recent ave reward to the data series
-            A *= alpha[n] #rescaling A at start of new episode, see writeup
+            indicaten = np.zeros(Q.shape)  # indicates visited mapairs
+            visitn = set()  # dict of messages and mapairs visited in episode n
+            Rseries[n] = R  # adding the most recent ave reward to the data series
+            A *= alpha[n]  # rescaling A at start of new episode, see writeup
             for j in xrange(int(J[n])):
-                visitj = set() #visitj must be cleared at the start of every run
-                for t in xrange(T0,T):
+                visitj = set()  # visitj must be cleared at the start of every run
+                for t in xrange(T0, T):
                     #import pdb; pdb.set_trace()
                     #G.bn_part[bn][t-T0].CPT = copy.copy(G.bn_part[bn][0].CPT)
-                    G.sample_timesteps(t, t) #sampling the timestep
-                    rew = G.reward(player, t) #getting the reward
+                    G.sample_timesteps(t, t)  # sampling the timestep
+                    rew = G.reward(player, t)  # getting the reward
                     mapair = G.bn_part[bn][t-T0].get_CPTindex()
                     A += 1
                     r = R
                     R = (1/A)*((A-1)*r+rew)
-                    xm = set() #used below to keep track of updated messages
+                    xm = set()  # used below to keep track of updated messages
                     for values in visitj:
-                        b = B[values] #past values
+                        b = B[values]  # past values
                         d = D[values]
                         q = Q[values]
-                        bb = (b+1) #update equations double letters are time t
+                        bb = (b+1)  # update equations double letters are time t
                         dd = d+1
                         qq = (1/dd)*(d*q+(delta**(bb-1))*(rew))
-                        B[values] = bb #update dictionaries
+                        B[values] = bb  # update dictionaries
                         D[values] = dd
                         Q[values] = qq
-                        message = values[:-1] #V indexed by message only
-                        if message not in xm: #updating message only once
-                            b = B[message] #past values
+                        message = values[:-1]  # V indexed by message only
+                        if message not in xm:  # updating message only once
+                            b = B[message]  # past values
                             d = D[message]
                             v = V[message]
-                            bb = (b+1) #update equations double letters are time t
+                            bb = (b+1)  # update equations double letters are time t
                             dd = d+1
                             vv = (1/dd)*(d*v+(delta**(bb-1))*(rew))
-                            B[message] = bb #update dictionaries
+                            B[message] = bb  # update dictionaries
                             D[message] = dd
                             V[message] = vv
-                            xm.add(message) #so that message isn't updated again
-                    if mapair not in visitj: #first time in j visiting mapair
+                            xm.add(message)  # so that message isn't updated again
+                    if mapair not in visitj:  # first time in j visiting mapair
                         message = mapair[:-1]
-                        messtrue = (message not in xm) #for checking message visited
-                        B[mapair] = 1 #whenever mapair not in visitj
+                        messtrue = (message not in xm)  # for checking message visited
+                        B[mapair] = 1  # whenever mapair not in visitj
                         if mapair not in visitn and mapair not in visit:
                             D[mapair] = 1
                             Q[mapair] = rew
@@ -183,29 +185,29 @@ class mcrl_ewma(object):
                                 V[message] = rew
                         elif mapair not in visitn:
                             D[mapair] = alpha[n]*D[mapair]+1
-                            Q[mapair] = (1/D[mapair])*((D[mapair]-1)*Q[mapair]\
-                                    +(rew))
+                            Q[mapair] = (1/D[mapair])*((D[mapair]-1)*Q[mapair]
+                                       +(rew))
                             if messtrue:
                                 D[message] = alpha[n]*D[message]+1
                                 V[message] = (1/D[message])*((D[message]-1)*\
-                                        V[message]+(rew))
+                                            V[message]+(rew))
                         else:
                             D[mapair] += 1
                             Q[mapair] = (1/D[mapair])*((D[mapair]-1)*Q[mapair]\
-                                    +(rew))
+                                    + (rew))
                             if messtrue:
                                 D[message] += 1
-                                V[message] = (1/D[message])*((D[message]-1)*\
-                                        V[message]+(rew))
+                                V[message] = (1/D[message])*((D[message]-1) *
+                                             V[message]+(rew))
                         if messtrue:
                             B[message] = 1
-                        visit.add(mapair)#mapair added to visit sets the first time
+                        visit.add(mapair)  # mapair added to visit sets the first time
                         visitn.add(mapair)
                         visitj.add(mapair)
-                        indicaten[mapair] = 1 #only visited actions are updated
-            # update CPT with shift towards Qtable argmax actions.
+                        indicaten[mapair] = 1  # only visited actions are updated
+            #  update CPT with shift towards Qtable argmax actions.
             shift = Q-V[...,np.newaxis]
-            idx = np.nonzero(shift) #indices of nonzero shifts (avoid divide by 0)
+            idx = np.nonzero(shift)  # indices of nonzero shifts (avoid divide by 0)
             # normalizing shifts to be a % of message's biggest shift
             shiftnorm = np.absolute(shift).max(axis=-1)[...,np.newaxis]
             # for each mapair shift only eps% of the percent shift
@@ -230,30 +232,26 @@ class mcrl_ewma(object):
         ps = self.specs
         for level in np.arange(1, self.high_level):
             for player in G.players:
-                basenames = set(map(lambda x: x.basename ,G.partition[player]))
+                basenames = set(map(lambda x: x.basename, G.partition[player]))
                 for controlled in basenames:
                     self.train_node(controlled, level)
         for player in G.players:
-            basenames = set(map(lambda x: x.basename ,G.partition[player]))
+            basenames = set(map(lambda x: x.basename, G.partition[player]))
             for controlled in basenames:
                 if ps[player]['Level'] == self.high_level:
                     self.train_node(controlled, self.high_level)
         if setCPT:
             for player in G.players:
-                basenames = set(map(lambda x: x.basename ,G.partition[player]))
+                basenames = set(map(lambda x: x.basename, G.partition[player]))
                 for bn in basenames:
                     lvl = ps[player]['Level']
                     G.bn_part[bn][0].CPT = \
                         self.trained_CPTs[player][bn]['Level' + str(lvl)]
 
 
-
-def mcrl_dict(G, Level, J, N, delta, alpha=.5, eps=.2, L0Dist= None,
+def mcrl_dict(G, Level, J, N, delta, alpha=.5, eps=.2, L0Dist=None,
               uni=False, pureout=False):
-    return iterated_input_dict(G, [('Level', Level)],[('L0Dist', L0Dist), ('J', J),
-                                             ('N', N), ('delta', delta),
-                                             ('alpha', alpha), ('eps', eps),
-                                             ('uni', uni), ('pureout',pureout)])
-
-
-
+    return iterated_input_dict(G, [('Level', Level)], [('L0Dist', L0Dist), ('J', J),
+                                                      ('N', N), ('delta', delta),
+                                                      ('alpha', alpha), ('eps', eps),
+                                                      ('uni', uni), ('pureout', pureout)])
