@@ -95,24 +95,24 @@ G.draw_graph() #visualizing the network
 #Giving 1 a pure random CPT
 G.node_dict['Q1'].randomCPT(mixed=False)
 #Giving 2 a uniform mixed CPT
-G.node_dict['Q2'].uniformCPT()
-#Perturbing 1's CPT with noise=0.5
-G.node_dict['Q1'].perturbCPT(0.5, mixed=False)
+G.node_dict['Q2'].randomCPT(mixed=False)
+##Perturbing 1's CPT with noise=0.5
+#G.node_dict['Q1'].perturbCPT(0.5, mixed=False)
 
-###########################################
-##SAMPLING 
-###########################################
-#Sample the entire Bayesian Network
-G.sample() 
-#sample entire net and return a dict of sampled values for nodes named M and Q2
-valuedict = G.sample(nodenames=['M', 'Q2']) 
-#sample Q1 and all of its descendants
-valuedict = G.sample(start=['Q1'])
-
-###########################################
-##GETTING VALUES
-###########################################
-valuedict = G.get_values(nodenames=['Q1', 'D'])
+############################################
+###SAMPLING 
+############################################
+##Sample the entire Bayesian Network
+#G.sample() 
+##sample entire net and return a dict of sampled values for nodes named M and Q2
+#valuedict = G.sample(nodenames=['M', 'Q2']) 
+##sample Q1 and all of its descendants
+#valuedict = G.sample(start=['Q1'])
+#
+############################################
+###GETTING VALUES
+############################################
+#valuedict = G.get_values(nodenames=['Q1', 'D'])
 
 ###########################################
 ##PGT INTELLIGENCE ESTIMATION
@@ -131,28 +131,28 @@ def density(iqdict):
     return z
 
 GG = copy.deepcopy(G)
-S = 50 #number of samples
+S = 2500 #number of samples
 X = 10 #number of samples of utility of G in calculating iq
 M = 20 #number of alternative strategies sampled in calculating iq
-noise = .2 #noise in the perturbations of G for MH or MC sampling
-innoise = noise #satisficing distribution noise for iq calculations
-burn = 100 #number of draws to burn for MH
+noise = .5 #noise in the perturbations of G for MH or MC sampling
+innernoise = 1 #satisficing distribution noise for iq calculations
+burn = 1000 #number of draws to burn for MH
 
 from pynfg.pgtsolutions.intelligence.coordinated import *
 
 tipoff = time.time() #starting a timer
 #Importance Samping estimation of PGT posterior
 intelMC, funcoutMC, weightMC = coordinated_MC(GG, S, noise, X, M, \
-                                              innoise=.2, \
+                                              innoise=innernoise, \
                                               delta=1, \
                                               integrand=welfare, \
                                               mix=False, \
                                               satisfice=GG)
 halftime = time.time()
-print halftime-tipoff
+#print halftime-tipoff
 #Metropolis-Hastings estimation of PGT posterior
 intelMH, funcoutMH, densMH = coordinated_MH(GG, S, density, noise, X, M,\
-                                            innoise=.2, \
+                                            innoise=innernoise, \
                                             delta=1, \
                                             integrand=welfare, \
                                             mix=False, \

@@ -191,7 +191,7 @@ def coordinated_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
         GG = copy.deepcopy(G)
         for p in GG.players:
             for dn in GG.partition[p]: #drawing current policy 
-                dn.perturbCPT(noise, mixed=mix, setCPT=False) 
+                dn.perturbCPT(noise, mixed=mix) 
         for p in GG.players:#getting iq
             iq[p] = coordinated_calciq(p, GG, X, M, mix, delta, innoise, \
                                        satisfice) 

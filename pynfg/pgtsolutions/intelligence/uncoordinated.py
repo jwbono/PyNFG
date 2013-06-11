@@ -198,7 +198,7 @@ def uncoordinated_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
         print s
         GG = copy.deepcopy(G)
         for dn in dnlist:
-            GG.node_dict[dn].perturbCPT(noise, mixed=mix, setCPT=False) 
+            GG.node_dict[dn].perturbCPT(noise, mixed=mix) 
         for dn in dnlist:#getting iq
             iq[dn] = uncoordinated_calciq(dn, GG, X, M, mix, delta, innoise, \
                                           satisfice) 
