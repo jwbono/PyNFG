@@ -223,7 +223,7 @@ def iterated_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
         for t in xrange(T0, T+1):
             for dn in dnlist:
                 GG.bn_part[dn][t-T0].CPT = G.bn_part[dn][t-T0].perturbCPT(\
-                                            noise, mixed=mix, setCPT=False)
+                                            noise, mixed=mix)
                 for dd in GG.bn_part[dn][t-T0+1::]: 
                     dd.CPT = GG.bn_part[dn][t-T0].CPT #apply policy to future
                 iq[dn][t-T0] = iterated_calciq(dn, G, X, M, mix, delta, t, \
