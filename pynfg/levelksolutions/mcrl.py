@@ -18,18 +18,22 @@ from pynfg.utilities.utilities import iterated_input_dict
 import warnings
 
 
-class mcrl_ewma(object):
+class ewma_mcrl(object):
     """
     :arg Game: The iterated semi-NFG on which to perform the RL
     :type Game: iterSemiNFG
-    :arg specs: A nested dictionary contained specifications of the
+    :arg specs: A nested dictionary containing specifications of the
         game.  See below for details
     :type specs: dict
 
     The specs dictionary is a triply nested dictionary.  The first
-    level of keys is player names.  For each player there is an entry for
-    the player's level.  The rest of the entries are basenames.  The value of
-    each basename is a dictionary containing:
+    level of keys is player names.  For each player there is an entry with key
+
+    Level : int
+        The player's level
+
+    The rest of the entries are basenames.  The value of each basename is a
+    dictionary containing:
 
     J : int, list, or np.array
         The number of runs per training episode. If a schedule is desired,
@@ -60,13 +64,14 @@ class mcrl_ewma(object):
         self.G = copy.deepcopy(G)
         self.specs = specs
         self.trained_CPTs = {}
+        self.figs = {}
         for player in G.players:
+            self.figs[player] = {}
             basenames = set(map(lambda x: x.basename, G.partition[player]))
             for bn in basenames:
                 self.trained_CPTs[player] = {}
                 self.trained_CPTs[player][bn] = {}
                 self.trained_CPTs[player][bn]['Level0'] = self._set_L0_CPT()
-        self.figs = {}
         self.high_level = max(map(lambda x: self.specs[x]['Level'], G.players))
 
     def _set_L0_CPT(self):
@@ -85,7 +90,7 @@ class mcrl_ewma(object):
                 elif type(ps[player][bn]['L0Dist']) == np.ndarray:
                     return ps[player][bn]
 
-    def train_node(self, bn, level):
+    def train_node(self, bn, level, setCPT=False):
         """ Use EWMA MC RL to approximate the optimal CPT at bn given G
 
         :arg bn: the basename of the node with the CPT to be trained
@@ -93,6 +98,7 @@ class mcrl_ewma(object):
         :arg level: The level at which to train the basename
         :type level: int
         """
+        print 'Training ' + bn + ' at level '+ str(level)
         specs = self.specs
         G = copy.deepcopy(self.G)
         player = G.bn_part[bn][0].player
@@ -100,14 +106,19 @@ class mcrl_ewma(object):
         J, N, alpha, delta, eps, uni, pureout = basedict['J'], basedict['N'], \
             basedict['alpha'], basedict['delta'], basedict['eps'], \
             basedict['uni'], basedict['pureout']
-        #Set other CPTs to level-1
+        #Set other CPTs to level-1.  Works even if CPTs aren't pointers.
         for o_player in G.players:
-            bn_list = map(lambda x: x.basename, G.partition[o_player])
+            bn_list = list(set(map(lambda x: x.basename, G.partition[o_player])))
             for base in bn_list:
                 if base != bn:
-                    G.bn_part[base][0].CPT = \
-                        self.trained_CPTs[o_player][base]['Level' +
-                                                          str(level - 1)]
+                    for dn in G.bn_part[base]:
+                        try:
+                            dn.CPT = \
+                                (self.trained_CPTs[o_player][base]['Level' +
+                                                          str(level - 1)])
+                        except KeyError:
+                            raise KeyError('Need to train other players at level %s'
+                                   % str(level-1))
         # initializing training schedules from scalar inputs
         if isinstance(J, (int)):
             J = J*np.ones(N)
@@ -219,13 +230,17 @@ class mcrl_ewma(object):
             G.bn_part[bn][0].CPT /= CPTsum[...,np.newaxis]
         if pureout: #if True, output is a pure policy
             G.bn_part[bn][0].makeCPTpure()
+        self.trained_CPTs[player][bn]['Level' + str(level)] = G.bn_part[bn][0].CPT
+        if setCPT:
+            for node in self.G.bn_part[bn]:
+                node.CPT = G.bn_part[bn][0].CPT
         for tau in xrange(1, T-T0): #before exit, make CPTs independent in memory
             G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][0].CPT)
+        plt.figure()
         plt.plot(Rseries) #plotting Rseries to gauge convergence
         fig = plt.gcf()
-        self.trained_CPTs[player][bn]['Level' + str(level)] = G.bn_part[bn][0].CPT
         # TODO Create subplots and add labels
-        self.figs[bn] = fig
+        self.figs[player][bn] = fig
 
     def solve_game(self, setCPT=False):
         G = self.G
@@ -234,19 +249,12 @@ class mcrl_ewma(object):
             for player in G.players:
                 basenames = set(map(lambda x: x.basename, G.partition[player]))
                 for controlled in basenames:
-                    self.train_node(controlled, level)
+                    self.train_node(controlled, level, setCPT=setCPT)
         for player in G.players:
             basenames = set(map(lambda x: x.basename, G.partition[player]))
             for controlled in basenames:
                 if ps[player]['Level'] == self.high_level:
-                    self.train_node(controlled, self.high_level)
-        if setCPT:
-            for player in G.players:
-                basenames = set(map(lambda x: x.basename, G.partition[player]))
-                for bn in basenames:
-                    lvl = ps[player]['Level']
-                    G.bn_part[bn][0].CPT = \
-                        self.trained_CPTs[player][bn]['Level' + str(lvl)]
+                    self.train_node(controlled, self.high_level, setCPT=setCPT)
 
 
 def mcrl_dict(G, Level, J, N, delta, alpha=.5, eps=.2, L0Dist=None,

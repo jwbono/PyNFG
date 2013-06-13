@@ -20,10 +20,12 @@ class rlk(object):
     :type N: int
 
     specs is a triply-nested dictionary.  The first set of keys
-    are the player names.  For each player key, there is 'Level' key that
-    specifies the player's level.  The rest of the
-    keys for each player are the names of nodes that belong to that player.
-    For each node, the dictionary has four entries
+    are the player names.  For each player key, there is a key
+    Level : int
+        The player's level
+
+    The rest of the keys for each player are the names of nodes that
+    belong to that player. For each node, the dictionary has four entries
 
     M : int
         The number of times to sample the satisficing distribution
