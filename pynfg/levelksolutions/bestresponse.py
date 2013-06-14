@@ -21,7 +21,7 @@ import pynfg
 
 
 class BestResponse(object):
-    """ Finds the *uncoordinated* best solution for a semi-NFG.
+    """ Finds the **uncoordinated** best response solution for a semi-NFG.
 
     :arg G:  A semi-NFG
     :type G: semiNFG
@@ -64,18 +64,6 @@ class BestResponse(object):
         self.G = copy.deepcopy(G)
         self.logit = logit
         self.specs = specs
-        # if type(G) == pynfg.classes.iterseminfg.iterSemiNFG:
-        #     self.iterated = True
-        #     self.trained_CPTs = {}
-        #     for player in G.players:
-        #         basenames = set(map(lambda x: x.basename, G.partition[player]))
-        #         for bn in basenames:
-        #             self.trained_CPTs[player] = {}
-        #             self.trained_CPTs[player][bn] = {}
-        #             self.trained_CPTs[player][bn]['Level0'] = self._set_iter_L0_CPT()
-        #             self.high_level = max(map(lambda x: self.specs[x]['Level'], G.players))
-        # else:
-        #     self.iterated = False
         self.high_level = self._set_new_attributes()
         self._set_L0_CPT()
 
@@ -161,23 +149,6 @@ class BestResponse(object):
             if setCPT:
                 self.G.node_dict[nodename].CPT = weight/norm[..., np.newaxis]
 
-        # else:
-        #     player = G.node_dict[nodename].player
-        #     for o_player in G.players:
-        #         bn_list = list(set(map(lambda x: x.basename, G.partition[o_player])))
-        #         for base in bn_list:
-        #             if base != bn:
-        #                 try:
-        #                     G.bn_part[base][0].CPT = \
-        #                         self.trained_CPTs[o_player][base]['Level' +
-        #                                                   str(level - 1)]
-        #                 except KeyError:
-        #                     raise KeyError('Need to train other players at level %s'
-        #                            % str(level-1))
-        #     EUtable = mceu(G, G.bn_part[bn][0].name, ps[player][bn]['N'],
-        #                    ps[player][bn]['tol'], ps[player]['delta'],
-        #                    verbose=verbose)
-
 
     def solve_game(self, setCPT=False, verbose=False):
         """ Solves the game for specified player levels"""
@@ -200,7 +171,7 @@ class BestResponse(object):
 
 def br_dict(G, N, Level, L0Dist=None, delta=1, tol=30, beta=None):
     """A helper function to generate the player_spec dictionary
-    for relaxed level K.  If optional arguments are specified, they are
+    for best response.  If optional arguments are specified, they are
     set for all decision nodes.
 
     :arg G: A SemiNFG
@@ -209,9 +180,6 @@ def br_dict(G, N, Level, L0Dist=None, delta=1, tol=30, beta=None):
     .. seealso::
         See the BestResponse documentation (above) for details of the  optional arguments
     """
-    # if type(G) is pynfg.classes.iterseminfg.iterSemiNFG:
-    #     iterated =True
-    # if not iterated:
     if beta is None:
         return input_dict(G, [('Level', Level), ('delta', delta)],
                           [('L0Dist', L0Dist), ('N', N), ('tol', tol)])
@@ -219,11 +187,3 @@ def br_dict(G, N, Level, L0Dist=None, delta=1, tol=30, beta=None):
         return input_dict(G, [('Level', Level), ('delta', delta)],
                       [('L0Dist', L0Dist), ('N', N), ('tol', tol),
                        ('beta', beta)])
-    # else:
-    #     if beta is None:
-    #          return iterated_input_dict(G, [('Level', Level), ('delta', delta)],
-    #                       [('L0Dist', L0Dist), ('N', N), ('tol', tol)])
-    #     else:
-    #         return iterated_input_dict(G, [('Level', Level), ('delta', delta)],
-    #                   [('L0Dist', L0Dist), ('N', N), ('tol', tol),
-    #                    ('beta', beta)])
