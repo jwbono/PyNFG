@@ -18,8 +18,10 @@ from pynfg.utilities.utilities import iterated_input_dict
 import warnings
 
 
-class ewma_mcrl(object):
+class EWMA_MCRL(object):
     """
+    Finds the **uncoordinated** best policy using reinforcement learning.
+
     :arg Game: The iterated semi-NFG on which to perform the RL
     :type Game: iterSemiNFG
     :arg specs: A nested dictionary containing specifications of the
@@ -66,9 +68,9 @@ class ewma_mcrl(object):
         self.trained_CPTs = {}
         self.figs = {}
         for player in G.players:
-            self.figs[player] = {}
             basenames = set(map(lambda x: x.basename, G.partition[player]))
             for bn in basenames:
+                self.figs[bn]={}
                 self.trained_CPTs[player] = {}
                 self.trained_CPTs[player][bn] = {}
                 self.trained_CPTs[player][bn]['Level0'] = self._set_L0_CPT()
@@ -237,12 +239,14 @@ class ewma_mcrl(object):
         for tau in xrange(1, T-T0): #before exit, make CPTs independent in memory
             G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][0].CPT)
         plt.figure()
-        plt.plot(Rseries) #plotting Rseries to gauge convergence
+        plt.plot(Rseries, label = str(bn + ' Level ' + str(level)))
+        #plotting rseries to gauge convergence
+        plt.legend()
         fig = plt.gcf()
-        # TODO Create subplots and add labels
-        self.figs[player][bn] = fig
+        self.figs[bn][str(level)] = fig
 
     def solve_game(self, setCPT=False):
+        """Solves the game for given player levels"""
         G = self.G
         ps = self.specs
         for level in np.arange(1, self.high_level):
@@ -259,6 +263,16 @@ class ewma_mcrl(object):
 
 def mcrl_dict(G, Level, J, N, delta, alpha=.5, eps=.2, L0Dist=None,
               uni=False, pureout=False):
+    """
+    Creates the specs shell for a game to be solved using MCRL.
+
+    :arg G: An iterated SemiNFG
+    :type G: SemiNFG
+
+    .. seealso::
+        See the ewma_mcrl documentation (above) for details of the  optional arguments
+
+    """
     return iterated_input_dict(G, [('Level', Level)], [('L0Dist', L0Dist), ('J', J),
                                                       ('N', N), ('delta', delta),
                                                       ('alpha', alpha), ('eps', eps),

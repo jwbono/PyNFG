@@ -21,7 +21,7 @@ import pynfg
 
 
 class BestResponse(object):
-    """ Finds the best solution for a semi-NFG.
+    """ Finds the *uncoordinated* best solution for a semi-NFG.
 
     :arg G:  A semi-NFG
     :type G: semiNFG
@@ -198,7 +198,7 @@ class BestResponse(object):
                         LevelCPT['Level' + str(G.node_dict[node.name].Level)]
 
 
-def br_dict(G, N, Level, L0Dist=None, delta=.1, tol=30, beta=None):
+def br_dict(G, N, Level, L0Dist=None, delta=1, tol=30, beta=None):
     """A helper function to generate the player_spec dictionary
     for relaxed level K.  If optional arguments are specified, they are
     set for all decision nodes.

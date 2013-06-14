@@ -21,6 +21,7 @@ import warnings
 
 class QLearning(object):
     """
+    Finds the **uncoordinated** best policy using Q-learning.
     :arg Game: The iterated semi-NFG on which to perform the RL
     :type Game: iterSemiNFG
     :arg specs: A nested dictionary contained specifications of the
@@ -54,12 +55,12 @@ class QLearning(object):
         self.trained_CPTs = {}
         self.figs = {}
         for player in G.players:
-            self.figs[player] = {}
             basenames = set(map(lambda x: x.basename, G.partition[player]))
             for bn in basenames:
                 self.trained_CPTs[player] = {}
                 self.trained_CPTs[player][bn] = {}
                 self.trained_CPTs[player][bn]['Level0'] = self._set_L0_CPT()
+                self.figs[bn] = {}
         self.high_level = max(map(lambda x: self.specs[x]['Level'], G.players))
 
     def _set_L0_CPT(self):
@@ -149,15 +150,19 @@ class QLearning(object):
                 Qmax = Qmax_new
                 r_av = r_av_new
             rseries.append(r_av)
-        self.trained_CPTs[player][bn] = G.bn_part[bn][0].CPT
-        plt.plot(rseries) #plotting rseries to gauge convergence
+        self.trained_CPTs[player][bn]['Level' + str(level)] = G.bn_part[bn][0].CPT
+        plt.figure()
+        plt.plot(rseries, label = str(bn + ' Level ' + str(level)))
+        #plotting rseries to gauge convergence
+        plt.legend()
         fig = plt.gcf()
-        self.figs[player][bn] = fig
+        self.figs[bn][str(level)] = fig
         if setCPT:
             map(lambda x: _setallCPTs(self.G,bn, x, G.bn_part[bn][0].CPT), np.arange(T0, T))
 
 
     def solve_game(self, setCPT=False):
+        """Solves the game sfor specified player levels"""
         G = self.G
         ps = self.specs
         for level in np.arange(1, self.high_level):
@@ -173,6 +178,15 @@ class QLearning(object):
 
 
 def qlearning_dict(G, Level, w, N, delta, r_max=0, L0Dist=None):
+    """
+    Creates the specs shell for a game to be solved using Q learning.
+
+    :arg G: An iterated SemiNFG
+    :type G: iterSemiNFG
+
+    .. seealso::
+        See the Q Learning documentation (above) for details of the  optional arguments
+    """
     return iterated_input_dict(G, [('Level', Level), ('delta', delta),('w', w)],
                                   [('L0Dist', L0Dist), ('N', N),
                                    ('N', N), ('r_max', r_max)])

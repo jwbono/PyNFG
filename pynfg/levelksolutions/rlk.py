@@ -6,8 +6,8 @@ import itertools
 from pynfg.utilities.utilities import input_dict
 
 
-class rlk(object):
-    """ Finds the relaxed level-k solution for a semi-NFG.
+class RLK(object):
+    """ Finds the **uncoordinated** relaxed level-k solution for a semi-NFG.
 
     :arg G:  A semi-NFG
     :type G: semiNFG
