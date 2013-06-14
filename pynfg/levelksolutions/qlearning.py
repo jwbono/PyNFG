@@ -22,6 +22,7 @@ import warnings
 class QLearning(object):
     """
     Finds the **uncoordinated** best policy using Q-learning.
+
     :arg Game: The iterated semi-NFG on which to perform the RL
     :type Game: iterSemiNFG
     :arg specs: A nested dictionary contained specifications of the
@@ -80,15 +81,15 @@ class QLearning(object):
                     return ps[player][bn]
 
     def train_node(self, bn, level, setCPT=False):
-        """Solve for the optimal policy using Optimistic Q-learning
-
-        Optimistic Q-Learning  is an off-policy TD control RL algorithm
+        """Solve for the optimal policy using Optimistic Q-learning. Optimistic
+        Q-Learning  is an off-policy TD control RL algorithm
 
         :arg bn: The basename of the node with the CPT to be trained
         :type bn: str
         :arg level: The level at which to train the basename
         :type level: int
         """
+
         print 'Training ' + bn + ' at level '+ str(level)
         G = copy.deepcopy(self.G)
         ps = self.specs

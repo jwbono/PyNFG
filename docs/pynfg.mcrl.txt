@@ -4,5 +4,5 @@
 Monte Carlo RL
 **********************
 
-.. automodule:: pynfg.rlsolutions.mcrl
+.. automodule:: pynfg.levelksolutions.mcrl
    :members:

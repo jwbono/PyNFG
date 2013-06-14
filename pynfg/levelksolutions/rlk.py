@@ -21,6 +21,7 @@ class RLK(object):
 
     specs is a triply-nested dictionary.  The first set of keys
     are the player names.  For each player key, there is a key
+
     Level : int
         The player's level
 

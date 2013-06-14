@@ -38,9 +38,8 @@ class EWMA_MCRL(object):
     dictionary containing:
 
     J : int, list, or np.array
-        The number of runs per training episode. If a schedule is desired,
-        enter a list or np.array with size equal to N.
-     N : int
+        The number of runs per training episode. If a schedule is desired, enter a list or np.array with size equal to N.
+    N : int
          The number of training episodes
     L0Dist : ndarray, str, None
         If ndarray, then the level 0 CPT is set to
@@ -270,7 +269,7 @@ def mcrl_dict(G, Level, J, N, delta, alpha=.5, eps=.2, L0Dist=None,
     :type G: SemiNFG
 
     .. seealso::
-        See the ewma_mcrl documentation (above) for details of the  optional arguments
+        See the EWMA_MCRL documentation (above) for details of the  optional arguments
 
     """
     return iterated_input_dict(G, [('Level', Level)], [('L0Dist', L0Dist), ('J', J),
