@@ -77,6 +77,7 @@ def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     Q = np.zeros(shape) #Qtable
     V = np.zeros(shape[:-1]) #Value table
     Rseries = np.zeros(N) #tracking average reward for plotting convergence
+    np.seterr(invalid='ignore', divide='ignore')
     for n in xrange(N):
         print n
 

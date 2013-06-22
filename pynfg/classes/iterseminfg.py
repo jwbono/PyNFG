@@ -168,8 +168,8 @@ class iterSemiNFG(SemiNFG):
         count = 0
         npvreward = 0
         for t in range(start, self.endtime+1):
-            count += 1
             npvreward += (delta**count)*self.reward(player, t, nodeinput)
+            count += 1
         return npvreward
             
     def sample_timesteps(self, start, stop=None, basenames=None):
