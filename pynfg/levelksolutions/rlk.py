@@ -305,7 +305,7 @@ def rlk_dict(G, M=None, Mprime=None, Level=None, L0Dist=None, SDist=None):
 
 
 def _rlk_parallel(il):
-    newgame = rlk(il[0], il[1], il[2], parallel=True)
+    newgame = RLK(il[0], il[1], il[2], parallel=True)
     newgame.train_node(il[3], il[4])
     return newgame.G.node_dict[il[3]].LevelCPT
 
