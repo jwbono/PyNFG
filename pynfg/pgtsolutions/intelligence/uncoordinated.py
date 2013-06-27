@@ -247,7 +247,6 @@ def uncoordinated_calciq(dn, G, X, M, mix, delta, innoise, satisfice=None):
     tick = 0
     p = G.node_dict[dn].player
     oldCPT = copy.copy(G.node_dict[dn].CPT)
-    GG = copy.deepcopy(G)
     try:
         ufoo = G.npv_reward
         uargs = [p, G.starttime, delta]
@@ -259,23 +258,25 @@ def uncoordinated_calciq(dn, G, X, M, mix, delta, innoise, satisfice=None):
         util = (ufoo(*uargs)+(x-1)*util)/x
     if satisfice: #using the satisficing distribution for drawing alternatives
         G = satisfice
+    oldcpt = G.bn_part[dn].CPT
     for m in range(M): #Sample M alt CPTs for the player at the DN
+        G.bn_part[dn].CPT = oldcpt
         if innoise == 1 or satisfice:
-            GG.node_dict[dn].perturbCPT(innoise, mixed=mix)
+            G.node_dict[dn].perturbCPT(innoise, mixed=mix)
             denw=1
         else:
-            denw = GG.node_dict[dn].perturbCPT(innoise, mixed=mix, \
+            denw = G.node_dict[dn].perturbCPT(innoise, mixed=mix, \
                                                returnweight=True)
         if not tick:  
             numw = denw #scaling constant num to ~ magnitude of den
         weight[m] *= (numw/denw)
         tick += 1
-        GG.sample() #sample altpolicy prof. to end of net
+        G.sample() #sample altpolicy prof. to end of net
         try:
-            altutil[m] = GG.npv_reward(p, GG.starttime, delta)
+            altutil[m] = G.npv_reward(p, GG.starttime, delta)
         except AttributeError:
-            altutil[m] = GG.utility(p)
-        GG.node_dict[dn].CPT = oldCPT #resetting the CPT for the next draw
+            altutil[m] = G.utility(p)
+        G.node_dict[dn].CPT = oldCPT #resetting the CPT for the next draw
     #weight of alts worse than G
     worse = [weight[m] for m in range(M) if altutil[m]<util]
     return np.sum(worse)/np.sum(weight) #fraction of alts worse than G is IQ

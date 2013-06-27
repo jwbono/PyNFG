@@ -249,9 +249,11 @@ def coordinated_calciq(p, G, X, M, mix, delta, innoise, satisfice=None):
         util = (ufoo(*uargs)+(x-1)*util)/x
     if satisfice: #using the satisficing distribution for drawing alternatives
         G = satisfice
+    cptdict = G.get_decisionCPTs()
+    smalldict = {dn.name: cptdict[dn.name] for dn in G.partition[p]}
     for m in range(M): #Sample M alt policies for the player
-        GG = copy.deepcopy(G)
-        for dn in GG.partition[p]: #rand CPT for the DN
+        G.set_CPTs(smalldict)
+        for dn in G.partition[p]: #rand CPT for the DN
             #density for the importance sampling distribution
             if innoise == 1 or satisfice:
                 dn.perturbCPT(innoise, mixed=mix)
@@ -262,11 +264,11 @@ def coordinated_calciq(p, G, X, M, mix, delta, innoise, satisfice=None):
                 numw = denw #scaling constant num to ~ magnitude of den
             weight[m] *= (numw/denw)
             tick += 1
-        GG.sample() #sample altpolicy prof. to end of net
-        if isinstance(GG, iterSemiNFG):
-            altutil[m] = GG.npv_reward(p, GG.starttime, delta)
+        G.sample() #sample altpolicy prof. to end of net
+        if isinstance(G, iterSemiNFG):
+            altutil[m] = G.npv_reward(p, G.starttime, delta)
         else:
-            altutil[m] = GG.utility(p)
+            altutil[m] = G.utility(p)
     #weight of alts worse than G
     worse = [weight[m] for m in range(M) if altutil[m]<util]
     return np.sum(worse)/np.sum(weight) #fraction of alts worse than G is IQ

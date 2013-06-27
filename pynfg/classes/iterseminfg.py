@@ -229,3 +229,20 @@ class iterSemiNFG(SemiNFG):
                 else:
                     print '%s is neither nodename nor basename' %name
             return adict
+            
+    def set_CPTs(self, cptdict):
+        """Set CPTs for nodes in the iterSemiNFG by node name or basename
+        
+        :arg cptdict: dictionary with node names or basenames as keys and CPTs 
+           as values. When a basename is given, the corresponding CPT is used 
+           for all of the corresponding nodes.
+        :type cptdict: dict
+        """
+        for name in cptdict.keys():
+            if name in self.node_dict.keys():
+                self.node_dict[name].CPT = cptdict[name]
+            elif name in self.bn_part.keys():
+                for t in range(len(self.bn_part[name])):
+                    self.bn_part[name][t].CPT = cptdict[name]
+            else:
+                print ('%s is neither a node name nor a basename.' %name)

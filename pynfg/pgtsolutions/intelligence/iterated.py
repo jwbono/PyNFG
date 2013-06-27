@@ -273,29 +273,32 @@ def iterated_calciq(bn, G, X, M, mix, delta, start, innoise, satisfice=None):
     altutil = [0]*M
     weight = np.ones(M)
     tick = 0
+    bnlist = [x.name for x in G.bn_part[bn]]
     for x in xrange(1,X+1):
         G.sample()
         util += G.npv_reward(p,start,delta)/X
     if satisfice: #using the satisficing distribution for drawing alternatives
         G = satisfice
+    cptdict = G.get_decisionCPTs()
+    smalldict = {name: cptdict[name] for name in bnlist}
     for m in range(M): #Sample M alt policies for the player
-        GG = copy.deepcopy(G)
+        G.set_CPTs(smalldict)
         denw = 1
         #density for the importance sampling distribution
         if innoise == 1 or satisfice:
-            GG.bn_part[bn][start-T0].perturbCPT(innoise, mixed=mix)
+            G.bn_part[bn][start-T0].perturbCPT(innoise, mixed=mix)
         else:
-            denw = GG.bn_part[bn][start-T0].perturbCPT(innoise, mixed=mix, \
+            denw = G.bn_part[bn][start-T0].perturbCPT(innoise, mixed=mix, \
                                                         returnweight=True)
         if not tick:  
             numw = denw #scaling constant num to ~ magnitude of den
         weight[m] = (numw/denw)
         tick += 1
 #       import pdb; pdb.set_trace()
-        for dn in GG.bn_part[bn][start-T0+1::]:
-            dn.CPT = GG.bn_part[bn][start-T0].CPT
-        GG.sample_timesteps(start) #sample altpolicy prof. to end of net
-        altutil[m] = GG.npv_reward(p, start, delta)
+        for dn in G.bn_part[bn][start-T0+1::]:
+            dn.CPT = G.bn_part[bn][start-T0].CPT
+        G.sample_timesteps(T0) #sample altpolicy prof. to end of net
+        altutil[m] = G.npv_reward(p, start, delta)
     #weight of alts worse than G
     worse = [weight[m] for m in range(M) if altutil[m]<util]
     return np.sum(worse)/np.sum(weight) #fraction of alts worse than G is IQ

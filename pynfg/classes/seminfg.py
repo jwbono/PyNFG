@@ -315,6 +315,42 @@ class SemiNFG(object):
             for name in nodenames:
                 adict[name] = self.node_dict[name].get_value()
             return adict
+            
+    def get_decisionCPTs(self, mode=None):
+        """Retrieve the CPTs for decision nodes
+        
+        :arg mode: optional string. If None, then keys are names of decision 
+           nodes, and values are CPTs of corresponding decision nodes. If 
+           'basename' then the output will be a dictionary with basename keys. 
+           Values will be CPTs of the first instance (game chronology/topology) 
+           of the corresponding basename.
+        :type mode: str
+        :returns: dict with nodenames or basenames as keys and current CPTs of
+           corresponding decision nodes as output.
+        
+        """
+        cptdict = {}
+        if mode == 'basename':
+            try:
+                for bn in self.bn_part.keys():
+                    if self.bn_part[bn][0].player != 'nature':
+                        cptdict[bn] = self.bn_part[bn][0].CPT
+            except AttributeError:
+                raise TypeError('Use mode="basename" for iterSemiNFG only')
+        else:
+            for p in self.players:
+                for n in self.partition[p]:
+                    cptdict[n.name] = n.CPT
+        return cptdict
+        
+    def set_CPTs(self, cptdict):
+        """Set CPTs for nodes in the SemiNFG by node name
+        
+        :arg cptdict: dictionary with node names as keys and CPTs as values
+        :type cptdict: dict
+        """
+        for name in cptdict.keys():
+            self.node_dict[name].CPT = cptdict[name]
         
     def set_values(self, value_dict):
         """Set the values of a subset of the nodes comprising the SemiNFG.
