@@ -14,6 +14,7 @@ import time
 import copy
 import numpy as np
 import matplotlib.pylab as plt
+import sys
 
 def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     """ Use EWMA MC RL to approximate the optimal CPT at bn given G
@@ -79,8 +80,9 @@ def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     Rseries = np.zeros(N) #tracking average reward for plotting convergence
     np.seterr(invalid='ignore', divide='ignore')
     for n in xrange(N):
-        print n
-
+        sys.stdout.write('\r')
+        sys.stdout.write('Iteration ' + str(n))
+        sys.stdout.flush()
         indicaten = np.zeros(Q.shape) #indicates visited mapairs
         visitn = set() #dict of messages and mapairs visited in episode n
         Rseries[n] = R #adding the most recent ave reward to the data series

@@ -15,6 +15,7 @@ import copy
 import numpy as np
 from pynfg import DecisionNode, iterSemiNFG
 from pynfg.utilities.utilities import mh_decision
+import sys
 
 def policy_MC(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
                 mix=False, satisfice=None):
@@ -102,7 +103,9 @@ def policy_MC(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
     for p in G.players: #getting player-keyed dict of basenames
         bndict[p] = [x.basename for x in G.partition[p] if x.time==T0]
     for s in xrange(1, S+1): #sampling S policy profiles
-        print s
+        sys.stdout.write('\r')
+        sys.stdout.write('MC Sample ' + str(s))
+        sys.stdout.flush()
         GG = copy.deepcopy(G)
         for p in G.players:
             w[p] = 1
@@ -212,7 +215,9 @@ def policy_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
     for p in G.players: #getting player-keyed dict of basenames
         bndict[p] = [x.basename for x in G.partition[p] if x.time==T0]
     for s in xrange(1, S+1): #sampling S sequences of policy profiles
-        print s
+        sys.stdout.write('\r')
+        sys.stdout.write('MH Sample ' + str(s))
+        sys.stdout.flush()
         GG = copy.deepcopy(G)
         for p in G.players: #taking the new MH draw
             for bn in bndict[p]:
@@ -270,7 +275,7 @@ def policy_calciq(p, G, X, M, mix, delta, innoise, satisfice=None):
         G.sample()
         util += G.npv_reward(p,G.starttime,delta)/X
     if satisfice: #using the satisficing distribution for drawing alternatives
-        G = satisfice
+        G = copy.deepcopy(satisfice)
     cptdict = G.get_decisionCPTs(mode='basename')
     smalldict = {key: cptdict[key] for key in bnlist}
     for m in range(M): #Sample M alt policies for the player

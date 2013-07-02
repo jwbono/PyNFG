@@ -14,6 +14,7 @@ import copy
 import numpy as np
 from pynfg import DecisionNode, iterSemiNFG
 from pynfg.utilities.utilities import mh_decision
+import sys
 
 def coordinated_MC(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
                 mix=False, satisfice=None):
@@ -90,7 +91,9 @@ def coordinated_MC(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
     w = {}
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
     for s in xrange(1, S+1): #sampling S policy profiles
-        print s
+        sys.stdout.write('\r')
+        sys.stdout.write('MC Sample ' + str(s))
+        sys.stdout.flush()
         GG = copy.deepcopy(G)
         for p in GG.players:
             w[p] = 1
@@ -187,7 +190,9 @@ def coordinated_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
     dens = np.zeros(S+1) #storing densities for return
     for s in xrange(1, S+1): #sampling S sequences of policy profiles
-        print s
+        sys.stdout.write('\r')
+        sys.stdout.write('MH Sample ' + str(s))
+        sys.stdout.flush()
         GG = copy.deepcopy(G)
         for p in GG.players:
             for dn in GG.partition[p]: #drawing current policy 
@@ -248,7 +253,7 @@ def coordinated_calciq(p, G, X, M, mix, delta, innoise, satisfice=None):
         G.sample()
         util = (ufoo(*uargs)+(x-1)*util)/x
     if satisfice: #using the satisficing distribution for drawing alternatives
-        G = satisfice
+        G = copy.deepcopy(satisfice)
     cptdict = G.get_decisionCPTs()
     smalldict = {dn.name: cptdict[dn.name] for dn in G.partition[p]}
     for m in range(M): #Sample M alt policies for the player

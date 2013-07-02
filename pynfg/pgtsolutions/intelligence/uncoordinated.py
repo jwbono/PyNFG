@@ -16,6 +16,7 @@ from pynfg import DecisionNode
 from pynfg import iterSemiNFG
 import scipy.stats.distributions as randvars
 from pynfg.utilities.utilities import mh_decision
+import sys
 
 def uncoordinated_MC(G, S, noise, X, M, innoise, delta=1, integrand=None, \
                      mix=False, satisfice=None):
@@ -95,7 +96,9 @@ def uncoordinated_MC(G, S, noise, X, M, innoise, delta=1, integrand=None, \
     w = {}
     weight = {}
     for s in xrange(1, S+1): #sampling S sequences of policy profiles
-        print s
+        sys.stdout.write('\r')
+        sys.stdout.write('MC Sample ' + str(s))
+        sys.stdout.flush()
         GG = copy.deepcopy(G)
         for dn in dnlist: #drawing current policy
             w[dn] = GG.node_dict[dn].perturbCPT(noise, mixed=mix, \
@@ -195,7 +198,9 @@ def uncoordinated_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
     dens = np.zeros(S+1) #storing densities for return
     for s in xrange(1, S+1): #sampling S sequences of policy profiles
-        print s
+        sys.stdout.write('\r')
+        sys.stdout.write('MH Sample ' + str(s))
+        sys.stdout.flush()
         GG = copy.deepcopy(G)
         for dn in dnlist:
             GG.node_dict[dn].perturbCPT(noise, mixed=mix) 
@@ -257,7 +262,7 @@ def uncoordinated_calciq(dn, G, X, M, mix, delta, innoise, satisfice=None):
         G.sample()
         util = (ufoo(*uargs)+(x-1)*util)/x
     if satisfice: #using the satisficing distribution for drawing alternatives
-        G = satisfice
+        G = copy.deepcopy(satisfice)
     oldcpt = G.bn_part[dn].CPT
     for m in range(M): #Sample M alt CPTs for the player at the DN
         G.bn_part[dn].CPT = oldcpt

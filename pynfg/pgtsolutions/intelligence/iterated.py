@@ -15,6 +15,7 @@ import numpy as np
 from pynfg import DecisionNode
 from pynfg.utilities.utilities import mh_decision
 import scipy.stats.distributions as randvars
+import sys
 
 def iterated_MC(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
                 mix=False, satisfice=None):
@@ -103,7 +104,9 @@ def iterated_MC(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
     for bn in bnlist: #preallocating iq dict entries
         iq[bn] = np.zeros(T-T0+1) 
     for s in xrange(1, S+1): #sampling S sequences of policy profiles
-        print s
+        sys.stdout.write('\r')
+        sys.stdout.write('MC Sample ' + str(s))
+        sys.stdout.flush()
         GG = copy.deepcopy(G)
         w = dict(zip(bnlist, np.ones(len(bnlist)))) #mapping bn to IS weights
         for t in xrange(T0, T+1): #sampling a sequence of policy profiles
@@ -218,7 +221,9 @@ def iterated_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
     dens = np.zeros(S+1)
     # gather list of decision nodes in base game
     for s in xrange(1, S+1): #sampling S sequences of policy profiles
-        print s
+        sys.stdout.write('\r')
+        sys.stdout.write('MH Sample ' + str(s))
+        sys.stdout.flush()
         GG = copy.deepcopy(G)
         for t in xrange(T0, T+1):
             for dn in dnlist:
@@ -278,7 +283,7 @@ def iterated_calciq(bn, G, X, M, mix, delta, start, innoise, satisfice=None):
         G.sample()
         util += G.npv_reward(p,start,delta)/X
     if satisfice: #using the satisficing distribution for drawing alternatives
-        G = satisfice
+        G = copy.deepcopy(satisfice)
     cptdict = G.get_decisionCPTs()
     smalldict = {name: cptdict[name] for name in bnlist}
     for m in range(M): #Sample M alt policies for the player
