@@ -238,12 +238,12 @@ MCRL_solved.figs['Dhide']['1'].show()
 # We can also train a player to the next level
 
 MCRL_solved.train_node('Dhide', 2, setCPT=False)
-print np.all(MCRL_solved.G.bn_part['Dhide'][0].CPT ==
+print np.all(MCRL_solved.Game.bn_part['Dhide'][0].CPT ==
              MCRL_solved.trained_CPTs['hider']['Dhide']['Level1'])
 
 # Use the game attribute of MCRL_solved with appropriate CPTs to perform PGT
 
-G1 = copy.deepcopy(MCRL_solved.G)
+G1 = copy.deepcopy(MCRL_solved.Game)
 ############################################
 ###PGT INTELLIGENCE ESTIMATION
 ############################################
