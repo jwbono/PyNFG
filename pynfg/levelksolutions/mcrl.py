@@ -139,9 +139,11 @@ class EWMA_MCRL(object):
         Q = np.zeros(shape)  # Qtable
         V = np.zeros(shape[:-1])  # Value table
         Rseries = np.zeros(N)  # tracking average reward for plotting convergence
+        np.seterr(invalid='ignore', divide='ignore')
         for n in xrange(N):
-            print n
-
+            sys.stdout.write('\r')
+            sys.stdout.write('Iteration ' + str(n))
+            sys.stdout.flush()
             indicaten = np.zeros(Q.shape)  # indicates visited mapairs
             visitn = set()  # dict of messages and mapairs visited in episode n
             Rseries[n] = R  # adding the most recent ave reward to the data series
