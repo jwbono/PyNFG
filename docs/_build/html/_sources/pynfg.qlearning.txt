@@ -4,5 +4,5 @@
 Q-Learning
 **********************
 
-.. automodule:: pynfg.rlsolutions.qlearning
+.. automodule:: pynfg.levelksolutions.qlearning
    :members:

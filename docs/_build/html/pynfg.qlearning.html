@@ -27,8 +27,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="PyNFG 0.1 documentation" href="index.html" />
-    <link rel="up" title="RL Solutions" href="pynfg.rlsolutions.html" />
-    <link rel="next" title="Utilities" href="pynfg.utilities.html" />
+    <link rel="up" title="Using PyNFG to find level k equilibria" href="pynfg.levelksolutions.html" />
     <link rel="prev" title="Monte Carlo RL" href="pynfg.mcrl.html" /> 
   </head>
   <body>
@@ -42,13 +41,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="pynfg.utilities.html" title="Utilities"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
           <a href="pynfg.mcrl.html" title="Monte Carlo RL"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li>
-          <li><a href="pynfg.rlsolutions.html" accesskey="U">RL Solutions</a> &raquo;</li> 
+          <li><a href="pynfg.levelksolutions.html" accesskey="U">Using PyNFG to find level k equilibria</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -57,41 +53,95 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-pynfg.rlsolutions.qlearning">
-<span id="q-learning"></span><span id="qlearning"></span><h1>Q-Learning<a class="headerlink" href="#module-pynfg.rlsolutions.qlearning" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-pynfg.levelksolutions.qlearning">
+<span id="q-learning"></span><span id="qlearning"></span><h1>Q-Learning<a class="headerlink" href="#module-pynfg.levelksolutions.qlearning" title="Permalink to this headline">¶</a></h1>
 <p>Implements Optimistic Q-Learning for policies in pynfg.iterSemiNFG objects</p>
 <p>Created on Fri Mar 22 15:32:33 2013</p>
 <p>Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)</p>
 <p>GNU Affero General Public License</p>
 <p>Author: Dongping Xie</p>
-<dl class="function">
-<dt id="pynfg.rlsolutions.qlearning.opt_qlearning">
-<tt class="descclassname">pynfg.rlsolutions.qlearning.</tt><tt class="descname">opt_qlearning</tt><big>(</big><em>G</em>, <em>bn</em>, <em>w</em>, <em>d</em>, <em>N</em>, <em>r_max=0</em><big>)</big><a class="reference internal" href="_modules/pynfg/rlsolutions/qlearning.html#opt_qlearning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.rlsolutions.qlearning.opt_qlearning" title="Permalink to this definition">¶</a></dt>
-<dd><p>Solve for the optimal policy using Optimistic Q-learning</p>
-<p>Optimistic Q-Learning  is an off-policy TD control RL algorithm</p>
+<dl class="class">
+<dt id="pynfg.levelksolutions.qlearning.QLearning">
+<em class="property">class </em><tt class="descclassname">pynfg.levelksolutions.qlearning.</tt><tt class="descname">QLearning</tt><big>(</big><em>G</em>, <em>specs</em><big>)</big><a class="reference internal" href="_modules/pynfg/levelksolutions/qlearning.html#QLearning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.levelksolutions.qlearning.QLearning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the <strong>uncoordinated</strong> best policy using Q-learning.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>G</strong> (<em>iterSemiNFG</em>) &#8211; The iterated semi-NFG on which to perform the RL</li>
-<li><strong>bn</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The basename of the node with the CPT to be trained</li>
-<li><strong>w</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; The learning rate parameter</li>
-<li><strong>d</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; The discount factor</li>
-<li><strong>N</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The number of training episodes</li>
-<li><strong>r_max</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; (Optional) a guess of upperbound of reward in a single time 
-step. The default is 0 if no value is specified.</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Game</strong> (<em>iterSemiNFG</em>) &#8211; The iterated semi-NFG on which to perform the RL</li>
+<li><strong>specs</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; A nested dictionary contained specifications of the
+game.  See below for details</li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The iterated semi-NFG; a plot of the dynamic average reward; the
-q table</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Example:</p>
-<div class="highlight-python"><pre>G1, rseries, Q1 = opt_qlearning(G,'D1',w=0.1,d=0.95,N=100):</pre>
+<p>The specs dictionary is a triply nested dictionary.  The first
+level of keys is player names.  For each player there is an entry for
+the player&#8217;s:</p>
+<dl class="docutils">
+<dt>Level <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The player&#8217;s level</dd>
+<dt>w <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The learning rate</dd>
+<dt>delta <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The discount factor</dd>
+</dl>
+<p>The rest of the entries are basenames.  The value of
+each basename is a dictionary containing:</p>
+<dl class="docutils">
+<dt>N <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of training episodes</dd>
+<dt>r_max <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><dl class="first last docutils">
+<dt>(Optional) a guess of upperbound of reward in a single time</dt>
+<dd>step. The default is 0 if no value is specified.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pynfg.levelksolutions.qlearning.QLearning.solve_game">
+<tt class="descname">solve_game</tt><big>(</big><em>setCPT=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/levelksolutions/qlearning.html#QLearning.solve_game"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.levelksolutions.qlearning.QLearning.solve_game" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the game sfor specified player levels</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.levelksolutions.qlearning.QLearning.train_node">
+<tt class="descname">train_node</tt><big>(</big><em>bn</em>, <em>level</em>, <em>setCPT=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/levelksolutions/qlearning.html#QLearning.train_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.levelksolutions.qlearning.QLearning.train_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve for the optimal policy using Optimistic Q-learning. Optimistic
+Q-Learning  is an off-policy TD control RL algorithm</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>bn</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The basename of the node with the CPT to be trained</li>
+<li><strong>level</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The level at which to train the basename</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pynfg.levelksolutions.qlearning.qlearning_dict">
+<tt class="descclassname">pynfg.levelksolutions.qlearning.</tt><tt class="descname">qlearning_dict</tt><big>(</big><em>G</em>, <em>Level</em>, <em>w</em>, <em>N</em>, <em>delta</em>, <em>r_max=0</em>, <em>L0Dist=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/levelksolutions/qlearning.html#qlearning_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.levelksolutions.qlearning.qlearning_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the specs shell for a game to be solved using Q learning.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>G</strong> (<em>iterSemiNFG</em>) &#8211; An iterated SemiNFG</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">See the Q Learning documentation (above) for details of the  optional arguments</p>
 </div>
 </dd></dl>
 
@@ -106,9 +156,6 @@ q table</p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="pynfg.mcrl.html"
                         title="previous chapter">Monte Carlo RL</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="pynfg.utilities.html"
-                        title="next chapter">Utilities</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/pynfg.qlearning.txt"
@@ -141,13 +188,10 @@ q table</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="pynfg.utilities.html" title="Utilities"
-             >next</a> |</li>
-        <li class="right" >
           <a href="pynfg.mcrl.html" title="Monte Carlo RL"
              >previous</a> |</li>
         <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li>
-          <li><a href="pynfg.rlsolutions.html" >RL Solutions</a> &raquo;</li> 
+          <li><a href="pynfg.levelksolutions.html" >Using PyNFG to find level k equilibria</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

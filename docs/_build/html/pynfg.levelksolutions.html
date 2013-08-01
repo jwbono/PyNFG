@@ -177,7 +177,7 @@ Training Dhide at level 2
 <p>However, instead of the solved CPTs being attached to a node, the trained CPTs are stored as an attribute of the solver instance.</p>
 <div class="highlight-ipython"><pre>In [17]: solverMCRL.trained_CPTs</pre>
 </div>
-<p>will return a d triply nested dictionary.  The first layer of keys are players, the second layer of keys are base names and the third layer specifies the level.  For example</p>
+<p>will return a triply nested dictionary.  The first layer of keys are players, the second layer of keys are base names and the third layer specifies the level.  For example</p>
 <div class="highlight-ipython"><pre>In [18]: solverMCRL.trained_CPTs['hider']['Dhide']['Level1']</pre>
 </div>
 <p>gives the level 1 CPT for the hiders Dhide basename.  Also there are figures that indicate convergence of the solver.  They are stored as an attribute of the solver class.  It is a nested dictionary where the first layer of keys are basenames and the second layer are level numbers.</p>

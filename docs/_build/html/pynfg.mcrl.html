@@ -27,9 +27,9 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="PyNFG 0.1 documentation" href="index.html" />
-    <link rel="up" title="RL Solutions" href="pynfg.rlsolutions.html" />
+    <link rel="up" title="Using PyNFG to find level k equilibria" href="pynfg.levelksolutions.html" />
     <link rel="next" title="Q-Learning" href="pynfg.qlearning.html" />
-    <link rel="prev" title="RL Solutions" href="pynfg.rlsolutions.html" /> 
+    <link rel="prev" title="Relaxed Level K" href="pynfg.rlk.html" /> 
   </head>
   <body>
     <div class="related">
@@ -45,10 +45,10 @@
           <a href="pynfg.qlearning.html" title="Q-Learning"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="pynfg.rlsolutions.html" title="RL Solutions"
+          <a href="pynfg.rlk.html" title="Relaxed Level K"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li>
-          <li><a href="pynfg.rlsolutions.html" accesskey="U">RL Solutions</a> &raquo;</li> 
+          <li><a href="pynfg.levelksolutions.html" accesskey="U">Using PyNFG to find level k equilibria</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -57,47 +57,99 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-pynfg.rlsolutions.mcrl">
-<span id="monte-carlo-rl"></span><span id="montecarlorl"></span><h1>Monte Carlo RL<a class="headerlink" href="#module-pynfg.rlsolutions.mcrl" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-pynfg.levelksolutions.mcrl">
+<span id="monte-carlo-rl"></span><span id="montecarlorl"></span><h1>Monte Carlo RL<a class="headerlink" href="#module-pynfg.levelksolutions.mcrl" title="Permalink to this headline">¶</a></h1>
 <p>Implements Monte Carlo Reinforcement Learning for iterSemiNFG objects</p>
 <p>Created on Mon Feb 18 09:03:32 2013</p>
 <p>Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)</p>
 <p>GNU Affero General Public License</p>
-<dl class="function">
-<dt id="pynfg.rlsolutions.mcrl.ewma_mcrl">
-<tt class="descclassname">pynfg.rlsolutions.mcrl.</tt><tt class="descname">ewma_mcrl</tt><big>(</big><em>Game</em>, <em>bn</em>, <em>J</em>, <em>N</em>, <em>alpha</em>, <em>delta</em>, <em>eps</em>, <em>uni=False</em>, <em>pureout=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/rlsolutions/mcrl.html#ewma_mcrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.rlsolutions.mcrl.ewma_mcrl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use EWMA MC RL to approximate the optimal CPT at bn given G</p>
+<dl class="class">
+<dt id="pynfg.levelksolutions.mcrl.EWMA_MCRL">
+<em class="property">class </em><tt class="descclassname">pynfg.levelksolutions.mcrl.</tt><tt class="descname">EWMA_MCRL</tt><big>(</big><em>Game</em>, <em>specs</em><big>)</big><a class="reference internal" href="_modules/pynfg/levelksolutions/mcrl.html#EWMA_MCRL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.levelksolutions.mcrl.EWMA_MCRL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the <strong>uncoordinated</strong> best policy using reinforcement learning.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>Game</strong> (<em>iterSemiNFG</em>) &#8211; The iterated semi-NFG on which to perform the RL</li>
-<li><strong>bn</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the basename of the node with the CPT to be trained</li>
-<li><strong>J</strong> (<em>int, list, or np.array</em>) &#8211; The number of runs per training episode. If a schedule is desired, 
-enter a list or np.array with size equal to N.</li>
-<li><strong>N</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The number of training episodes</li>
-<li><strong>alpha</strong> (<em>int, list or np.array</em>) &#8211; The exponential weight for the moving average. If a schedule is
-desired, enter a list or np.array with size equal to N</li>
-<li><strong>delta</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; The discount factor</li>
-<li><strong>eps</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; The maximum step-size for policy improvements</li>
-<li><strong>uni</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; if True, training is initialized with a uniform policy. Default 
-False to allow &#8220;seeding&#8221; with different policies, e.g. level k-1</li>
-<li><strong>pureout</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; if True, the policy is turned into a pure policy at the end 
-of training by assigning argmax actions prob 1. Default is False</li>
+<li><strong>specs</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; A nested dictionary containing specifications of the
+game.  See below for details</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">copy</span>
-<span class="n">GG</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">pynfg.rlsolutions.mcrl</span> <span class="kn">import</span> <span class="n">ewma_mcrl</span>
-<span class="n">G1</span><span class="p">,</span> <span class="n">Rseries</span> <span class="o">=</span> <span class="n">ewma_mcrl</span><span class="p">(</span><span class="n">GG</span><span class="p">,</span> <span class="s">&#39;D1&#39;</span><span class="p">,</span> <span class="n">J</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">linspace</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">)),</span>
-                        <span class="n">N</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> 
-                        <span class="n">pureout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</pre></div>
+<p>The specs dictionary is a triply nested dictionary.  The first
+level of keys is player names.  For each player there is an entry with key</p>
+<dl class="docutils">
+<dt>Level <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The player&#8217;s level</dd>
+</dl>
+<p>The rest of the entries are basenames.  The value of each basename is a
+dictionary containing:</p>
+<dl class="docutils">
+<dt>J <span class="classifier-delimiter">:</span> <span class="classifier">int, list, or np.array</span></dt>
+<dd>The number of runs per training episode. If a schedule is desired, enter a list or np.array with size equal to N.</dd>
+<dt>N <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of training episodes</dd>
+<dt>L0Dist <span class="classifier-delimiter">:</span> <span class="classifier">ndarray, str, None</span></dt>
+<dd>If ndarray, then the level 0 CPT is set to
+L0Dist. If L0Dist is &#8216;uniform&#8217;, then all Level 0 CPTs are set to
+the uniform distribution.  If L0Dist is None, then the level 0 CPT
+is set to the CPT of the inputted game.</dd>
+<dt>alpha <span class="classifier-delimiter">:</span> <span class="classifier">int, list or np.array</span></dt>
+<dd>The exponential weight for the moving average. If a schedule is
+desired, enter a list or np.array with size equal to N</dd>
+<dt>delta <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The discount factor</dd>
+<dt>eps <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The maximum step-size for policy improvements</dd>
+<dt>pureout <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>if True, the policy is turned into a pure policy at the end
+of training by assigning argmax actions prob 1. Default is False</dd>
+</dl>
+<dl class="method">
+<dt id="pynfg.levelksolutions.mcrl.EWMA_MCRL.solve_game">
+<tt class="descname">solve_game</tt><big>(</big><em>setCPT=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/levelksolutions/mcrl.html#EWMA_MCRL.solve_game"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.levelksolutions.mcrl.EWMA_MCRL.solve_game" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the game for given player levels</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.levelksolutions.mcrl.EWMA_MCRL.train_node">
+<tt class="descname">train_node</tt><big>(</big><em>bn</em>, <em>level</em>, <em>setCPT=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/levelksolutions/mcrl.html#EWMA_MCRL.train_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.levelksolutions.mcrl.EWMA_MCRL.train_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use EWMA MC RL to approximate the optimal CPT at bn given Game</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>bn</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the basename of the node with the CPT to be trained</li>
+<li><strong>level</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The level at which to train the basename</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pynfg.levelksolutions.mcrl.mcrl_dict">
+<tt class="descclassname">pynfg.levelksolutions.mcrl.</tt><tt class="descname">mcrl_dict</tt><big>(</big><em>Game</em>, <em>Level</em>, <em>J</em>, <em>N</em>, <em>delta</em>, <em>alpha=0.5</em>, <em>eps=0.2</em>, <em>L0Dist=None</em>, <em>pureout=False</em><big>)</big><a class="reference internal" href="_modules/pynfg/levelksolutions/mcrl.html#mcrl_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.levelksolutions.mcrl.mcrl_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the specs shell for a game to be solved using MCRL.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Game</strong> (<em>SemiNFG</em>) &#8211; An iterated SemiNFG</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">See the EWMA_MCRL documentation (above) for details of the  optional arguments</p>
 </div>
 </dd></dl>
 
@@ -110,8 +162,8 @@ of training by assigning argmax actions prob 1. Default is False</li>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="pynfg.rlsolutions.html"
-                        title="previous chapter">RL Solutions</a></p>
+  <p class="topless"><a href="pynfg.rlk.html"
+                        title="previous chapter">Relaxed Level K</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pynfg.qlearning.html"
                         title="next chapter">Q-Learning</a></p>
@@ -150,10 +202,10 @@ of training by assigning argmax actions prob 1. Default is False</li>
           <a href="pynfg.qlearning.html" title="Q-Learning"
              >next</a> |</li>
         <li class="right" >
-          <a href="pynfg.rlsolutions.html" title="RL Solutions"
+          <a href="pynfg.rlk.html" title="Relaxed Level K"
              >previous</a> |</li>
         <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li>
-          <li><a href="pynfg.rlsolutions.html" >RL Solutions</a> &raquo;</li> 
+          <li><a href="pynfg.levelksolutions.html" >Using PyNFG to find level k equilibria</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -299,25 +299,27 @@ the SemiNFG object.</td>
 </tr>
 </tbody>
 </table>
-<p>This is equivalent to calling <tt class="docutils literal"><span class="pre">set(node.parents)</span></tt></p>
+<p>This is equivalent to calling <tt class="docutils literal"><span class="pre">set(node.parents.values())</span></tt></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pynfg.classes.seminfg.SemiNFG.sample">
-<tt class="descname">sample</tt><big>(</big><em>start=None</em>, <em>nodenames=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.sample" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">sample</tt><big>(</big><em>start=None</em>, <em>nodenames=None</em>, <em>exclude=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/classes/seminfg.html#SemiNFG.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.classes.seminfg.SemiNFG.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample the net to obtain a draw from the joint distribution.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>start</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; (Optional) if unspecified, the entire net will be sampled 
+<li><strong>start</strong> (<em>list or set</em>) &#8211; (Optional) if unspecified, the entire net will be sampled 
 from the prior. Otherwise, start is a list of nodenodes that serve as 
 the starting points for the sampling. That is, the sampling will 
 commence from the nodes in start and continue until all of the 
 descendants of the nodes in start have been sampled exactly once.</li>
-<li><strong>nodenames</strong> &#8211; a list of node names for which output is desired. By
+<li><strong>nodenames</strong> (<em>list or set</em>) &#8211; a list of node names for which output is desired. By
 default, no output is provided.</li>
+<li><strong>exclude</strong> (<em>list or set</em>) &#8211; a list of node names that are to be held constant at their
+current values, i.e. excluded from the sampling.</li>
 </ul>
 </td>
 </tr>

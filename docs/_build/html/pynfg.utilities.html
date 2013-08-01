@@ -27,7 +27,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="PyNFG 0.1 documentation" href="index.html" />
-    <link rel="prev" title="Q-Learning" href="pynfg.qlearning.html" /> 
+    <link rel="next" title="Using PyNFG to find level k equilibria" href="pynfg.levelksolutions.html" />
+    <link rel="prev" title="Iterated Intelligence" href="pynfg.iq_iterated.html" /> 
   </head>
   <body>
     <div class="related">
@@ -40,7 +41,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="pynfg.qlearning.html" title="Q-Learning"
+          <a href="pynfg.levelksolutions.html" title="Using PyNFG to find level k equilibria"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pynfg.iq_iterated.html" title="Iterated Intelligence"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li> 
       </ul>
@@ -53,7 +57,9 @@
             
   <div class="section" id="utilities">
 <span id="id1"></span><h1>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-pynfg.utilities.utilities"></span><p>Created on Tue May  7 15:39:38 2013</p>
+<span class="target" id="module-pynfg.utilities.utilities"></span><p>Several useful functions for use in various places in PyNFG</p>
+<p>Part of: PyNFG - a Python package for modeling and solving Network Form Games</p>
+<p>Created on Tue May  7 15:39:38 2013</p>
 <p>Copyright (C) 2013 James Bono (<a class="reference external" href="mailto:jwbono&#37;&#52;&#48;gmail&#46;com">jwbono<span>&#64;</span>gmail<span>&#46;</span>com</a>)</p>
 <p>GNU Affero General Public License</p>
 <dl class="function">
@@ -74,6 +80,26 @@ given messages with all elements zero or one.</td>
 </dd></dl>
 
 <dl class="function">
+<dt id="pynfg.utilities.utilities.mceu">
+<tt class="descclassname">pynfg.utilities.utilities.</tt><tt class="descname">mceu</tt><big>(</big><em>Game</em>, <em>dn</em>, <em>N</em>, <em>tol=30</em>, <em>delta=1</em>, <em>verbose=False</em><big>)</big><a class="headerlink" href="#pynfg.utilities.utilities.mceu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the move-conditioned expected utilities for all parent values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Game</strong> (<em>SemiNFG or iterSemiNFG</em>) &#8211; the SemiNFG of interest</li>
+<li><strong>dn</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name of the decision node where MCEUs are estimated</li>
+<li><strong>N</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; the max number of iterations for the estimation</li>
+<li><strong>tol</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; the minimum number of samples per parent value</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="pynfg.utilities.utilities.mh_decision">
 <tt class="descclassname">pynfg.utilities.utilities.</tt><tt class="descname">mh_decision</tt><big>(</big><em>pnew</em>, <em>pold</em>, <em>qnew=1</em>, <em>qold=1</em><big>)</big><a class="reference internal" href="_modules/pynfg/utilities/utilities.html#mh_decision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.utilities.utilities.mh_decision" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decide to accept the new draw or keep the old one</p>
@@ -84,14 +110,14 @@ given messages with all elements zero or one.</td>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>pnew</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the unnormalized likelihood of the new draw</li>
 <li><strong>pold</strong> &#8211; the unnormalized likelihood of the old draw</li>
-<li><strong>qnew</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the probability of transitioning from the old draw to the new 
+<li><strong>qnew</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the probability of transitioning from the old draw to the new
 draw.</li>
-<li><strong>qold</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the probability of transitioning from the new draw to the old 
+<li><strong>qold</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the probability of transitioning from the new draw to the old
 draw.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">either True or False to determine whether the new draw is 
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">either True or False to determine whether the new draw is
 accepted.</p>
 </td>
 </tr>
@@ -108,8 +134,11 @@ accepted.</p>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="pynfg.qlearning.html"
-                        title="previous chapter">Q-Learning</a></p>
+  <p class="topless"><a href="pynfg.iq_iterated.html"
+                        title="previous chapter">Iterated Intelligence</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pynfg.levelksolutions.html"
+                        title="next chapter">Using PyNFG to find level k equilibria</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/pynfg.utilities.txt"
@@ -142,7 +171,10 @@ accepted.</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="pynfg.qlearning.html" title="Q-Learning"
+          <a href="pynfg.levelksolutions.html" title="Using PyNFG to find level k equilibria"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pynfg.iq_iterated.html" title="Iterated Intelligence"
              >previous</a> |</li>
         <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li> 
       </ul>
