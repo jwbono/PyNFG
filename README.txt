@@ -37,4 +37,4 @@ Please contact James Bono for questions about using PyNFG in your research, repo
 
 4. Contributors
 ----------------------
-PyNFG is authored by James Bono with contributions by Dongping Xie. The project has received valuable feedback from Justin Grana, David Wolpert, Adrian Agogino, Juan Alonso, Brendan Tracey, Alice Fan, Dominic McConnachie, Kee Palopo, Huu Huynh, and others.
+PyNFG is authored by James Bono, Justin Grana, and Dongping Xie. The project has received valuable feedback from David Wolpert, Adrian Agogino, Juan Alonso, Brendan Tracey, Alice Fan, Dominic McConnachie, Kee Palopo, Huu Huynh, and others.

@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 setup(
     name='PyNFG',
-    version='0.1.1.1',
+    version='0.1.2',
     author='James Bono',
     author_email='jwbono@gmail.com',
     packages= find_packages(),

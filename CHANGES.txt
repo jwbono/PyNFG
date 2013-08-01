@@ -8,3 +8,5 @@ v0.1.2, 5/23/13 -- New internal structure for setting and getting node values an
 v0.1.2, 5/23/13 -- Bug fix in ChanceNode.draw_value
 v0.1.2, 5/28/13 -- Removed sliver option from DecisionNode.perturbCPT
 v0.1.2, 5/23/13 -- Changed simplex draws to faster Dirichlet method in DecisionNode.randomCPT
+v0.1.2, 6/11/13 -- Bug fixes in MH PGT algorithms
+v0.1.2, 6/27/13 -- Created set_CPTs and get_decisionCPTs for semiNFG and used them to replace deepcopy operations in multiple algorithms
