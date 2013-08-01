@@ -1,0 +1,67 @@
+.. _RelaxedLevelK:
+
+***************
+Relaxed Level K
+***************
+
+Introduction
+------------
+
+Relaxed Level K (rlk) is a solution concept in which players have bounded rationality.  Instead of
+sampling from all possible strategies, players sample from a (possibly proper) subset of
+their strategy space known as their satisficing distribution.  The players sample their
+satisficing distribution M times for each possible value of the parents.  They then
+sample the rest of the net M' times.  They then record which strategy yielded the highest
+utility.  This process is repeated N times and the player's final strategy is the expected
+value of maximal strategies 1...N.
+
+References
+^^^^^^^^^^
+
+The main reference for rlk is::
+
+    Lee and Wolpert, "Game theoretic modeling of pilot behavior during mid-air encounters," Decision-Making with Imperfect Decision Makers, T. Guy, M. Karny and D.H.Wolpert, Springer (2011).
+
+RLK in parallel
+----------------
+Since, each player can be trained independently of the others at a given level, rlk is a prime candidate for parallel computing.  Using PyNFg makes this even easier.  To solve a game in parallel just do
+
+.. code-block:: ipython
+
+   In [9]: G_parallel = rlk_parallel(G, player_info, 10,3,1)
+   Training Q1 at level 1
+   Training Q2 at level 1
+   Training Q1 at level 2
+   Training Q2 at level 2
+   Training Q1 at level 3
+   Training Q2 at level 3
+
+G_parallel is similar in nature to solver.G.  Making both players level 3, note the speedup
+
+.. code-block:: ipython
+
+   In [10]: %timeit -r1 -n1 G_parallel = rlk_parallel(G, player_info, 10,3,1)
+   Training Q1 at level 1
+   Training Q2 at level 1
+   Training Q1 at level 2
+   Training Q2 at level 2
+   Training Q1 at level 3
+   Training Q2 at level 3
+   1 loops, best of 1: 6.35 s per loop
+
+   In [11]: %timeit -r1 -n1 solver.solve_game()
+   Training Q1 at level 1
+   Training Q2 at level 1
+   Training Q1 at level 2
+   Training Q2 at level 2
+   Training Q1 at level 3
+   Training Q2 at level 3
+   1 loops, best of 1: 12.8 s per loop
+
+
+
+Detailed Documentation
+----------------------
+
+.. automodule:: pynfg.levelksolutions.rlk
+   :members:

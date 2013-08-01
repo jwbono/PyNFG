@@ -1,0 +1,210 @@
+.. _levelksolutions:
+
+Using PyNFG to find level k equilibria
+======================================
+
+The level K solution concept is an alternative to the traditional Nash Equilibrium.  In such a framework, each player is assumed to be a certain integer level.  A player of level k models all other players as level k-1, while the level 0 distribution for each player is assumed to be common knowledge and is prespecified before the start of the game.  A level k equilibrium is where each player maximizes her expected utility at level k, assuming all other players are level k-1.
+
+
+The quickest way to grasp the framework of PyNFG is to work through the extended example below.
+Although the example is based around the relaxed level k equilibrium in which player's rationality is bounded by the number of strategies they can choose from, the general structure of how to use the solvers is the same for traditional level k equilibrium.
+
+Extended Example
+----------------
+
+Solving a static game
+^^^^^^^^^^^^^^^^^^^^^
+
+Suppose we are interested in using relaxed level k to estimate the strategies of the players in the Stackelberg game.  Let G be the SemiNFG created in the Stackelberg game included in this package.  First, we have to specify a number of parameters for each player.  In the relaxed level k scenario, the parameters are M, Mprime, the satisficing distribution the level and the level 0 distribution of all players.  The format is to specify the parameters in a triply-nested dictionary where the outer layer keys are player names.  In the dictionary for each player, there are keys for parameters that do not depend on the specific node of the player.  In this case, the only parameter in the player's dictionary is the level.  The rest of the keys in the player's dictionary are node names. For each node, keys are M, Mprime, SDist, L0Dist.  However, the rlk_dict function creates the shell for this dictionary so the end user can just modify keys.
+
+.. code-block:: ipython
+
+   In [1]: player_info = rlk_dict(G, M=10, Mprime=10, Level=2, SDist =   'all pure', L0Dist = 'uniform')
+   In [2]: player_info
+   Out[2]:
+	{'1': {'Q1': {'L0Dist': 'uniform',
+   	'M': 10,
+   	'Mprime': 10,
+   	'SDist': 'all pure'}, 'Level': 2},
+   	'2': {'Q2': {'L0Dist': 'uniform',
+   	'M': 10,
+   	'Mprime': 10,
+   	'SDist': 'all pure'}, 'Level': 2,}}
+
+The inputs to rlk_dict are set for all players.  However, modifying the dictionary is simple.  For example, we can set
+
+.. code-block:: ipython
+
+   In [3]: player_info['2']['Level']=3
+   In [4]: player_info
+   Out[4]:
+	{'1': {'Q1': {'L0Dist': 'uniform',
+   	'M': 10,
+   	'Mprime': 10,
+   	'SDist': 'all pure'}, 'Level': 2},
+   	'2': {'Q2': {'L0Dist': 'uniform',
+   	'M': 10,
+   	'Mprime': 10,
+   	'SDist': 'all pure'}, 'Level': 3,}}
+
+
+Now that the details of the game are specified, it is possible to solve the game.  To do this, just create an rlk instance and call method solve_game()
+
+.. code-block:: ipython
+
+   In [5]: solver = RLK(G,player_info, 10)
+   In [6]: solver.solve_game()
+   Training Q1 at level 1
+   Training Q2 at level 1
+   Training Q1 at level 2
+   Training Q2 at level 2
+   Training Q2 at level 3
+
+To see the solved CPT for a player, access the rlk's instance of the game (not the original inputted game.  Then select a decision node and view its new attribute LevelCPT
+
+.. code-block:: ipython
+
+   In [7]: solver.G.node_dict['Q1'].LevelCPT
+   Out[7]: {'Level0': array([[ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667, 0.16666667], [ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667, 0.16666667], [ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667,0.16666667]]), 'Level1': array([[ 0. ,  0. ,  0. ,  0.5,  0.4,  0.1], [ 0. ,  0. ,  0.3,  0.4,  0.3,  0. ], [ 0. ,  0. ,  0.8,  0.1,  0.1,  0. ]]), 'Level2': array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.43333333, 0.56666667], [ 0.        ,  0.        ,  0.        ,  0.26666667,  0.5       , 0.23333333], [ 0.        ,  0.3       ,  0.7       ,  0.        ,  0.        , 0.        ]])}
+
+
+The result is a dictionary consisting of the player's strategies for each level trained.  Note that even if a player is level 1, LevelCPT might also contain a level 2 strategy if other players are level 3 or greater.
+
+To train player 1 to level three without resolving the entire game, just do
+
+.. code-block:: ipython
+
+   In [8]: solver.train_node('Q1',3)
+   Training Q1 at level 3
+
+Now calling **solver.G.node_dict['Q1']** will have an entry for Level 3.
+
+
+Now, to find the level k best response solution, follow the same steps but use the BestResponse solver and br_dict to specify the parameters
+
+.. code-block:: ipython
+
+   In [9]: player_info_br = br_dict(G, 10, 2, L0Dist = 'uniform', beta=2)
+   In [10]: BRsolver = BestResponse(G, player_info_br)
+   In [11]: BRSolver.solve_game(logit=True)
+   Training Q1 at level 1
+   Training Q2 at level 1
+   Training Q1 at level 2
+   Training Q2 at level 2
+   In [12]: BRSolver.train_node('Q1',3)
+   Training Q1 at level 3
+
+Note that by specifying a beta parameter and logit=True, best response is actually calculating the quantal response which converges to the best response as beta approaches infinity.
+
+Solving Iterated Games
+^^^^^^^^^^^^^^^^^^^^^^
+
+In the simplest fashion, iterated games are solved the same way as non-iterated games.  However, there are a few minor differences that will be discussed below.
+
+Now assume that G is the hide and seek game included in this package.  Suppose we want to solve it using Monte Carlo Reinforcement Learning (MCRL).
+
+.. code-block:: ipython
+
+  In [13]: player_info_mcrl=mcrl_dict(G, 2, 10, 10,1, L0Dist='uniform')
+  In [14]: solverMCRL = EWMA_MCRL(G, player_info_mcrl)
+  In [15]: solverMCRL.solve_game()
+  Training Dseek at level 1
+  0
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+  Training Dhide at level 1
+  0
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+  Training Dseek at level 2
+  0
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+  Training Dhide at level 2
+  0
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+
+
+However, instead of the solved CPTs being attached to a node, the trained CPTs are stored as an attribute of the solver instance.
+
+
+.. code-block:: ipython
+
+  In [17]: solverMCRL.trained_CPTs
+
+will return a d triply nested dictionary.  The first layer of keys are players, the second layer of keys are base names and the third layer specifies the level.  For example
+
+.. code-block:: ipython
+
+  In [18]: solverMCRL.trained_CPTs['hider']['Dhide']['Level1']
+
+gives the level 1 CPT for the hiders Dhide basename.  Also there are figures that indicate convergence of the solver.  They are stored as an attribute of the solver class.  It is a nested dictionary where the first layer of keys are basenames and the second layer are level numbers.
+
+.. code-block:: ipython
+
+  In [19]: solverMCRL.figs
+  Out[19]:
+  {'Dhide': {'1': <matplotlib.figure.Figure at 0x424d410>,
+  '2': <matplotlib.figure.Figure at 0x4cf9a10>},
+  'Dseek': {'1': <matplotlib.figure.Figure at 0x3fa81d0>,
+  '2': <matplotlib.figure.Figure at 0x49ef8d0>}}
+
+
+Solving for a node in an iterated game
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Calling solverMCRL.solve_game() and solverMCRL.train_node(.) finds an optimal policy for the basenames.  Sometimes, a user might want to find a best response for a specific node of a basename given the current values of the CPTs for all other players.  To accomplish this, just use BestResponse
+
+.. code-block:: ipython
+
+   In [20]: player_info_br = br_dict(G, 30, 2)
+   In [21]: BRsolver = BestResponse(G, player_info_br)
+   /usr/local/bin/ipython:109: UserWarning: No entry for L0Dist for player seeker,                        setting to current CPT
+   /usr/local/bin/ipython:109: UserWarning: No entry for L0Dist for player hider,                        setting to current CPT
+   In [22]: BRSolver.train_node('Dseek2',1)
+   Training Dseek2 at level 1
+
+To see the new CPT just do
+
+.. code-block:: ipython
+
+   In [23]: seek2CPT = BRSolver.G.node_dict['Dseek2'].LevelCPT['Level1']
+
+Solvers
+-------
+.. toctree::
+   :maxdepth: 2
+
+   Best Response <pynfg.bestresponse>
+   Relaxed Level K <pynfg.rlk>
+   MCRL <pynfg.mcrl>
+   Q Learning <pynfg.qlearning>
+

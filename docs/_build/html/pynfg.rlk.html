@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Relaxed Level K &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="index.html" />
+    <link rel="up" title="Using PyNFG to find level k equilibria" href="pynfg.levelksolutions.html" />
+    <link rel="next" title="Monte Carlo RL" href="pynfg.mcrl.html" />
+    <link rel="prev" title="Best Response" href="pynfg.bestresponse.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pynfg.mcrl.html" title="Monte Carlo RL"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pynfg.bestresponse.html" title="Best Response"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="pynfg.levelksolutions.html" accesskey="U">Using PyNFG to find level k equilibria</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="relaxed-level-k">
+<span id="relaxedlevelk"></span><h1>Relaxed Level K<a class="headerlink" href="#relaxed-level-k" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Relaxed Level K (rlk) is a solution concept in which players have bounded rationality.  Instead of
+sampling from all possible strategies, players sample from a (possibly proper) subset of
+their strategy space known as their satisficing distribution.  The players sample their
+satisficing distribution M times for each possible value of the parents.  They then
+sample the rest of the net M&#8217; times.  They then record which strategy yielded the highest
+utility.  This process is repeated N times and the player&#8217;s final strategy is the expected
+value of maximal strategies 1...N.</p>
+<div class="section" id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<p>The main reference for rlk is:</p>
+<div class="highlight-python"><pre>Lee and Wolpert, "Game theoretic modeling of pilot behavior during mid-air encounters," Decision-Making with Imperfect Decision Makers, T. Guy, M. Karny and D.H.Wolpert, Springer (2011).</pre>
+</div>
+</div>
+</div>
+<div class="section" id="rlk-in-parallel">
+<h2>RLK in parallel<a class="headerlink" href="#rlk-in-parallel" title="Permalink to this headline">¶</a></h2>
+<p>Since, each player can be trained independently of the others at a given level, rlk is a prime candidate for parallel computing.  Using PyNFg makes this even easier.  To solve a game in parallel just do</p>
+<div class="highlight-ipython"><pre>In [9]: G_parallel = rlk_parallel(G, player_info, 10,3,1)
+Training Q1 at level 1
+Training Q2 at level 1
+Training Q1 at level 2
+Training Q2 at level 2
+Training Q1 at level 3
+Training Q2 at level 3</pre>
+</div>
+<p>G_parallel is similar in nature to solver.G.  Making both players level 3, note the speedup</p>
+<div class="highlight-ipython"><pre>In [10]: %timeit -r1 -n1 G_parallel = rlk_parallel(G, player_info, 10,3,1)
+Training Q1 at level 1
+Training Q2 at level 1
+Training Q1 at level 2
+Training Q2 at level 2
+Training Q1 at level 3
+Training Q2 at level 3
+1 loops, best of 1: 6.35 s per loop
+
+In [11]: %timeit -r1 -n1 solver.solve_game()
+Training Q1 at level 1
+Training Q2 at level 1
+Training Q1 at level 2
+Training Q2 at level 2
+Training Q1 at level 3
+Training Q2 at level 3
+1 loops, best of 1: 12.8 s per loop</pre>
+</div>
+</div>
+<div class="section" id="module-pynfg.levelksolutions.rlk">
+<span id="detailed-documentation"></span><h2>Detailed Documentation<a class="headerlink" href="#module-pynfg.levelksolutions.rlk" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pynfg.levelksolutions.rlk.RLK">
+<em class="property">class </em><tt class="descclassname">pynfg.levelksolutions.rlk.</tt><tt class="descname">RLK</tt><big>(</big><em>G</em>, <em>specs</em>, <em>N</em>, <em>parallel=False</em><big>)</big><a class="headerlink" href="#pynfg.levelksolutions.rlk.RLK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the <strong>uncoordinated</strong> relaxed level-k solution for a semi-NFG.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>G</strong> (<em>semiNFG</em>) &#8211; A semi-NFG</li>
+<li><strong>specs</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; dictionary of dictionaries containing specifications of
+the level, satisficing distribution, level-0 strategy,
+and degrees of rationality of each player.
+See below for details.</li>
+<li><strong>N</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of times to repeat sampling algorithm</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>specs is a triply-nested dictionary.  The first set of keys
+are the player names.  For each player key, there is a key</p>
+<dl class="docutils">
+<dt>Level <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The player&#8217;s level</dd>
+</dl>
+<p>The rest of the keys for each player are the names of nodes that
+belong to that player. For each node, the dictionary has four entries</p>
+<dl class="docutils">
+<dt>M <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the satisficing distribution</dd>
+<dt>Mprime <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the net for each satisficing
+draw.</dd>
+<dt>L0Dist <span class="classifier-delimiter">:</span> <span class="classifier">ndarray, str, None</span></dt>
+<dd>If ndarray, then the level 0 CPT is set to
+L0Dist. If L0Dist is &#8216;uniform&#8217;, then all Level 0 CPTs are set to
+the uniform distribution.  If L0Dist is None, then the level 0 CPT
+is set to the CPT of the inputted game.</dd>
+<dt>SDist <span class="classifier-delimiter">:</span> <span class="classifier">function, 2darray, or  str</span></dt>
+<dd>If &#8216;all pure&#8217; then the satisficing distribution is all
+pure strategies.  If &#8216;all mixed&#8217; then the satisficing
+distribution is all mixed strategies.  If 2darray,
+the value must be an nxk array where n is the number
+of satisficing strategies and k is the size of the
+player&#8217;s space.  Each row in the 2darray corresponds to
+a strategy.  If function, SDist is a function that returns
+<strong>a draw</strong> from the conditional satisficing distribution.
+The function can take as parameters a dictionary whose keys
+are the names of the parent nodes and values are the value
+of the parent node.</dd>
+</dl>
+<dl class="method">
+<dt id="pynfg.levelksolutions.rlk.RLK.solve_game">
+<tt class="descname">solve_game</tt><big>(</big><em>setCPT=False</em><big>)</big><a class="headerlink" href="#pynfg.levelksolutions.rlk.RLK.solve_game" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the game for specified player levels</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynfg.levelksolutions.rlk.RLK.train_node">
+<tt class="descname">train_node</tt><big>(</big><em>nodename</em>, <em>level</em>, <em>setCPT=False</em><big>)</big><a class="headerlink" href="#pynfg.levelksolutions.rlk.RLK.train_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains a node at a specified level</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nodename</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; The name of the node to be trained</li>
+<li><strong>level</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The level at which to train that player</li>
+<li><strong>setCPT</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If the trained CPT should be set as the current CPT.
+Otherwise, it can be accessed through node.LevelCPT.  Default is False</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pynfg.levelksolutions.rlk.rlk_dict">
+<tt class="descclassname">pynfg.levelksolutions.rlk.</tt><tt class="descname">rlk_dict</tt><big>(</big><em>G</em>, <em>M=None</em>, <em>Mprime=None</em>, <em>Level=None</em>, <em>L0Dist=None</em>, <em>SDist=None</em><big>)</big><a class="reference internal" href="_modules/pynfg/levelksolutions/rlk.html#rlk_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.levelksolutions.rlk.rlk_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper function to generate the player_spec dictionary
+for relaxed level K.  If optional arguments are specified, they are
+set for all decision nodes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>G</strong> (<em>SemiNFG</em>) &#8211; A SemiNFG</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">See the rlk documentation (above) for details of the  optional arguments</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pynfg.levelksolutions.rlk.rlk_parallel">
+<tt class="descclassname">pynfg.levelksolutions.rlk.</tt><tt class="descname">rlk_parallel</tt><big>(</big><em>G</em>, <em>ps</em>, <em>N</em>, <em>level_stop</em>, <em>level_start=1</em><big>)</big><a class="reference internal" href="_modules/pynfg/levelksolutions/rlk.html#rlk_parallel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pynfg.levelksolutions.rlk.rlk_parallel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves RLK in parallel.  Returns a Game where each node has
+attribute LevelCPT with entries from level_start to level_stop</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>G</strong> (<em>semiNFG</em>) &#8211; A semi-NFG</li>
+<li><strong>ps</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; dictionary of dictionaries containing
+the level, satisficing distribution, level-0 strategy,
+and degrees of rationality of each player.</li>
+<li><strong>N</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of times to repeat sampling algorithm</li>
+<li><strong>level_stop</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; How high to train all player.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Level_start :</th><td class="field-body"><p class="first last">The starting level.  If level_start&gt;1, the nodes in G
+must already have an attribute LevelCPT with a key
+&#8216;Level&#8217; + str(level_start-1)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>For details on the ps parameter, see pynfg.levelksolutions.rlk</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Relaxed Level K</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rlk-in-parallel">RLK in parallel</a></li>
+<li><a class="reference internal" href="#module-pynfg.levelksolutions.rlk">Detailed Documentation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pynfg.bestresponse.html"
+                        title="previous chapter">Best Response</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pynfg.mcrl.html"
+                        title="next chapter">Monte Carlo RL</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pynfg.rlk.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pynfg.mcrl.html" title="Monte Carlo RL"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pynfg.bestresponse.html" title="Best Response"
+             >previous</a> |</li>
+        <li><a href="index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="pynfg.levelksolutions.html" >Using PyNFG to find level k equilibria</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

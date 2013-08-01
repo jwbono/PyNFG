@@ -1,0 +1,290 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pynfg.levelksolutions.qlearning &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pynfg.levelksolutions.qlearning</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implements Optimistic Q-Learning for policies in pynfg.iterSemiNFG objects</span>
+
+<span class="sd">Created on Fri Mar 22 15:32:33 2013</span>
+
+<span class="sd">Copyright (C) 2013 James Bono (jwbono@gmail.com)</span>
+
+<span class="sd">GNU Affero General Public License</span>
+
+<span class="sd">Author: Dongping Xie</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pylab</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pynfg.utilities.utilities</span> <span class="kn">import</span> <span class="n">convert_2_pureCPT</span><span class="p">,</span> <span class="n">iterated_input_dict</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<div class="viewcode-block" id="QLearning"><a class="viewcode-back" href="../../../pynfg.qlearning.html#pynfg.levelksolutions.qlearning.QLearning">[docs]</a><span class="k">class</span> <span class="nc">QLearning</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds the **uncoordinated** best policy using Q-learning.</span>
+<span class="sd">    :arg Game: The iterated semi-NFG on which to perform the RL</span>
+<span class="sd">    :type Game: iterSemiNFG</span>
+<span class="sd">    :arg specs: A nested dictionary contained specifications of the</span>
+<span class="sd">        game.  See below for details</span>
+<span class="sd">    :type specs: dict</span>
+
+<span class="sd">    The specs dictionary is a triply nested dictionary.  The first</span>
+<span class="sd">    level of keys is player names.  For each player there is an entry for</span>
+<span class="sd">    the player&#39;s:</span>
+
+<span class="sd">    Level : int</span>
+<span class="sd">        The player&#39;s level</span>
+<span class="sd">    w : float</span>
+<span class="sd">       The learning rate</span>
+<span class="sd">    delta : float</span>
+<span class="sd">        The discount factor</span>
+
+<span class="sd">    The rest of the entries are basenames.  The value of</span>
+<span class="sd">    each basename is a dictionary containing:</span>
+
+<span class="sd">    N : int</span>
+<span class="sd">        The number of training episodes</span>
+<span class="sd">    r_max : float</span>
+<span class="sd">        (Optional) a guess of upperbound of reward in a single time</span>
+<span class="sd">            step. The default is 0 if no value is specified.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">specs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">G</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specs</span> <span class="o">=</span> <span class="n">specs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trained_CPTs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">figs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+            <span class="n">basenames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]))</span>
+            <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">basenames</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">trained_CPTs</span><span class="p">[</span><span class="n">player</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">trained_CPTs</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">bn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">trained_CPTs</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">bn</span><span class="p">][</span><span class="s">&#39;Level0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_L0_CPT</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">figs</span><span class="p">[</span><span class="n">bn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">specs</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="s">&#39;Level&#39;</span><span class="p">],</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_L0_CPT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the level 0 CPT&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">specs</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">:</span>
+            <span class="n">basenames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]))</span>
+            <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">basenames</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">bn</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;uniform&#39;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">uniformCPT</span><span class="p">(</span><span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">bn</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;No entry for L0Dist for player </span><span class="si">%s</span><span class="s">,</span><span class="se">\</span>
+<span class="s">                    setting to current CPT&quot;</span> <span class="o">%</span> <span class="n">player</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span>
+                <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">bn</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">bn</span><span class="p">]</span>
+
+<div class="viewcode-block" id="QLearning.train_node"><a class="viewcode-back" href="../../../pynfg.qlearning.html#pynfg.levelksolutions.qlearning.QLearning.train_node">[docs]</a>    <span class="k">def</span> <span class="nf">train_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bn</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Solve for the optimal policy using Optimistic Q-learning</span>
+
+<span class="sd">        Optimistic Q-Learning  is an off-policy TD control RL algorithm</span>
+
+<span class="sd">        :arg bn: The basename of the node with the CPT to be trained</span>
+<span class="sd">        :type bn: str</span>
+<span class="sd">        :arg level: The level at which to train the basename</span>
+<span class="sd">        :type level: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">print</span> <span class="s">&#39;Training &#39;</span> <span class="o">+</span> <span class="n">bn</span> <span class="o">+</span> <span class="s">&#39; at level &#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">)</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">specs</span>
+        <span class="n">player</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">player</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">r_max</span> <span class="o">=</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="s">&#39;w&#39;</span><span class="p">],</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="s">&#39;delta&#39;</span><span class="p">],</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">bn</span><span class="p">][</span><span class="s">&#39;N&#39;</span><span class="p">],</span> \
+            <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">bn</span><span class="p">][</span><span class="s">&#39;r_max&#39;</span><span class="p">]</span>
+        <span class="c">#Set other CPTs to level-1.  Works even if CPTs aren&#39;t pointers.</span>
+        <span class="k">for</span> <span class="n">o_player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+            <span class="n">bn_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">o_player</span><span class="p">])))</span>
+            <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="n">bn_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">base</span> <span class="o">!=</span> <span class="n">bn</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">dn</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">base</span><span class="p">]:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">dn</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> \
+                                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trained_CPTs</span><span class="p">[</span><span class="n">o_player</span><span class="p">][</span><span class="n">base</span><span class="p">][</span><span class="s">&#39;Level&#39;</span> <span class="o">+</span>
+                                                          <span class="nb">str</span><span class="p">(</span><span class="n">level</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)])</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s">&#39;Need to train other players at level </span><span class="si">%s</span><span class="s">&#39;</span>
+                                   <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">T0</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">starttime</span> <span class="c">#get the start time</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">endtime</span> <span class="o">+</span> <span class="mi">1</span> <span class="c">#get the end time</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span><span class="o">.</span><span class="n">shape</span> <span class="c">#the shape of CPT</span>
+        <span class="k">if</span> <span class="n">d</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">Q0</span> <span class="o">=</span> <span class="n">r_max</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">d</span><span class="o">**</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="n">T0</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">d</span><span class="p">))</span> <span class="c">#the initial q value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Q0</span> <span class="o">=</span> <span class="n">r_max</span><span class="o">*</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="n">T0</span><span class="p">)</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">Q0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="c">#the initial q table</span>
+        <span class="n">visit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        <span class="c">#the number of times each (m,a) pair has been visited.</span>
+        <span class="n">r_av</span> <span class="o">=</span> <span class="mi">0</span> <span class="c">#the dynamic (discounted) average reward</span>
+        <span class="n">rseries</span> <span class="o">=</span> <span class="p">[]</span> <span class="c">#a series of average rewards</span>
+        <span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="k">print</span> <span class="n">ep</span>
+            <span class="c">#convert Q table to CPT</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">convert_2_pureCPT</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">sample_timesteps</span><span class="p">(</span><span class="n">T0</span><span class="p">,</span><span class="n">T0</span><span class="p">)</span> <span class="c">#sample the start time step</span>
+            <span class="n">malist</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">dict2list_vals</span><span class="p">(</span><span class="n">valueinput</span><span class="o">=</span> \
+                                                            <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="c">#get the list of (m,a) pair from the iterated semi-NFG</span>
+            <span class="n">mapair</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">T0</span><span class="p">]</span><span class="o">.</span><span class="n">get_CPTindex</span><span class="p">(</span><span class="n">malist</span><span class="p">)</span> <span class="c">#get CPT index</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="n">player</span><span class="p">,</span><span class="n">T0</span><span class="p">)</span> <span class="c">#get the (discounted) reward</span>
+            <span class="k">if</span> <span class="n">ep</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="c">#to avoid &quot;divided by 0&quot; error</span>
+                <span class="n">r_av_new</span> <span class="o">=</span> <span class="n">r_av</span> <span class="o">+</span> <span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="n">r_av</span><span class="p">)</span><span class="o">/</span><span class="p">((</span><span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">ep</span><span class="p">)</span> <span class="c">#update the dynamic reward</span>
+            <span class="n">Qmax</span> <span class="o">=</span> <span class="n">Q</span><span class="p">[</span><span class="n">mapair</span><span class="p">]</span> <span class="c">#get the maximum q value</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">T0</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">T</span><span class="p">):</span>
+                <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">convert_2_pureCPT</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span> <span class="c">#convert Q table to CPT</span>
+                <span class="n">G</span><span class="o">.</span><span class="n">sample_timesteps</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">t</span><span class="p">)</span> <span class="c">#sample the current time step</span>
+                <span class="k">if</span> <span class="n">t</span><span class="o">!=</span> <span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span> <span class="c">#required by Q-learning</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="n">d</span><span class="o">**</span><span class="n">t</span><span class="o">*</span><span class="n">G</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="n">player</span><span class="p">,</span><span class="n">t</span><span class="p">)</span> <span class="c"># get the (discounted) reward</span>
+                    <span class="n">r_av_new</span> <span class="o">=</span> <span class="n">r_av</span> <span class="o">+</span> <span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="n">r_av</span><span class="p">)</span><span class="o">/</span><span class="p">((</span><span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">ep</span><span class="o">+</span><span class="n">t</span><span class="p">)</span> <span class="c">#update the reward</span>
+                <span class="n">malist_new</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">dict2list_vals</span><span class="p">(</span><span class="n">valueinput</span><span class="o">=</span> \
+                                                            <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">mapair_new</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">get_CPTindex</span><span class="p">(</span><span class="n">malist_new</span><span class="p">)</span>
+                <span class="n">visit</span><span class="p">[</span><span class="n">mapair</span><span class="p">]</span> <span class="o">=</span> <span class="n">visit</span><span class="p">[</span><span class="n">mapair</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span> <span class="c">#update the number of times</span>
+                <span class="n">alpha</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">visit</span><span class="p">[</span><span class="n">mapair</span><span class="p">]))</span><span class="o">**</span><span class="n">w</span> <span class="c">#the learning rate</span>
+                <span class="n">Qmax_new</span> <span class="o">=</span> <span class="n">Q</span><span class="p">[</span><span class="n">mapair_new</span><span class="p">]</span> <span class="c">#new maximum q value</span>
+                <span class="n">Q</span><span class="p">[</span><span class="n">mapair</span><span class="p">]</span> <span class="o">=</span> <span class="n">Qmax</span> <span class="o">+</span> <span class="n">alpha</span><span class="o">*</span><span class="p">(</span><span class="n">r</span> <span class="o">+</span> <span class="n">d</span><span class="o">*</span><span class="n">Qmax_new</span> <span class="o">-</span><span class="n">Qmax</span><span class="p">)</span> <span class="c">#update q table</span>
+                <span class="n">mapair</span> <span class="o">=</span> <span class="n">mapair_new</span>
+                <span class="n">Qmax</span> <span class="o">=</span> <span class="n">Qmax_new</span>
+                <span class="n">r_av</span> <span class="o">=</span> <span class="n">r_av_new</span>
+            <span class="n">rseries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r_av</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trained_CPTs</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">bn</span><span class="p">][</span><span class="s">&#39;Level&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)]</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rseries</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">bn</span> <span class="o">+</span> <span class="s">&#39; Level &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)))</span>
+        <span class="c">#plotting rseries to gauge convergence</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">figs</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)]</span> <span class="o">=</span> <span class="n">fig</span>
+        <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
+            <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_setallCPTs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">,</span><span class="n">bn</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">bn</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">T0</span><span class="p">,</span> <span class="n">T</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="QLearning.solve_game"><a class="viewcode-back" href="../../../pynfg.qlearning.html#pynfg.levelksolutions.qlearning.QLearning.solve_game">[docs]</a>    <span class="k">def</span> <span class="nf">solve_game</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Solves the game sfor specified player levels&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">specs</span>
+        <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+                <span class="n">basenames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]))</span>
+                <span class="k">for</span> <span class="n">controlled</span> <span class="ow">in</span> <span class="n">basenames</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">train_node</span><span class="p">(</span><span class="n">controlled</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="n">setCPT</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+            <span class="n">basenames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]))</span>
+            <span class="k">for</span> <span class="n">controlled</span> <span class="ow">in</span> <span class="n">basenames</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="s">&#39;Level&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">train_node</span><span class="p">(</span><span class="n">controlled</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="n">setCPT</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="qlearning_dict"><a class="viewcode-back" href="../../../pynfg.qlearning.html#pynfg.levelksolutions.qlearning.qlearning_dict">[docs]</a><span class="k">def</span> <span class="nf">qlearning_dict</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">Level</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">r_max</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">L0Dist</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates the specs shell for a game to be solved using Q learning.</span>
+
+<span class="sd">    :arg G: An iterated SemiNFG</span>
+<span class="sd">    :type G: iterSemiNFG</span>
+
+<span class="sd">    .. seealso::</span>
+<span class="sd">        See the Q Learning documentation (above) for details of the  optional arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">iterated_input_dict</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="p">[(</span><span class="s">&#39;Level&#39;</span><span class="p">,</span> <span class="n">Level</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;delta&#39;</span><span class="p">,</span> <span class="n">delta</span><span class="p">),(</span><span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="n">w</span><span class="p">)],</span>
+                                  <span class="p">[(</span><span class="s">&#39;L0Dist&#39;</span><span class="p">,</span> <span class="n">L0Dist</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;N&#39;</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span>
+                                   <span class="p">(</span><span class="s">&#39;N&#39;</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;r_max&#39;</span><span class="p">,</span> <span class="n">r_max</span><span class="p">)])</span>
+</div>
+<span class="k">def</span> <span class="nf">_setallCPTs</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">basename</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">newCPT</span><span class="p">):</span>
+    <span class="n">G</span><span class="o">.</span><span class="n">bn_part</span><span class="p">[</span><span class="n">basename</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">newCPT</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

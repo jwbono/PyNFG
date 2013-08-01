@@ -1,0 +1,284 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pynfg.levelksolutions.bestresponse &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pynfg.levelksolutions.bestresponse</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implements Best Response Level-K calculations for SemiNFG and iterSemiNFG</span>
+
+<span class="sd">Part of: PyNFG - a Python package for modeling and solving Network Form Games</span>
+
+<span class="sd">Created on Fri May 24 07:01:05 2013</span>
+
+<span class="sd">Copyright (C) 2013 James Bono (jwbono@gmail.com)</span>
+
+<span class="sd">GNU Affero General Public License</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pynfg.utilities.utilities</span> <span class="kn">import</span> <span class="n">convert_2_pureCPT</span><span class="p">,</span> <span class="n">mceu</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">,</span> <span class="n">iterated_input_dict</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">pynfg</span>
+
+
+<div class="viewcode-block" id="BestResponse"><a class="viewcode-back" href="../../../pynfg.bestresponse.html#pynfg.levelksolutions.bestresponse.BestResponse">[docs]</a><span class="k">class</span> <span class="nc">BestResponse</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Finds the **uncoordinated** best response solution for a semi-NFG.</span>
+
+<span class="sd">    :arg G:  A semi-NFG</span>
+<span class="sd">    :type G: semiNFG</span>
+<span class="sd">    :arg specs: dictionary of dictionaries containing specifications</span>
+<span class="sd">        the level, level-0 strategy, tolerance</span>
+<span class="sd">        and degrees of rationality of each player.</span>
+<span class="sd">        See below for details.</span>
+<span class="sd">    :type specs: dict</span>
+<span class="sd">    :arg N: Number of times to repeat sampling algorithm</span>
+<span class="sd">    :type N: int</span>
+
+<span class="sd">    specs is a triply-nested dictionary.  The first set of keys</span>
+<span class="sd">    are the player names.  For each player key, there are keys:</span>
+
+<span class="sd">    Level : int</span>
+<span class="sd">        The player&#39;s Level</span>
+<span class="sd">    delta : float</span>
+<span class="sd">        The discount factor</span>
+
+<span class="sd">    The rest of the keys for each player are the names of nodes that belong to that</span>
+<span class="sd">    player.  For each node, the dictionary has three entries with one optional entry:</span>
+
+
+<span class="sd">    L0Dist : ndarray, str, None</span>
+<span class="sd">        If ndarray, then the level 0 CPT is set to</span>
+<span class="sd">        L0Dist. If L0Dist is &#39;uniform&#39;, then all Level 0 CPTs are set to</span>
+<span class="sd">        the uniform distribution.  If L0Dist is None, then the level 0 CPT</span>
+<span class="sd">        is set to the CPT of the inputted game.</span>
+<span class="sd">    tol : int</span>
+<span class="sd">        the minimum number of samples per parent value</span>
+<span class="sd">    N : int</span>
+<span class="sd">        The max number of iterations for the estimation.</span>
+
+<span class="sd">    beta : float</span>
+<span class="sd">        (Optional)  Logit best response parameter</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">specs</span><span class="p">,</span> <span class="n">logit</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">G</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logit</span> <span class="o">=</span> <span class="n">logit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specs</span> <span class="o">=</span> <span class="n">specs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_new_attributes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_L0_CPT</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">_set_new_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">specs</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">:</span>
+            <span class="n">node_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_set</span><span class="p">:</span>
+                <span class="n">nodename</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">Level</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">tol</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span>  \
+                    <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="s">&#39;Level&#39;</span><span class="p">],</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="s">&#39;delta&#39;</span><span class="p">],</span>\
+                    <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;tol&#39;</span><span class="p">],</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;N&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logit</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;beta&#39;</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">levels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="s">&#39;Level&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_L0_CPT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the level 0 CPT&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">specs</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">:</span>
+            <span class="n">node_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_set</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level0&#39;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">nodename</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+                    <span class="k">if</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;uniform&#39;</span><span class="p">:</span>
+                        <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level0&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="n">node</span><span class="o">.</span><span class="n">uniformCPT</span><span class="p">(</span><span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;No entry for L0Dist for player </span><span class="si">%s</span><span class="s">,</span><span class="se">\</span>
+<span class="s">                        setting to current CPT&quot;</span> <span class="o">%</span> <span class="n">player</span><span class="p">)</span>
+                        <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span>
+                    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+                        <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level0&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="BestResponse.train_node"><a class="viewcode-back" href="../../../pynfg.bestresponse.html#pynfg.levelksolutions.bestresponse.BestResponse.train_node">[docs]</a>    <span class="k">def</span> <span class="nf">train_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodename</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute level-k best response at the DN given Game</span>
+
+<span class="sd">        :arg nodename: the name of the decision node where MCEUs are estimated</span>
+<span class="sd">        :type nodename: str</span>
+<span class="sd">        :arg level: The level at which to train that player</span>
+<span class="sd">        :type level: int</span>
+<span class="sd">        :arg setCPT: If the trained CPT should be set as the current CPT.</span>
+<span class="sd">            Otherwise, it can be accessed through node.LevelCPT.  Default is</span>
+<span class="sd">            False</span>
+<span class="sd">        :type setCPT: bool</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">print</span> <span class="s">&#39;Training &#39;</span> <span class="o">+</span> <span class="n">nodename</span> <span class="o">+</span> <span class="s">&#39; at level &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">)</span>  <span class="c"># copy in order to maintain original CPT</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">specs</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">:</span>  <span class="c"># G changes, self.G doesn&#39;t</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="ow">is</span> <span class="n">pynfg</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">decisionnode</span><span class="o">.</span><span class="n">DecisionNode</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s">&#39;Need to train other players at level </span><span class="si">%s</span><span class="s">&#39;</span>
+                                   <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">EUtable</span> <span class="o">=</span> <span class="n">mceu</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">nodename</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">N</span><span class="p">,</span>
+                       <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">tol</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span>
+                       <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">logit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)]</span> <span class="o">=</span> \
+                  <span class="n">convert_2_pureCPT</span><span class="p">(</span><span class="n">EUtable</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">convert_2_pureCPT</span><span class="p">(</span><span class="n">EUtable</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">beta</span><span class="o">*</span><span class="n">EUtable</span><span class="p">)</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weight</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)]</span> <span class="o">=</span> \
+            <span class="n">weight</span><span class="o">/</span><span class="n">norm</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">weight</span><span class="o">/</span><span class="n">norm</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="BestResponse.solve_game"><a class="viewcode-back" href="../../../pynfg.bestresponse.html#pynfg.levelksolutions.bestresponse.BestResponse.solve_game">[docs]</a>    <span class="k">def</span> <span class="nf">solve_game</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Solves the game for specified player levels&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">controlled</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">train_node</span><span class="p">(</span><span class="n">controlled</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">controlled</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">controlled</span><span class="o">.</span><span class="n">Level</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">train_node</span><span class="p">(</span><span class="n">controlled</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span><span class="p">,</span>
+                                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]:</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span>\
+                        <span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">Level</span><span class="p">)]</span>
+
+</div></div>
+<div class="viewcode-block" id="br_dict"><a class="viewcode-back" href="../../../pynfg.bestresponse.html#pynfg.levelksolutions.bestresponse.br_dict">[docs]</a><span class="k">def</span> <span class="nf">br_dict</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">Level</span><span class="p">,</span> <span class="n">L0Dist</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper function to generate the player_spec dictionary</span>
+<span class="sd">    for best response.  If optional arguments are specified, they are</span>
+<span class="sd">    set for all decision nodes.</span>
+
+<span class="sd">    :arg G: A SemiNFG</span>
+<span class="sd">    :type G: SemiNFG</span>
+
+<span class="sd">    .. seealso::</span>
+<span class="sd">        See the BestResponse documentation (above) for details of the  optional arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">beta</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">input_dict</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="p">[(</span><span class="s">&#39;Level&#39;</span><span class="p">,</span> <span class="n">Level</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;delta&#39;</span><span class="p">,</span> <span class="n">delta</span><span class="p">)],</span>
+                          <span class="p">[(</span><span class="s">&#39;L0Dist&#39;</span><span class="p">,</span> <span class="n">L0Dist</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;N&#39;</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;tol&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="p">)])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">input_dict</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="p">[(</span><span class="s">&#39;Level&#39;</span><span class="p">,</span> <span class="n">Level</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;delta&#39;</span><span class="p">,</span> <span class="n">delta</span><span class="p">)],</span>
+                      <span class="p">[(</span><span class="s">&#39;L0Dist&#39;</span><span class="p">,</span> <span class="n">L0Dist</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;N&#39;</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;tol&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="p">),</span>
+                       <span class="p">(</span><span class="s">&#39;beta&#39;</span><span class="p">,</span> <span class="n">beta</span><span class="p">)])</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,455 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pynfg.levelksolutions.rlk &mdash; PyNFG 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyNFG 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pynfg.levelksolutions.rlk</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">copy</span> <span class="kn">as</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+
+<span class="k">class</span> <span class="nc">rlk</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="rlk"><a class="viewcode-back" href="../../../pynfg.rlk.html#pynfg.levelksolutions.rlk.rlk">[docs]</a>    <span class="sd">&quot;&quot;&quot; Finds the relaxed level-k solution for a semi-NFG.</span>
+
+<span class="sd">    :arg G:  A semi-NFG</span>
+<span class="sd">    :type G: semiNFG</span>
+<span class="sd">    :arg player_specs: dictionary of dictionaries containing</span>
+<span class="sd">        the level, satisficing distribution, level-0 strategy,</span>
+<span class="sd">        and degrees of rationality of each player.</span>
+<span class="sd">        See below for details.</span>
+<span class="sd">    :type player_specs: dict</span>
+<span class="sd">    :arg N: Number of times to repeat sampling algorithm</span>
+<span class="sd">    :type N: int</span>
+
+<span class="sd">    player_spec is a triply-nested dictionary.  The first set of keys</span>
+<span class="sd">    are the player names.  For each player key, there is a dictionary</span>
+<span class="sd">    whose keys are the names of nodes that belong to that player.</span>
+<span class="sd">    For each node, the dictionary has five entries</span>
+
+<span class="sd">    Level : int</span>
+<span class="sd">        The level of the player</span>
+<span class="sd">    M : int</span>
+<span class="sd">        The number of times to sample the satisficing distribution</span>
+<span class="sd">    Mprime : int</span>
+<span class="sd">        The number of times to sample the net for each satisficing</span>
+<span class="sd">        draw.</span>
+<span class="sd">    L0Dist : ndarray, str, None</span>
+<span class="sd">        If ndarray, then the level 0 CPT is set to</span>
+<span class="sd">        L0Dist. If L0Dist is &#39;uniform&#39;, then all Level 0 CPTs are set to</span>
+<span class="sd">        the uniform distribution.  If L0Dist is None, then the level 0 CPT</span>
+<span class="sd">        is set to the CPT of the inputted game.</span>
+<span class="sd">    SDist : function, 2darray, or  str</span>
+<span class="sd">        If &#39;all pure&#39; then the satisficing distribution is all</span>
+<span class="sd">        pure strategies.  If &#39;all mixed&#39; then the satisficing</span>
+<span class="sd">        distribution is all mixed strategies.  If 2darray,</span>
+<span class="sd">        the value must be an nxk array where n is the number</span>
+<span class="sd">        of satisficing strategies and k is the size of the</span>
+<span class="sd">        player&#39;s space.  Each row in the 2darray corresponds to</span>
+<span class="sd">        a strategy.  If function, SDist is a function that returns</span>
+<span class="sd">        **a draw** from the conditional satisficing distribution.</span>
+<span class="sd">        The function can take as parameters a dictionary whose keys</span>
+<span class="sd">        are the names of the parent nodes and values are the value</span>
+<span class="sd">        of the parent node.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">player_specs</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span> <span class="o">=</span> <span class="n">parallel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">player_specs</span> <span class="o">=</span> <span class="n">player_specs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="n">N</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">parallel</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">G</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_new_attributes</span><span class="p">()</span>  <span class="c"># also sets attributes</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_L0_CPT</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_satisficing_func</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">parallel</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">G</span> <span class="o">=</span> <span class="n">G</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_new_attributes</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_L0_CPT</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_satisficing_func</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_set_new_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the level and rationality of a decision node</span>
+
+<span class="sd">        It assigns an attribute &quot;Level&quot;, &quot;M&quot; and &quot;Mprime&quot; to each decision</span>
+<span class="sd">        node.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">player_specs</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">:</span>
+            <span class="n">node_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_set</span><span class="p">:</span>
+                <span class="n">nodename</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">Level</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">M</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">Mprime</span> <span class="o">=</span>  \
+                    <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;Level&#39;</span><span class="p">],</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;M&#39;</span><span class="p">],</span>\
+                    <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;Mprime&#39;</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">levels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;Level&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_L0_CPT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the level 0 CPT&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">player_specs</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">:</span>
+            <span class="n">node_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_set</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level0&#39;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">nodename</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+                    <span class="k">if</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;uniform&#39;</span><span class="p">:</span>
+                        <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level0&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="n">node</span><span class="o">.</span><span class="n">uniformCPT</span><span class="p">(</span><span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;No entry for L0Dist for player </span><span class="si">%s</span><span class="s">,</span><span class="se">\</span>
+<span class="s">                        setting to current CPT&quot;</span> <span class="o">%</span> <span class="n">player</span><span class="p">)</span>
+                        <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span>
+                    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+                        <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level0&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;L0Dist&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_set_satisficing_func</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates bound method that draws from satisficing distribution&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">player_specs</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">:</span>
+            <span class="n">nodeset</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodeset</span><span class="p">:</span>
+                <span class="n">nodename</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+                <span class="n">sd</span> <span class="o">=</span> <span class="n">ps</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">nodename</span><span class="p">][</span><span class="s">&#39;SDist&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sd</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">):</span>  <span class="c"># If a function</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">SDist</span> <span class="o">=</span> <span class="n">sd</span>
+                <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">sd</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">SDist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sfunc</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;arr&#39;</span><span class="p">,</span> <span class="n">sd</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">sd</span> <span class="o">==</span> <span class="s">&#39;all pure&#39;</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">SDist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sfunc</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;all pure&#39;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">sd</span> <span class="o">==</span> <span class="s">&#39;all mixed&#39;</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">SDist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sfunc</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;all mixed&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_draw_from_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nd</span><span class="p">,</span>  <span class="n">ndar</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; A draw from a satisficing distribution&quot;&quot;&quot;</span>
+        <span class="n">s0shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndar</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">s0shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">space</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;ndarray second dimension needs be </span><span class="se">\</span>
+<span class="s">            the same as the number of elements in the player</span><span class="se">\&#39;</span><span class="s">s space&#39;</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s0shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">ndar</span><span class="p">[</span><span class="n">line</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_draw_all_pure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nd</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; A draw from a satisficing distribution of all pure strategies&quot;&quot;&quot;</span>
+        <span class="n">s0shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">space</span><span class="p">)</span>
+        <span class="n">strat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">s0shape</span><span class="p">)</span>
+        <span class="n">strat</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s0shape</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">strat</span>
+
+    <span class="k">def</span> <span class="nf">_draw_all_mixed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nd</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; A draw from a satisficing distribution of all mixed strategies&quot;&quot;&quot;</span>
+        <span class="n">s0shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">space</span><span class="p">)</span>
+        <span class="n">strat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">dirichlet</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">s0shape</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">strat</span>
+
+    <span class="k">def</span> <span class="nf">_sfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nd</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">ndar</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper to draw from satisficing distribution &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">sgen</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">form</span> <span class="o">==</span> <span class="s">&#39;arr&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draw_from_array</span><span class="p">(</span><span class="n">nd</span><span class="p">,</span> <span class="n">ndar</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">form</span> <span class="o">==</span> <span class="s">&#39;all pure&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draw_all_pure</span><span class="p">(</span><span class="n">nd</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">form</span> <span class="o">==</span> <span class="s">&#39;all mixed&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draw_all_mixed</span><span class="p">(</span><span class="n">nd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sgen</span>
+
+    <span class="k">def</span> <span class="nf">_sample_CPT</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodename</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Samples entire CPT according to Deifnition 7 in Lee and Wolpert&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span>
+        <span class="n">other_level</span> <span class="o">=</span> <span class="s">&#39;Level</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>  <span class="c"># Sets all players to lower level</span>
+            <span class="k">if</span> <span class="n">player</span> <span class="o">!=</span> <span class="n">node</span><span class="o">.</span><span class="n">player</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">controlled</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]:</span>
+                        <span class="n">controlled</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> \
+                            <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">controlled</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="n">other_level</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s">&#39;Need to train other players at level </span><span class="si">%s</span><span class="s">&#39;</span>
+                                   <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">)</span>  <span class="c"># Create Y</span>
+        <span class="n">Y</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">Y</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">pa</span><span class="p">)</span> <span class="k">for</span> <span class="n">pa</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+        <span class="p">[</span><span class="n">Y</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">suc</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">suc</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">descendants</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)]</span>
+        <span class="n">parent_space</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">parent_space</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">space</span><span class="p">)</span>
+            <span class="n">parent_combs</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">parent_space</span><span class="p">)</span>  <span class="c"># Iterate pa(node)</span>
+        <span class="n">trained_CPT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">CPT</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">combo</span> <span class="ow">in</span> <span class="n">parent_combs</span><span class="p">:</span>  <span class="c"># For each parent</span>
+            <span class="n">ix</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">p_node_val</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">combo</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">p_node_val</span><span class="p">:</span>
+                <span class="n">ix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">space</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="n">ix</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ix</span><span class="p">)</span>  <span class="c"># Used to set CPT &#39;row&#39; to draw value</span>
+            <span class="n">max_util</span> <span class="o">=</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">set_values</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">p_node_val</span><span class="p">))</span>  <span class="c"># Sets parents</span>
+            <span class="n">Y_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_set</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">node</span><span class="o">.</span><span class="n">Mprime</span><span class="p">)</span>     <span class="c"># STEP 2</span>
+            <span class="n">satis_set</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">M</span><span class="p">):</span>  <span class="c"># STEP 1</span>
+                <span class="n">sdist</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">SDist</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">sdist</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">satis_set</span><span class="p">:</span>
+                    <span class="n">satis_set</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">list</span><span class="p">(</span><span class="n">sdist</span><span class="p">)))</span>
+
+            <span class="k">for</span> <span class="n">sdraw</span> <span class="ow">in</span> <span class="n">satis_set</span><span class="p">:</span>  <span class="c"># For each SDist</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">CPT</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">sdraw</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">draw_value</span><span class="p">()</span>  <span class="c"># set CPT and draw</span>
+                <span class="n">weu</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">Y_vals</span><span class="p">:</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">set_values</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>             <span class="c"># Step 2 B (below)</span>
+                    <span class="n">wt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">([</span><span class="n">n</span><span class="o">.</span><span class="n">prob</span><span class="p">()</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+                    <span class="n">succ_samp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_set</span><span class="p">([</span><span class="n">n</span><span class="o">.</span><span class="n">name</span>
+                                                  <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">descendants</span><span class="p">(</span>
+                                                      <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)],</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">set_values</span><span class="p">(</span><span class="n">succ_samp</span><span class="p">)</span>  <span class="c"># STEP 3</span>
+                    <span class="n">weu</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wt</span> <span class="o">*</span> <span class="n">G</span><span class="o">.</span><span class="n">utility</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">player</span><span class="p">))</span>
+                <span class="n">EU</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">weu</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">EU</span> <span class="o">&gt;=</span> <span class="n">max_util</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">EU</span> <span class="o">&gt;</span> <span class="n">max_util</span><span class="p">:</span>
+                        <span class="n">num_best</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">max_util</span> <span class="o">=</span> <span class="n">EU</span>
+                        <span class="n">best_strat</span> <span class="o">=</span> <span class="n">sdraw</span>
+                    <span class="k">if</span> <span class="n">EU</span> <span class="o">==</span> <span class="n">max_util</span><span class="p">:</span>
+                        <span class="n">best_strat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">best_strat</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">num_best</span><span class="p">)</span> <span class="o">/</span>\
+                            <span class="nb">float</span><span class="p">(</span><span class="n">num_best</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> \
+                            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sdraw</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">num_best</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">num_best</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c"># Mean update (above)</span>
+            <span class="n">trained_CPT</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_strat</span>
+        <span class="k">return</span> <span class="n">trained_CPT</span>
+
+    <span class="k">def</span> <span class="nf">_sample_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodenames</span><span class="p">,</span> <span class="n">Mprime</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a list with length Mprime</span>
+<span class="sd">        whose elements are a dictionary of samples of nodes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">)</span>
+        <span class="n">set_dicts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Mprime</span><span class="p">):</span>
+            <span class="n">set_samp</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">iterator</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">nodenames</span><span class="p">:</span>
+                    <span class="n">set_samp</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">draw_value</span><span class="p">(</span><span class="n">setvalue</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">set_dicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">set_samp</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">set_dicts</span>
+
+    <span class="k">def</span> <span class="nf">train_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodename</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="rlk.train_node"><a class="viewcode-back" href="../../../pynfg.rlk.html#pynfg.levelksolutions.rlk.rlk.train_node">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Trains a node at a specified level</span>
+
+<span class="sd">        :arg nodename: The name of the node to be trained</span>
+<span class="sd">        :type nodename: string</span>
+<span class="sd">        :arg level: The level at which to train that player</span>
+<span class="sd">        :type level: int</span>
+<span class="sd">        :arg setCPT: If the trained CPT should be set as the current CPT.</span>
+<span class="sd">            Otherwise, it can be accessed through node.LevelCPT.  Default is False</span>
+<span class="sd">        :type setCPT: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="k">print</span> <span class="s">&quot;Training &quot;</span> <span class="o">+</span> <span class="n">nodename</span> <span class="o">+</span> <span class="s">&quot; at level &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">nodename</span><span class="p">]</span>
+        <span class="n">CPT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">CPT</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">mcsamp</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">):</span>
+            <span class="n">new_CPT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_CPT</span><span class="p">(</span><span class="n">nodename</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+            <span class="n">CPT</span> <span class="o">=</span> <span class="n">CPT</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">mcsamp</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">mcsamp</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> \
+                <span class="n">new_CPT</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">mcsamp</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Levelkey</span> <span class="o">=</span> <span class="s">&#39;Level&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">LevelCPT</span><span class="p">[</span><span class="n">Levelkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">CPT</span>
+        <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">CPT</span>
+
+    <span class="k">def</span> <span class="nf">solve_game</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setCPT</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span></div>
+<div class="viewcode-block" id="rlk.solve_game"><a class="viewcode-back" href="../../../pynfg.rlk.html#pynfg.levelksolutions.rlk.rlk.solve_game">[docs]</a>        <span class="sd">&quot;&quot;&quot; Solves the game for specified player levels&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+        <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">controlled</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">train_node</span><span class="p">(</span><span class="n">controlled</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">controlled</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">controlled</span><span class="o">.</span><span class="n">Level</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">train_node</span><span class="p">(</span><span class="n">controlled</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_level</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">setCPT</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]:</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">CPT</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span>\
+                        <span class="n">LevelCPT</span><span class="p">[</span><span class="s">&#39;Level&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">Level</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">rlk_dict</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">M</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">Mprime</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">Level</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">L0Dist</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">SDist</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></div></div>
+<div class="viewcode-block" id="rlk_dict"><a class="viewcode-back" href="../../../pynfg.rlk.html#pynfg.levelksolutions.rlk.rlk_dict">[docs]</a>    <span class="sd">&quot;&quot;&quot; A helper function to generate the player_spec dictionary</span>
+<span class="sd">    for relaxed level K.  If optional arguments are specified, they are</span>
+<span class="sd">    set for all decision nodes.</span>
+
+<span class="sd">    :arg G: A SemiNFG</span>
+<span class="sd">    :type G: SemiNFG</span>
+
+<span class="sd">    .. seealso::</span>
+<span class="sd">        See the rlk documentation (above) for details of the  optional arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rlk_input</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+        <span class="n">rlk_input</span><span class="p">[</span><span class="n">player</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">partition</span><span class="p">[</span><span class="n">player</span><span class="p">]:</span>
+            <span class="n">rlk_input</span><span class="p">[</span><span class="n">player</span><span class="p">][</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;M&#39;</span><span class="p">:</span> <span class="n">M</span><span class="p">,</span> <span class="s">&#39;Mprime&#39;</span><span class="p">:</span> <span class="n">Mprime</span><span class="p">,</span>
+                                            <span class="s">&#39;Level&#39;</span><span class="p">:</span> <span class="n">Level</span><span class="p">,</span> <span class="s">&#39;L0Dist&#39;</span><span class="p">:</span> <span class="n">L0Dist</span><span class="p">,</span>
+                                            <span class="s">&#39;SDist&#39;</span><span class="p">:</span> <span class="n">SDist</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">rlk_input</span>
+
+
+<span class="k">def</span> <span class="nf">_rlk_parallel</span><span class="p">(</span><span class="n">il</span><span class="p">):</span></div>
+    <span class="n">newgame</span> <span class="o">=</span> <span class="n">rlk</span><span class="p">(</span><span class="n">il</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">il</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">il</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">parallel</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">newgame</span><span class="o">.</span><span class="n">train_node</span><span class="p">(</span><span class="n">il</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">il</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">newgame</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">il</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span><span class="o">.</span><span class="n">LevelCPT</span>
+
+
+<span class="k">def</span> <span class="nf">rlk_parallel</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">level_stop</span><span class="p">,</span> <span class="n">level_start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="rlk_parallel"><a class="viewcode-back" href="../../../pynfg.rlk.html#pynfg.levelksolutions.rlk.rlk_parallel">[docs]</a>    <span class="sd">&quot;&quot;&quot; Solves RLK in parallel.  Returns a Game where each node has</span>
+<span class="sd">    attribute LevelCPT with entries from level_start to level_stop</span>
+
+<span class="sd">    :arg G:  A semi-NFG</span>
+<span class="sd">    :type G: semiNFG</span>
+<span class="sd">    :arg ps: dictionary of dictionaries containing</span>
+<span class="sd">        the level, satisficing distribution, level-0 strategy,</span>
+<span class="sd">        and degrees of rationality of each player.</span>
+<span class="sd">    :type ps: dict</span>
+<span class="sd">    :arg N: Number of times to repeat sampling algorithm</span>
+<span class="sd">    :type N: int</span>
+<span class="sd">    :arg level_stop: How high to train all player.</span>
+<span class="sd">    :type level_stop: int</span>
+<span class="sd">    :level_start: The starting level.  If level_start&gt;1, the nodes in G</span>
+<span class="sd">        must already have an attribute LevelCPT with a key</span>
+<span class="sd">        &#39;Level&#39; + str(level_start-1)</span>
+<span class="sd">    :type level_start: int</span>
+
+<span class="sd">    For details on the ps parameter, see pynfg.levelksolutions.rlk</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+    <span class="n">G1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+    <span class="kn">import</span> <span class="nn">pynfg</span>
+    <span class="n">dnode_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G1</span><span class="o">.</span><span class="n">nodes</span>
+                  <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="o">==</span> <span class="n">pynfg</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">decisionnode</span><span class="o">.</span><span class="n">DecisionNode</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">lvl</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">level_start</span><span class="p">,</span> <span class="n">level_stop</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">endlist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">inputlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">G1</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">N</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">nd</span> <span class="ow">in</span> <span class="n">dnode_list</span><span class="p">:</span>
+            <span class="n">holder</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">inputlist</span><span class="p">)</span>
+            <span class="n">holder</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">nd</span><span class="p">,</span> <span class="n">lvl</span><span class="p">])</span>
+            <span class="n">endlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">holder</span><span class="p">)</span>
+        <span class="n">CPTs</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_rlk_parallel</span><span class="p">,</span> <span class="n">endlist</span><span class="p">)</span>
+        <span class="n">cpt_idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">dnode_list</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">G1</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">]</span><span class="o">.</span><span class="n">LevelCPT</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="n">G1</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">]</span><span class="o">.</span><span class="n">LevelCPT</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">G1</span><span class="o">.</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">]</span><span class="o">.</span><span class="n">LevelCPT</span> <span class="o">=</span> <span class="n">CPTs</span><span class="p">[</span><span class="n">cpt_idx</span><span class="p">]</span>
+            <span class="n">cpt_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">G1</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyNFG 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, James Bono.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
