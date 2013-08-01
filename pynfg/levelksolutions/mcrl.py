@@ -53,9 +53,6 @@ class EWMA_MCRL(object):
         The discount factor
     eps : float
         The maximum step-size for policy improvements
-    uni : bool
-        if True, training is initialized with a uniform policy. Default
-        False to allow "seeding" with different policies, e.g. level k-1
     pureout : bool
         if True, the policy is turned into a pure policy at the end
         of training by assigning argmax actions prob 1. Default is False
@@ -104,9 +101,9 @@ class EWMA_MCRL(object):
         G = copy.deepcopy(self.G)
         player = G.bn_part[bn][0].player
         basedict = specs[player][bn]
-        J, N, alpha, delta, eps, uni, pureout = basedict['J'], basedict['N'], \
+        J, N, alpha, delta, eps, pureout = basedict['J'], basedict['N'], \
             basedict['alpha'], basedict['delta'], basedict['eps'], \
-            basedict['uni'], basedict['pureout']
+            basedict['pureout']
         #Set other CPTs to level-1.  Works even if CPTs aren't pointers.
         for o_player in G.players:
             bn_list = list(set(map(lambda x: x.basename, G.partition[o_player])))
@@ -132,8 +129,6 @@ class EWMA_MCRL(object):
         T = G.endtime+1
         shape = G.bn_part[bn][0].CPT.shape
         shape_last = shape[-1]
-        if uni:
-            G.bn_part[bn][0].uniformCPT()  # starting with a uniform CPT
         for dn in G.bn_part[bn]:  # pointing all CPTs to T0, i.e. single policy
             dn.CPT = G.bn_part[bn][0].CPT
         visit = set()  # dict of the messages and mapairs visited throughout training
@@ -261,7 +256,7 @@ class EWMA_MCRL(object):
 
 
 def mcrl_dict(G, Level, J, N, delta, alpha=.5, eps=.2, L0Dist=None,
-              uni=False, pureout=False):
+               pureout=False):
     """
     Creates the specs shell for a game to be solved using MCRL.
 
@@ -275,4 +270,4 @@ def mcrl_dict(G, Level, J, N, delta, alpha=.5, eps=.2, L0Dist=None,
     return iterated_input_dict(G, [('Level', Level)], [('L0Dist', L0Dist), ('J', J),
                                                       ('N', N), ('delta', delta),
                                                       ('alpha', alpha), ('eps', eps),
-                                                      ('uni', uni), ('pureout', pureout)])
+                                                      ('pureout', pureout)])
