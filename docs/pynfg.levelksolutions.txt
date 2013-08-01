@@ -161,7 +161,7 @@ However, instead of the solved CPTs being attached to a node, the trained CPTs a
 
   In [17]: solverMCRL.trained_CPTs
 
-will return a d triply nested dictionary.  The first layer of keys are players, the second layer of keys are base names and the third layer specifies the level.  For example
+will return a triply nested dictionary.  The first layer of keys are players, the second layer of keys are base names and the third layer specifies the level.  For example
 
 .. code-block:: ipython
 
