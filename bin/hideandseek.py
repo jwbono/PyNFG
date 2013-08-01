@@ -200,9 +200,8 @@ G.bn_part['Dhide'][0].uniformCPT()
 #Giving seeker a pure random CPT
 G.bn_part['Dseek'][0].randomCPT(mixed=False)
 #pointing all CPTs to time 0 CPT
-for t in xrange(1, T):
-    G.bn_part['Dhide'][t].CPT = G.bn_part['Dhide'][0].CPT
-    G.bn_part['Dseek'][t].CPT = G.bn_part['Dseek'][0].CPT
+cptdict = G.get_decisionCPTs(mode='basename')
+G.set_CPTs(cptdict)
 
 ###########################################
 ##SAMPLING 
@@ -224,17 +223,17 @@ valuedict = G.get_values(nodenames=['Cseek0', 'Dhide8'])
 #####################################################
 ##TRAINING LEVEL 1 with ewma_mcrl
 #####################################################
-from pynfg.rlsolutions.mcrl import *
+from pynfg.levelksolutions.mcrl import *
 
-N=80
+N=10
 GG = copy.deepcopy(G) #NOTE: setting uni=True below starts Dseek as uniform
 #Train Seeker against L0 Hider
-GseekL1, returnfig = ewma_mcrl(GG, 'Dseek', np.linspace(50,1,N), N, \
+GseekL1, returnfig = mcrl_ewma(GG, 'Dseek', np.linspace(50,1,N), N, \
                               np.linspace(.5,1,N), 1, np.linspace(.2,1,N), \
                               uni=True, pureout=True)
 GG = copy.deepcopy(G) #NOTE: setting uni=True below starts Dseek as uniform
 #Train Hider against L0 Seeker
-GhideL1, returnfig = ewma_mcrl(GG, 'Dhide', np.linspace(50,1,N), N, \
+GhideL1, returnfig = mcrl_ewma(GG, 'Dhide', np.linspace(50,1,N), N, \
                               np.linspace(.5,1,N), 1, np.linspace(.2,1,N), \
                               uni=True, pureout=True)
 #Create G1 from GhideL1 by "importing" L1 seeker's CPT
@@ -261,7 +260,7 @@ def density(iq):
     return z
     
 GG = copy.deepcopy(G1) #NOTE: the CPTs of G are seeds for MH and MC sampling
-S = 50 #number of samples
+S = 30 #number of samples
 X = 10 #number of samples of utility of G in calculating iq
 M = 20 #number of alternative strategies sampled in calculating iq
 noise = .2 #noise in the perturbations of G for MH or MC sampling
