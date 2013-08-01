@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pylab as plt
 from pynfg.utilities.utilities import iterated_input_dict
 import warnings
-
+import sys
 
 class EWMA_MCRL(object):
     """
@@ -96,6 +96,7 @@ class EWMA_MCRL(object):
         :arg level: The level at which to train the basename
         :type level: int
         """
+        sys.stdout.write('\r')
         print 'Training ' + bn + ' at level '+ str(level)
         specs = self.specs
         G = copy.deepcopy(self.G)
@@ -240,6 +241,7 @@ class EWMA_MCRL(object):
         plt.legend()
         fig = plt.gcf()
         self.figs[bn][str(level)] = fig
+        sys.stdout.write('\n')
 
     def solve_game(self, setCPT=False):
         """Solves the game for given player levels"""
