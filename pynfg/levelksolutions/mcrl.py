@@ -58,38 +58,38 @@ class EWMA_MCRL(object):
         of training by assigning argmax actions prob 1. Default is False
 
     """
-    def __init__(self, G, specs):
-        self.G = copy.deepcopy(G)
+    def __init__(self, Game, specs):
+        self.Game = copy.deepcopy(Game)
         self.specs = specs
         self.trained_CPTs = {}
         self.figs = {}
-        for player in G.players:
-            basenames = set(map(lambda x: x.basename, G.partition[player]))
+        for player in Game.players:
+            basenames = set(map(lambda x: x.basename, Game.partition[player]))
             for bn in basenames:
                 self.figs[bn]={}
                 self.trained_CPTs[player] = {}
                 self.trained_CPTs[player][bn] = {}
                 self.trained_CPTs[player][bn]['Level0'] = self._set_L0_CPT()
-        self.high_level = max(map(lambda x: self.specs[x]['Level'], G.players))
+        self.high_level = max(map(lambda x: self.specs[x]['Level'], Game.players))
 
     def _set_L0_CPT(self):
         """ Sets the level 0 CPT"""
-        G = self.G
+        Game = self.Game
         ps = self.specs
         for player in ps:
-            basenames = set(map(lambda x: x.basename, G.partition[player]))
+            basenames = set(map(lambda x: x.basename, Game.partition[player]))
             for bn in basenames:
                 if ps[player][bn]['L0Dist'] == 'uniform':
-                    return G.bn_part[bn][0].uniformCPT(setCPT=False)
+                    return Game.bn_part[bn][0].uniformCPT(setCPT=False)
                 elif ps[player][bn]['L0Dist'] is None:
                     warnings.warn("No entry for L0Dist for player %s,\
                     setting to current CPT" % player)
-                    return G.bn_part[bn][0].CPT
+                    return Game.bn_part[bn][0].CPT
                 elif type(ps[player][bn]['L0Dist']) == np.ndarray:
                     return ps[player][bn]
 
     def train_node(self, bn, level, setCPT=False):
-        """ Use EWMA MC RL to approximate the optimal CPT at bn given G
+        """ Use EWMA MC RL to approximate the optimal CPT at bn given Game
 
         :arg bn: the basename of the node with the CPT to be trained
         :type bn: str
@@ -99,18 +99,18 @@ class EWMA_MCRL(object):
         sys.stdout.write('\r')
         print 'Training ' + bn + ' at level '+ str(level)
         specs = self.specs
-        G = copy.deepcopy(self.G)
-        player = G.bn_part[bn][0].player
+        Game = copy.deepcopy(self.Game)
+        player = Game.bn_part[bn][0].player
         basedict = specs[player][bn]
         J, N, alpha, delta, eps, pureout = basedict['J'], basedict['N'], \
             basedict['alpha'], basedict['delta'], basedict['eps'], \
             basedict['pureout']
         #Set other CPTs to level-1.  Works even if CPTs aren't pointers.
-        for o_player in G.players:
-            bn_list = list(set(map(lambda x: x.basename, G.partition[o_player])))
+        for o_player in Game.players:
+            bn_list = list(set(map(lambda x: x.basename, Game.partition[o_player])))
             for base in bn_list:
                 if base != bn:
-                    for dn in G.bn_part[base]:
+                    for dn in Game.bn_part[base]:
                         try:
                             dn.CPT = \
                                 (self.trained_CPTs[o_player][base]['Level' +
@@ -126,12 +126,12 @@ class EWMA_MCRL(object):
         if isinstance(eps, (int, long, float)):
             eps = eps*np.ones(N)
         # getting shorter/more descriptive variable names to work with
-        T0 = G.starttime
-        T = G.endtime+1
-        shape = G.bn_part[bn][0].CPT.shape
+        T0 = Game.starttime
+        T = Game.endtime+1
+        shape = Game.bn_part[bn][0].CPT.shape
         shape_last = shape[-1]
-        for dn in G.bn_part[bn]:  # pointing all CPTs to T0, i.e. single policy
-            dn.CPT = G.bn_part[bn][0].CPT
+        for dn in Game.bn_part[bn]:  # pointing all CPTs to T0, i.e. single policy
+            dn.CPT = Game.bn_part[bn][0].CPT
         visit = set()  # dict of the messages and mapairs visited throughout training
         R = 0  # average reward with initial value of zero
         A = 0  # normalizing constant for average reward
@@ -153,10 +153,10 @@ class EWMA_MCRL(object):
                 visitj = set()  # visitj must be cleared at the start of every run
                 for t in xrange(T0, T):
                     #import pdb; pdb.set_trace()
-                    #G.bn_part[bn][t-T0].CPT = copy.copy(G.bn_part[bn][0].CPT)
-                    G.sample_timesteps(t, t)  # sampling the timestep
-                    rew = G.reward(player, t)  # getting the reward
-                    mapair = G.bn_part[bn][t-T0].get_CPTindex()
+                    #Game.bn_part[bn][t-T0].CPT = copy.copy(Game.bn_part[bn][0].CPT)
+                    Game.sample_timesteps(t, t)  # sampling the timestep
+                    rew = Game.reward(player, t)  # getting the reward
+                    mapair = Game.bn_part[bn][t-T0].get_CPTindex()
                     A += 1
                     r = R
                     R = (1/A)*((A-1)*r+rew)
@@ -221,20 +221,20 @@ class EWMA_MCRL(object):
             # normalizing shifts to be a % of message's biggest shift
             shiftnorm = np.absolute(shift).max(axis=-1)[...,np.newaxis]
             # for each mapair shift only eps% of the percent shift
-            updater = eps[n]*indicaten*G.bn_part[bn][0].CPT/shiftnorm
+            updater = eps[n]*indicaten*Game.bn_part[bn][0].CPT/shiftnorm
             # increment the CPT
-            G.bn_part[bn][0].CPT[idx] += updater[idx]*shift[idx]
+            Game.bn_part[bn][0].CPT[idx] += updater[idx]*shift[idx]
             # normalize after the shift
-            CPTsum = G.bn_part[bn][0].CPT.sum(axis=-1)
-            G.bn_part[bn][0].CPT /= CPTsum[...,np.newaxis]
+            CPTsum = Game.bn_part[bn][0].CPT.sum(axis=-1)
+            Game.bn_part[bn][0].CPT /= CPTsum[...,np.newaxis]
         if pureout: #if True, output is a pure policy
-            G.bn_part[bn][0].makeCPTpure()
-        self.trained_CPTs[player][bn]['Level' + str(level)] = G.bn_part[bn][0].CPT
+            Game.bn_part[bn][0].makeCPTpure()
+        self.trained_CPTs[player][bn]['Level' + str(level)] = Game.bn_part[bn][0].CPT
         if setCPT:
-            for node in self.G.bn_part[bn]:
-                node.CPT = G.bn_part[bn][0].CPT
+            for node in self.Game.bn_part[bn]:
+                node.CPT = Game.bn_part[bn][0].CPT
         for tau in xrange(1, T-T0): #before exit, make CPTs independent in memory
-            G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][0].CPT)
+            Game.bn_part[bn][tau].CPT = copy.copy(Game.bn_part[bn][0].CPT)
         plt.figure()
         plt.plot(Rseries, label = str(bn + ' Level ' + str(level)))
         #plotting rseries to gauge convergence
@@ -245,33 +245,33 @@ class EWMA_MCRL(object):
 
     def solve_game(self, setCPT=False):
         """Solves the game for given player levels"""
-        G = self.G
+        Game = self.Game
         ps = self.specs
         for level in np.arange(1, self.high_level):
-            for player in G.players:
-                basenames = set(map(lambda x: x.basename, G.partition[player]))
+            for player in Game.players:
+                basenames = set(map(lambda x: x.basename, Game.partition[player]))
                 for controlled in basenames:
                     self.train_node(controlled, level, setCPT=setCPT)
-        for player in G.players:
-            basenames = set(map(lambda x: x.basename, G.partition[player]))
+        for player in Game.players:
+            basenames = set(map(lambda x: x.basename, Game.partition[player]))
             for controlled in basenames:
                 if ps[player]['Level'] == self.high_level:
                     self.train_node(controlled, self.high_level, setCPT=setCPT)
 
 
-def mcrl_dict(G, Level, J, N, delta, alpha=.5, eps=.2, L0Dist=None,
+def mcrl_dict(Game, Level, J, N, delta, alpha=.5, eps=.2, L0Dist=None,
                pureout=False):
     """
     Creates the specs shell for a game to be solved using MCRL.
 
-    :arg G: An iterated SemiNFG
-    :type G: SemiNFG
+    :arg Game: An iterated SemiNFG
+    :type Game: SemiNFG
 
     .. seealso::
         See the EWMA_MCRL documentation (above) for details of the  optional arguments
 
     """
-    return iterated_input_dict(G, [('Level', Level)], [('L0Dist', L0Dist), ('J', J),
+    return iterated_input_dict(Game, [('Level', Level)], [('L0Dist', L0Dist), ('J', J),
                                                       ('N', N), ('delta', delta),
                                                       ('alpha', alpha), ('eps', eps),
                                                       ('pureout', pureout)])

@@ -21,10 +21,10 @@ import pynfg
 
 
 class BestResponse(object):
-    """ Finds the **uncoordinated** best response solution for a semi-NFG.
+    """ Finds the **uncoordinated** best response solution for a semi-NFGame.
 
-    :arg G:  A semi-NFG
-    :type G: semiNFG
+    :arg Game:  A semi-NFG
+    :type Game: semiNFG
     :arg specs: dictionary of dictionaries containing specifications
         the level, level-0 strategy, tolerance
         and degrees of rationality of each player.
@@ -60,8 +60,8 @@ class BestResponse(object):
 
     """
 
-    def __init__(self, G, specs, logit=False):
-        self.G = copy.deepcopy(G)
+    def __init__(self, Game, specs, logit=False):
+        self.Game = copy.deepcopy(Game)
         self.logit = logit
         self.specs = specs
         self.high_level = self._set_new_attributes()
@@ -69,11 +69,11 @@ class BestResponse(object):
 
 
     def _set_new_attributes(self):
-        G = self.G
+        Game = self.Game
         ps = self.specs
         levels = []
         for player in ps:
-            node_set = list(G.partition[player])
+            node_set = list(Game.partition[player])
             for node in node_set:
                 nodename = node.name
                 node.Level, node.delta, node.tol, node.N =  \
@@ -90,10 +90,10 @@ class BestResponse(object):
 
     def _set_L0_CPT(self):
         """ Sets the level 0 CPT"""
-        G = self.G
+        Game = self.Game
         ps = self.specs
         for player in ps:
-            node_set = list(G.partition[player])
+            node_set = list(Game.partition[player])
             for node in node_set:
                 try:
                     node.LevelCPT['Level0']
@@ -105,7 +105,7 @@ class BestResponse(object):
                     elif ps[player][nodename]['L0Dist'] is None:
                         warnings.warn("No entry for L0Dist for player %s,\
                         setting to current CPT" % player)
-                        node.LevelCPT['Level0'] = G.node_dict[nodename].CPT
+                        node.LevelCPT['Level0'] = Game.node_dict[nodename].CPT
                     elif type(ps[player][nodename]['L0Dist']) == np.ndarray:
                         node.LevelCPT['Level0'] = \
                             ps[player][nodename]['L0Dist']
@@ -124,66 +124,66 @@ class BestResponse(object):
 
         """
         print 'Training ' + nodename + ' at level ' + str(level)
-        G = copy.deepcopy(self.G)  # copy in order to maintain original CPT
+        Game = copy.deepcopy(self.Game)  # copy in order to maintain original CPT
         ps = self.specs
-        for node in G.node_dict:  # G changes, self.G doesn't
+        for node in Game.node_dict:  # Game changes, self.Game doesn't
             if type(node) is pynfg.classes.decisionnode.DecisionNode:
                 try:
                     node.CPT = node.LevelCPT['Level' + str(level - 1)]
                 except KeyError:
                     raise KeyError('Need to train other players at level %s'
                                    % str(level-1))
-        EUtable = mceu(G, nodename, G.node_dict[nodename].N,
-                       G.node_dict[nodename].tol, G.node_dict[nodename].delta,
+        EUtable = mceu(Game, nodename, Game.node_dict[nodename].N,
+                       Game.node_dict[nodename].tol, Game.node_dict[nodename].delta,
                        verbose=verbose)
         if not self.logit:
-            self.G.node_dict[nodename].LevelCPT['Level' + str(level)] = \
+            self.Game.node_dict[nodename].LevelCPT['Level' + str(level)] = \
                   convert_2_pureCPT(EUtable)
             if setCPT:
-                self.G.node_dict[nodename].CPT = convert_2_pureCPT(EUtable)
+                self.Game.node_dict[nodename].CPT = convert_2_pureCPT(EUtable)
         else:
-            weight = np.exp(G.node_dict[nodename].beta*EUtable)
+            weight = np.exp(Game.node_dict[nodename].beta*EUtable)
             norm = np.sum(weight, axis=-1)
-            self.G.node_dict[nodename].LevelCPT['Level' + str(level)] = \
+            self.Game.node_dict[nodename].LevelCPT['Level' + str(level)] = \
             weight/norm[..., np.newaxis]
             if setCPT:
-                self.G.node_dict[nodename].CPT = weight/norm[..., np.newaxis]
+                self.Game.node_dict[nodename].CPT = weight/norm[..., np.newaxis]
 
 
     def solve_game(self, setCPT=False, verbose=False):
         """ Solves the game for specified player levels"""
-        G = self.G
+        Game = self.Game
         for level in np.arange(1, self.high_level):
-            for player in G.players:
-                for controlled in G.partition[player]:
+            for player in Game.players:
+                for controlled in Game.partition[player]:
                     self.train_node(controlled.name, level, verbose=verbose)
-        for player in G.players:
-            for controlled in G.partition[player]:
+        for player in Game.players:
+            for controlled in Game.partition[player]:
                 if controlled.Level == self.high_level:
                     self.train_node(controlled.name, self.high_level,
                                     verbose=verbose)
         if setCPT:
-            for player in G.players:
-                for node in G.partition[player]:
-                    G.node_dict[node.name].CPT = G.node_dict[node.name].\
-                        LevelCPT['Level' + str(G.node_dict[node.name].Level)]
+            for player in Game.players:
+                for node in Game.partition[player]:
+                    Game.node_dict[node.name].CPT = Game.node_dict[node.name].\
+                        LevelCPT['Level' + str(Game.node_dict[node.name].Level)]
 
 
-def br_dict(G, N, Level, L0Dist=None, delta=1, tol=30, beta=None):
+def br_dict(Game, N, Level, L0Dist=None, delta=1, tol=30, beta=None):
     """A helper function to generate the player_spec dictionary
     for best response.  If optional arguments are specified, they are
     set for all decision nodes.
 
-    :arg G: A SemiNFG
-    :type G: SemiNFG
+    :arg Game: A SemiNFG
+    :type Game: SemiNFG
 
     .. seealso::
         See the BestResponse documentation (above) for details of the  optional arguments
     """
     if beta is None:
-        return input_dict(G, [('Level', Level), ('delta', delta)],
+        return input_dict(Game, [('Level', Level), ('delta', delta)],
                           [('L0Dist', L0Dist), ('N', N), ('tol', tol)])
     else:
-        return input_dict(G, [('Level', Level), ('delta', delta)],
+        return input_dict(Game, [('Level', Level), ('delta', delta)],
                       [('L0Dist', L0Dist), ('N', N), ('tol', tol),
                        ('beta', beta)])
