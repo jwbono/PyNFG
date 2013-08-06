@@ -166,7 +166,7 @@ class BestResponse(object):
             for player in Game.players:
                 for node in Game.partition[player]:
                     Game.node_dict[node.name].CPT = Game.node_dict[node.name].\
-                        LevelCPT['Level' + str(Game.node_dict[node.name].Level)]
+                        LevelCPT[Game.node_dict[node.name].Level]
 
 
 def br_dict(Game, N, Level, L0Dist=None, delta=1, tol=30, beta=None):
