@@ -30,8 +30,8 @@ class BestResponse(object):
         and degrees of rationality of each player.
         See below for details.
     :type specs: dict
-    :arg N: Number of times to repeat sampling algorithm
-    :type N: int
+    :arg logit: Setting to true calculates logit best response.  Default is False
+    :type N: bool
 
     specs is a triply-nested dictionary.  The first set of keys
     are the player names.  For each player key, there are keys:
