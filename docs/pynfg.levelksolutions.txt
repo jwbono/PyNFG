@@ -64,8 +64,8 @@ To see the solved CPT for a player, access the rlk's instance of the game (not t
 
 .. code-block:: ipython
 
-   In [7]: solver.G.node_dict['Q1'].LevelCPT
-   Out[7]: {'Level0': array([[ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667, 0.16666667], [ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667, 0.16666667], [ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667,0.16666667]]), 'Level1': array([[ 0. ,  0. ,  0. ,  0.5,  0.4,  0.1], [ 0. ,  0. ,  0.3,  0.4,  0.3,  0. ], [ 0. ,  0. ,  0.8,  0.1,  0.1,  0. ]]), 'Level2': array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.43333333, 0.56666667], [ 0.        ,  0.        ,  0.        ,  0.26666667,  0.5       , 0.23333333], [ 0.        ,  0.3       ,  0.7       ,  0.        ,  0.        , 0.        ]])}
+   In [7]: solver.Game.node_dict['Q1'].LevelCPT
+   Out[7]: {0: array([[ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667, 0.16666667], [ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667, 0.16666667], [ 0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667,0.16666667]]), 1: array([[ 0. ,  0. ,  0. ,  0.5,  0.4,  0.1], [ 0. ,  0. ,  0.3,  0.4,  0.3,  0. ], [ 0. ,  0. ,  0.8,  0.1,  0.1,  0. ]]), 2: array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.43333333, 0.56666667], [ 0.        ,  0.        ,  0.        ,  0.26666667,  0.5       , 0.23333333], [ 0.        ,  0.3       ,  0.7       ,  0.        ,  0.        , 0.        ]])}
 
 
 The result is a dictionary consisting of the player's strategies for each level trained.  Note that even if a player is level 1, LevelCPT might also contain a level 2 strategy if other players are level 3 or greater.
@@ -77,7 +77,7 @@ To train player 1 to level three without resolving the entire game, just do
    In [8]: solver.train_node('Q1',3)
    Training Q1 at level 3
 
-Now calling **solver.G.node_dict['Q1']** will have an entry for Level 3.
+Now calling **solver.Game.node_dict['Q1']** will have an entry for Level 3.
 
 
 Now, to find the level k best response solution, follow the same steps but use the BestResponse solver and br_dict to specify the parameters
@@ -85,8 +85,8 @@ Now, to find the level k best response solution, follow the same steps but use t
 .. code-block:: ipython
 
    In [9]: player_info_br = br_dict(G, 10, 2, L0Dist = 'uniform', beta=2)
-   In [10]: BRsolver = BestResponse(G, player_info_br)
-   In [11]: BRSolver.solve_game(logit=True)
+   In [10]: BRSolver = BestResponse(G, player_info_br, logit=True)
+   In [11]: BRSolver.solve_game()
    Training Q1 at level 1
    Training Q2 at level 1
    Training Q1 at level 2
@@ -109,49 +109,9 @@ Now assume that G is the hide and seek game included in this package.  Suppose w
   In [14]: solverMCRL = EWMA_MCRL(G, player_info_mcrl)
   In [15]: solverMCRL.solve_game()
   Training Dseek at level 1
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
   Training Dhide at level 1
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
   Training Dseek at level 2
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
   Training Dhide at level 2
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
 
 
 However, instead of the solved CPTs being attached to a node, the trained CPTs are stored as an attribute of the solver instance.
@@ -196,7 +156,7 @@ To see the new CPT just do
 
 .. code-block:: ipython
 
-   In [23]: seek2CPT = BRSolver.G.node_dict['Dseek2'].LevelCPT['Level1']
+   In [23]: seek2CPT = BRSolver.Game.node_dict['Dseek2'].LevelCPT[1]
 
 Solvers
 -------

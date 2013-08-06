@@ -36,7 +36,7 @@ Since, each player can be trained independently of the others at a given level, 
    Training Q1 at level 3
    Training Q2 at level 3
 
-G_parallel is similar in nature to solver.G.  Making both players level 3, note the speedup
+G_parallel is similar in nature to solver.Game.  Making both players level 3, note the speedup
 
 .. code-block:: ipython
 
