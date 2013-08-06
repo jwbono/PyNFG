@@ -101,18 +101,18 @@ class RLK(object):
             node_set = list(Game.partition[player])
             for node in node_set:
                 try:
-                    node.LevelCPT['Level0']
+                    node.LevelCPT[0]
                 except KeyError:
                     nodename = node.name
                     if ps[player][nodename]['L0Dist'] == 'uniform':
-                        node.LevelCPT['Level0'] = \
+                        node.LevelCPT[0] = \
                             node.uniformCPT(setCPT=False)
                     elif ps[player][nodename]['L0Dist'] is None:
                         warnings.warn("No entry for L0Dist for player %s,\
                         setting to current CPT" % player)
-                        node.LevelCPT['Level0'] = Game.node_dict[nodename].CPT
+                        node.LevelCPT[0] = Game.node_dict[nodename].CPT
                     elif type(ps[player][nodename]['L0Dist']) == np.ndarray:
-                        node.LevelCPT['Level0'] = \
+                        node.LevelCPT[0] = \
                             ps[player][nodename]['L0Dist']
 
     def _set_satisficing_func(self):
@@ -170,7 +170,7 @@ class RLK(object):
         """ Samples entire CPT according to Deifnition 7 in Lee and Wolpert"""
         Game = self.Game
         node = Game.node_dict[nodename]
-        other_level = 'Level%s' % str(level-1)
+        other_level = level-1
         for player in Game.players:  # Sets all players to lower level
             if player != node.player:
                 try:
@@ -265,8 +265,7 @@ class RLK(object):
             new_CPT = self._sample_CPT(nodename, level)
             CPT = CPT * float(mcsamp)/float(mcsamp+1) + \
                 new_CPT / float(mcsamp + 1)
-        Levelkey = 'Level' + str(level)
-        node.LevelCPT[Levelkey] = CPT
+        node.LevelCPT[level] = CPT
         if setCPT:
             node.CPT = CPT
 
@@ -285,7 +284,7 @@ class RLK(object):
             for player in Game.players:
                 for node in Game.partition[player]:
                     Game.node_dict[node.name].CPT = Game.node_dict[node.name].\
-                        LevelCPT['Level' + str(Game.node_dict[node.name].Level)]
+                        LevelCPT[Game.node_dict[node.name].Level]
 
 
 def rlk_dict(Game, M=None, Mprime=None, Level=None, L0Dist=None, SDist=None):

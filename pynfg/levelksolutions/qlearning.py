@@ -60,7 +60,7 @@ class QLearning(object):
             for bn in basenames:
                 self.trained_CPTs[player] = {}
                 self.trained_CPTs[player][bn] = {}
-                self.trained_CPTs[player][bn]['Level0'] = self._set_L0_CPT()
+                self.trained_CPTs[player][bn][0] = self._set_L0_CPT()
                 self.figs[bn] = {}
         self.high_level = max(map(lambda x: self.specs[x]['Level'], Game.players))
 
@@ -104,8 +104,7 @@ class QLearning(object):
                     for dn in Game.bn_part[base]:
                         try:
                             dn.CPT = \
-                                (self.trained_CPTs[o_player][base]['Level' +
-                                                          str(level - 1)])
+                                (self.trained_CPTs[o_player][base][level - 1])
                         except KeyError:
                             raise KeyError('Need to train other players at level %s'
                                    % str(level-1))
@@ -151,7 +150,7 @@ class QLearning(object):
                 Qmax = Qmax_new
                 r_av = r_av_new
             rseries.append(r_av)
-        self.trained_CPTs[player][bn]['Level' + str(level)] = Game.bn_part[bn][0].CPT
+        self.trained_CPTs[player][bn][level] = Game.bn_part[bn][0].CPT
         plt.figure()
         plt.plot(rseries, label = str(bn + ' Level ' + str(level)))
         #plotting rseries to gauge convergence

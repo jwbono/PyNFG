@@ -96,18 +96,18 @@ class BestResponse(object):
             node_set = list(Game.partition[player])
             for node in node_set:
                 try:
-                    node.LevelCPT['Level0']
+                    node.LevelCPT[0]
                 except KeyError:
                     nodename = node.name
                     if ps[player][nodename]['L0Dist'] == 'uniform':
-                        node.LevelCPT['Level0'] = \
+                        node.LevelCPT[0] = \
                             node.uniformCPT(setCPT=False)
                     elif ps[player][nodename]['L0Dist'] is None:
                         warnings.warn("No entry for L0Dist for player %s,\
                         setting to current CPT" % player)
-                        node.LevelCPT['Level0'] = Game.node_dict[nodename].CPT
+                        node.LevelCPT[0] = Game.node_dict[nodename].CPT
                     elif type(ps[player][nodename]['L0Dist']) == np.ndarray:
-                        node.LevelCPT['Level0'] = \
+                        node.LevelCPT[0] = \
                             ps[player][nodename]['L0Dist']
 
     def train_node(self, nodename, level, setCPT=False, verbose=False):
@@ -129,7 +129,7 @@ class BestResponse(object):
         for node in Game.node_dict:  # Game changes, self.Game doesn't
             if type(node) is pynfg.classes.decisionnode.DecisionNode:
                 try:
-                    node.CPT = node.LevelCPT['Level' + str(level - 1)]
+                    node.CPT = node.LevelCPT[level - 1]
                 except KeyError:
                     raise KeyError('Need to train other players at level %s'
                                    % str(level-1))
@@ -137,14 +137,14 @@ class BestResponse(object):
                        Game.node_dict[nodename].tol, Game.node_dict[nodename].delta,
                        verbose=verbose)
         if not self.logit:
-            self.Game.node_dict[nodename].LevelCPT['Level' + str(level)] = \
+            self.Game.node_dict[nodename].LevelCPT[level] = \
                   convert_2_pureCPT(EUtable)
             if setCPT:
                 self.Game.node_dict[nodename].CPT = convert_2_pureCPT(EUtable)
         else:
             weight = np.exp(Game.node_dict[nodename].beta*EUtable)
             norm = np.sum(weight, axis=-1)
-            self.Game.node_dict[nodename].LevelCPT['Level' + str(level)] = \
+            self.Game.node_dict[nodename].LevelCPT[level] = \
             weight/norm[..., np.newaxis]
             if setCPT:
                 self.Game.node_dict[nodename].CPT = weight/norm[..., np.newaxis]
