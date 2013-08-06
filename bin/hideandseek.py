@@ -239,7 +239,7 @@ MCRL_solved.figs['Dhide']['1'].show()
 
 MCRL_solved.train_node('Dhide', 2, setCPT=False)
 print np.all(MCRL_solved.Game.bn_part['Dhide'][0].CPT ==
-             MCRL_solved.trained_CPTs['hider']['Dhide']['Level1'])
+             MCRL_solved.trained_CPTs['hider']['Dhide'][1])
 
 # Use the game attribute of MCRL_solved with appropriate CPTs to perform PGT
 
