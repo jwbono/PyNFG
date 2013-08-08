@@ -86,7 +86,7 @@ class EWMA_MCRL(object):
                     setting to current CPT" % player)
                     return Game.bn_part[bn][0].CPT
                 elif type(ps[player][bn]['L0Dist']) == np.ndarray:
-                    return ps[player][bn]
+                    return ps[player][bn]['L0Dist']
 
     def train_node(self, bn, level, setCPT=False):
         """ Use EWMA MC RL to approximate the optimal CPT at bn given Game
