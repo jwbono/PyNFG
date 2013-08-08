@@ -78,7 +78,7 @@ class QLearning(object):
                     setting to current CPT" % player)
                     return Game.bn_part[bn][0].CPT
                 elif type(ps[player][bn]['L0Dist']) == np.ndarray:
-                    return ps[player][bn]
+                    return ps[player][bn]['L0Dist']
 
     def train_node(self, bn, level, setCPT=False):
         """Solve for the optimal policy using Optimistic Q-learning. Optimistic
