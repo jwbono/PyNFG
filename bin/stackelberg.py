@@ -114,70 +114,70 @@ valuedict = G.sample(start=['Q1'])
 ###########################################
 valuedict = G.get_values(nodenames=['Q1', 'D'])
 
-###########################################
-##PGT INTELLIGENCE ESTIMATION
-###########################################
-#Defining a welfare function on G
-def welfare(G):
-    G.sample()
-    w = G.utility('1')+G.utility('2')
-    return w
-    
-#Defining a PGT posterior on iq profiles (dict)    
-def density(iqdict):
-    x = iqdict.values()
-    y = np.power(x,2)
-    z = np.product(y)
-    return z
-
-GG = copy.deepcopy(G)
-S = 50 #number of samples
-X = 10 #number of samples of utility of G in calculating iq
-M = 20 #number of alternative strategies sampled in calculating iq
-noise = .2 #noise in the perturbations of G for MH or MC sampling
-innoise = noise #satisficing distribution noise for iq calculations
-burn = 100 #number of draws to burn for MH
-
-from pynfg.pgtsolutions.intelligence.coordinated import *
-
-tipoff = time.time() #starting a timer
-#Importance Samping estimation of PGT posterior
-intelMC, funcoutMC, weightMC = coordinated_MC(GG, S, noise, X, M, \
-                                              innoise=.2, \
-                                              delta=1, \
-                                              integrand=welfare, \
-                                              mix=False, \
-                                              satisfice=GG)
-halftime = time.time()
-print halftime-tipoff
-#Metropolis-Hastings estimation of PGT posterior
-intelMH, funcoutMH, densMH = coordinated_MH(GG, S, density, noise, X, M,\
-                                            innoise=.2, \
-                                            delta=1, \
-                                            integrand=welfare, \
-                                            mix=False, \
-                                            satisfice=GG)
-buzzer = time.time()
-#Printing elapsed times
-T = halftime-tipoff
-print 'MC took:', T,  'sec., ', T/60, 'min., or', T/3600, 'hr.'
-T = buzzer-halftime
-print 'MH took:', T,  'sec., ', T/60, 'min., or', T/3600, 'hr.'
-
-###########################################
-##PLOTTING PGT RESULTS
-###########################################
-#selecting output into appropriate lists
-MCiqQ1 = [intelMC[s]['1'] for s in xrange(1,S+1)] 
-MHiqQ1 = [intelMH[s]['1'] for s in xrange(1,S+1)]
-#creating the importance sampling weights from MC
-MCweight = [density(intelMC[s])/np.prod(weightMC[s].values()) for s in \
-            xrange(1,S+1)] 
-#the PGT distribution over intelligence values for player 1
-plt.figure()
-plt.hist(MCiqQ1, normed=True, weights=MCweight, alpha=0.5)
-plt.hist(MHiqQ1[burn::], normed=True, alpha=0.5)
-#the PGT distribution over welfare values
-plt.figure()
-plt.hist(funcoutMC.values(), normed=True, weights=MCweight, alpha=0.5)
-plt.hist(funcoutMH.values()[burn::], normed=True, alpha=0.5)
+############################################
+###PGT INTELLIGENCE ESTIMATION
+############################################
+##Defining a welfare function on G
+#def welfare(G):
+#    G.sample()
+#    w = G.utility('1')+G.utility('2')
+#    return w
+#    
+##Defining a PGT posterior on iq profiles (dict)    
+#def density(iqdict):
+#    x = iqdict.values()
+#    y = np.power(x,2)
+#    z = np.product(y)
+#    return z
+#
+#GG = copy.deepcopy(G)
+#S = 50 #number of samples
+#X = 10 #number of samples of utility of G in calculating iq
+#M = 20 #number of alternative strategies sampled in calculating iq
+#noise = .2 #noise in the perturbations of G for MH or MC sampling
+#innoise = noise #satisficing distribution noise for iq calculations
+#burn = 100 #number of draws to burn for MH
+#
+#from pynfg.pgtsolutions.intelligence.coordinated import *
+#
+#tipoff = time.time() #starting a timer
+##Importance Samping estimation of PGT posterior
+#intelMC, funcoutMC, weightMC = coordinated_MC(GG, S, noise, X, M, \
+#                                              innoise=.2, \
+#                                              delta=1, \
+#                                              integrand=welfare, \
+#                                              mix=False, \
+#                                              satisfice=GG)
+#halftime = time.time()
+#print halftime-tipoff
+##Metropolis-Hastings estimation of PGT posterior
+#intelMH, funcoutMH, densMH = coordinated_MH(GG, S, density, noise, X, M,\
+#                                            innoise=.2, \
+#                                            delta=1, \
+#                                            integrand=welfare, \
+#                                            mix=False, \
+#                                            satisfice=GG)
+#buzzer = time.time()
+##Printing elapsed times
+#T = halftime-tipoff
+#print 'MC took:', T,  'sec., ', T/60, 'min., or', T/3600, 'hr.'
+#T = buzzer-halftime
+#print 'MH took:', T,  'sec., ', T/60, 'min., or', T/3600, 'hr.'
+#
+############################################
+###PLOTTING PGT RESULTS
+############################################
+##selecting output into appropriate lists
+#MCiqQ1 = [intelMC[s]['1'] for s in xrange(1,S+1)] 
+#MHiqQ1 = [intelMH[s]['1'] for s in xrange(1,S+1)]
+##creating the importance sampling weights from MC
+#MCweight = [density(intelMC[s])/np.prod(weightMC[s].values()) for s in \
+#            xrange(1,S+1)] 
+##the PGT distribution over intelligence values for player 1
+#plt.figure()
+#plt.hist(MCiqQ1, normed=True, weights=MCweight, alpha=0.5)
+#plt.hist(MHiqQ1[burn::], normed=True, alpha=0.5)
+##the PGT distribution over welfare values
+#plt.figure()
+#plt.hist(funcoutMC.values(), normed=True, weights=MCweight, alpha=0.5)
+#plt.hist(funcoutMH.values()[burn::], normed=True, alpha=0.5)
