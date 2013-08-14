@@ -77,7 +77,10 @@ def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     D = {} #dict associates messages and mapairs with norm constants for Q,V
     Q = np.zeros(shape) #Qtable
     V = np.zeros(shape[:-1]) #Value table
-    Rseries = np.zeros(N) #tracking average reward for plotting convergence
+    Rseries = [] #tracking average reward for plotting convergence
+    plt.ion()
+    fig=plt.plot()
+    line1, = plt.plot([],[])
     np.seterr(invalid='ignore', divide='ignore')
     for n in xrange(N):
         sys.stdout.write('\r')
@@ -85,7 +88,6 @@ def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         sys.stdout.flush()
         indicaten = np.zeros(Q.shape) #indicates visited mapairs
         visitn = set() #dict of messages and mapairs visited in episode n
-        Rseries[n] = R #adding the most recent ave reward to the data series
         A *= alpha[n] #rescaling A at start of new episode, see writeup
         for j in xrange(int(J[n])):
             visitj = set() #visitj must be cleared at the start of every run
@@ -153,6 +155,7 @@ def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                     visitn.add(mapair)
                     visitj.add(mapair)
                     indicaten[mapair] = 1 #only visited actions are updated 
+        Rseries.append(R) #adding the most recent ave reward to the data series
         # update CPT with shift towards Qtable argmax actions.
         shift = Q-V[...,np.newaxis]
         idx = np.nonzero(shift) #indices of nonzero shifts (avoid divide by 0)
@@ -165,11 +168,25 @@ def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
         # normalize after the shift
         CPTsum = G.bn_part[bn][0].CPT.sum(axis=-1)
         G.bn_part[bn][0].CPT /= CPTsum[...,np.newaxis]
+        line1.set_ydata(Rseries) # Change the y in the plot
+        line1.set_xdata(range(n+1)) # Change the x in the plot
+        plt.axis([0, N, np.min(Rseries), 1.5*np.max(Rseries)])
+        plt.draw() # draw using the new data
     if pureout: #if True, output is a pure policy
         G.bn_part[bn][0].makeCPTpure()
     for tau in xrange(1, T-T0): #before exit, make CPTs independent in memory
         G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][0].CPT)
-    plt.plot(Rseries) #plotting Rseries to gauge convergence
-    fig = plt.gcf() 
-    plt.show()
-    return G, fig
+    return G
+
+#plt.ion()   # Starts interactive mode
+#fig=plt.plot()  # Creates figure instance
+#x= [] # x values
+#y= [] # y values
+#line1 = plt.plot(x,y)[0]  # Initiate a plot.
+#plt.axis([0,50, 0, 2500])  # Set the axis
+#for i in range(50):
+#    x.append(i)   # Add an x unit to the data
+#    y.append(i**2) # Add a y value to the plot
+#    line1.set_ydata(y) # Change the x in the plot
+#    line1.set_xdata(x) # Change the y in the plot
+#    plt.draw() # draw using the new data
