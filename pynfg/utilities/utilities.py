@@ -14,6 +14,7 @@ GNU Affero General Public License
 from __future__ import division
 import numpy as np
 import copy
+import pynfg
 
 def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     """Compute the move-conditioned expected utilities for all parent values
@@ -31,7 +32,9 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     G = copy.deepcopy(Game)
     player = G.node_dict[dn].player
     CPT_shape = G.node_dict[dn].CPT.shape
-    childnames = [node.name for node in G.children(dn)]
+    non_children_nodes = list(set(G.node_dict.values()) - set(G.children(dn)))
+    non_children = [n.name for n in non_children_nodes]
+    print non_children
     space = G.node_dict[dn].space
     Utable = np.zeros(CPT_shape)
     visits = np.zeros(CPT_shape)
@@ -42,11 +45,12 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     except AttributeError:
         ufoo = G.utility
         uargs = player
-    while np.min(visits)<tol and n<N:
+    while not (np.min(visits)>tol and n>N):
         n += 1
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
+        #visits[idx]+=1
         if type(G) ==pynfg.classes.seminfg.SemiNFG:
             Utable[idx] += ufoo(uargs)
         else:
@@ -54,7 +58,7 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
         for a in xrange(CPT_shape[-1]):
             if a != idx[-1]:
                 G.node_dict[dn].set_value(space[a])
-                G.sample(start=childnames)
+                G.sample(exclude = non_children)
                 idy = idx[:-1]+(a,)
                 if type(G) ==pynfg.classes.seminfg.SemiNFG:
                     Utable[idy] += ufoo(uargs)
@@ -66,7 +70,10 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
         print('least number of visits:', np.min(visits[np.nonzero(visits)]))
     idx = (visits==0)
     visits[idx] = 1
-    return Utable/visits
+    print Utable
+    print visits
+    print Utable/ np.float_(visits)
+    return Utable/np.float_(visits)
 
 def convert_2_pureCPT(anarray):
     """Convert an arbitrary matrix to a pure CPT w/ weight on maximum elements
