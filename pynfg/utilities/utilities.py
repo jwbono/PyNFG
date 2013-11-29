@@ -17,7 +17,7 @@ import copy
 
 def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     """Compute the move-conditioned expected utilities for all parent values
-    
+
     :arg Game: the SemiNFG of interest
     :type Game: SemiNFG or iterSemiNFG
     :arg dn: the name of the decision node where MCEUs are estimated
@@ -26,7 +26,7 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     :type N: int
     :arg tol: the minimum number of samples per parent value
     :type tol: int
-    
+
     """
     G = copy.deepcopy(Game)
     player = G.node_dict[dn].player
@@ -47,52 +47,58 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
-        Utable[idx] += ufoo(*uargs)
+        if type(G) ==pynfg.classes.seminfg.SemiNFG:
+            Utable[idx] += ufoo(uargs)
+        else:
+            Utable[idx] += ufoo(*uargs)
         for a in xrange(CPT_shape[-1]):
             if a != idx[-1]:
                 G.node_dict[dn].set_value(space[a])
                 G.sample(start=childnames)
                 idy = idx[:-1]+(a,)
-                Utable[idy] += ufoo(*uargs)
+                if type(G) ==pynfg.classes.seminfg.SemiNFG:
+                    Utable[idy] += ufoo(uargs)
+                else:
+                     Utable[idy] += ufoo(*uargs)
     if verbose:
         print('number of unvisited messages:', \
               (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
-        print('least number of visits:', np.min(visits[np.nonzero(visits)])) 
+        print('least number of visits:', np.min(visits[np.nonzero(visits)]))
     idx = (visits==0)
     visits[idx] = 1
     return Utable/visits
 
 def convert_2_pureCPT(anarray):
     """Convert an arbitrary matrix to a pure CPT w/ weight on maximum elements
-    
-    :arg anarray: The numpy array to be converted to 
+
+    :arg anarray: The numpy array to be converted to
     :type anarray: np.array
     :returns: a normalized conditional probability distribution over actions
        given messages with all elements zero or one.
-    
+
     """
     idx = np.where(anarray == np.max(anarray, axis=-1)[...,np.newaxis])
     newarray = np.zeros(anarray.shape)
     newarray[idx] = 1
     newCPT = newarray/np.sum(newarray, axis=-1)[...,np.newaxis]
     return newCPT
-    
+
 def mh_decision(pnew, pold, qnew=1, qold=1):
     """Decide to accept the new draw or keep the old one
-    
+
     :arg pnew: the unnormalized likelihood of the new draw
     :type pnew: float
     :arg pold: the unnormalized likelihood of the old draw
     :type pnew: float
-    :arg qnew: the probability of transitioning from the old draw to the new 
+    :arg qnew: the probability of transitioning from the old draw to the new
        draw.
     :type qnew: float
-    :arg qold: the probability of transitioning from the new draw to the old 
+    :arg qold: the probability of transitioning from the new draw to the old
        draw.
     :type qold: float
-    :returns: either True or False to determine whether the new draw is 
+    :returns: either True or False to determine whether the new draw is
        accepted.
-    
+
     """
     if pold<=0 or qnew<=0:
         a = 1
