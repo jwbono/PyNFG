@@ -47,13 +47,19 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
-        Utable[idx] += ufoo(*uargs)
+        if type(G) ==pynfg.classes.seminfg.SemiNFG:
+            Utable[idx] += ufoo(uargs)
+        else:
+            Utable[idx] += ufoo(*uargs)
         for a in xrange(CPT_shape[-1]):
             if a != idx[-1]:
                 G.node_dict[dn].set_value(space[a])
                 G.sample(start=childnames)
                 idy = idx[:-1]+(a,)
-                Utable[idy] += ufoo(*uargs)
+                if type(G) ==pynfg.classes.seminfg.SemiNFG:
+                    Utable[idy] += ufoo(uargs)
+                else:
+                     Utable[idy] += ufoo(*uargs)
     if verbose:
         print('number of unvisited messages:', \
               (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
