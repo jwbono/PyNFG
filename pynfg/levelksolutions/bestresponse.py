@@ -126,7 +126,7 @@ class BestResponse(object):
         print 'Training ' + nodename + ' at level ' + str(level)
         Game = copy.deepcopy(self.Game)  # copy in order to maintain original CPT
         ps = self.specs
-        for node in Game.node_dict:  # Game changes, self.Game doesn't
+        for node in Game.node_dict.values():  # Game changes, self.Game doesn't
             if type(node) is pynfg.classes.decisionnode.DecisionNode:
                 try:
                     node.CPT = node.LevelCPT[level - 1]
