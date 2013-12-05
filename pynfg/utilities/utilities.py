@@ -83,13 +83,19 @@ def _mceu_static(Game, dn, N, tol, verbose=False):
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
         Utable[idx] += ufoo(uargs)
-
-        for a in xrange(CPT_shape[-1]):
-            if a != idx[-1]:
-                G.node_dict[dn].set_value(space[a])
-                G.sample(start=childnames)
-                idy = idx[:-1]+(a,)
-                Utable[idy] += ufoo(uargs)
+        if len(childnames) > 0 :
+            for a in xrange(CPT_shape[-1]):
+                if a != idx[-1]:
+                    G.node_dict[dn].set_value(space[a])
+                    G.sample(start=childnames)
+                    idy = idx[:-1]+(a,)
+                    Utable[idy] += ufoo(uargs)
+        else: # no children samples whole net!
+            for a in xrange(CPT_shape[-1]):
+                if a != idx[-1]:
+                    G.node_dict[dn].set_value(space[a])
+                    idy = idx[:-1]+(a,)
+                    Utable[idy] += ufoo(uargs)
     if verbose:
         print('number of unvisited messages:', \
               (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
