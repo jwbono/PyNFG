@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
 A Stackelberg-style example of a standard SemiNFG:
-Market demand is determined by a root node. Firm 1 observes market demand and 
-chooses a quantity, Q1. Firm 2 observes Q1 and chooses a quantity, Q2. Firm 2 
-does not observe market demand. Q1 and Q2 are combined wih market demand to 
+Market demand is determined by a root node. Firm 1 observes market demand and
+chooses a quantity, Q1. Firm 2 observes Q1 and chooses a quantity, Q2. Firm 2
+does not observe market demand. Q1 and Q2 are combined wih market demand to
 determine prices. Prices and quantities then determine profits.
 
 Note: It is better to run this script line by line or customize your own run
 script from the pieces contained herein rather than running the entire file. The
-reason is that the PGT algorithms will take a long time with a large number of 
+reason is that the PGT algorithms will take a long time with a large number of
 sample (S).
 
 Created on Mon Feb 25 17:58:20 2013
 
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
+Copyright (C) 2013 James Bono
 
 GNU Affero General Public License
 
@@ -34,14 +34,14 @@ actions = range(6) #list of actions for each firm (quantities)
 markets = [(20,2), (10,1), (5,1/2)] #three inv. demand functions (int.,slope)
 c1 = 2 #cost per unit output for each player
 c2 = 2
-#inverse demand function for demand node below 
-def demand(q1, q2, m): 
+#inverse demand function for demand node below
+def demand(q1, q2, m):
     Q = q1+q2
     a = m[0]
     b = m[1]
     price = a-b*Q
     return price
-    
+
 ###########################################
 ##MARKET Conditions ChanceNode
 ###########################################
@@ -64,7 +64,7 @@ Q2 = DecisionNode('Q2', '2', actions, [Q1], 'Stackelberg follower q')
 ###########################################
 Dfunc = demand #the deterministic function for the Demand DeterNode
 Dparams =  {'q1': Q1, 'q2': Q2, 'm': M} #parameter input for Demand DeterNode
-Dcont = True    
+Dcont = True
 D = DeterNode('D', Dfunc, Dparams, Dcont, description='inv market demand')
 
 ###########################################
@@ -83,7 +83,7 @@ def util2(Q2,D):
 ###########################################
 ##INITIALIZING the SemiNFG
 ###########################################
-u_funcs = {'1': util1, '2': util2} #setting the utility dictionary    
+u_funcs = {'1': util1, '2': util2} #setting the utility dictionary
 nodeset = set([M,Q1,Q2,D]) #creating the set of nodes to initialize the net
 G = SemiNFG(nodeset, u_funcs) #initializing the ne
 
@@ -100,12 +100,12 @@ G.node_dict['Q2'].randomCPT(mixed=False)
 G.node_dict['Q1'].perturbCPT(0.5, mixed=False)
 
 ############################################
-###SAMPLING 
+###SAMPLING
 ############################################
 ##Sample the entire Bayesian Network
-G.sample() 
+G.sample()
 #sample entire net and return a dict of sampled values for nodes named M and Q2
-valuedict = G.sample(nodenames=['M', 'Q2']) 
+valuedict = G.sample(nodenames=['M', 'Q2'])
 #sample Q1 and all of its descendants
 valuedict = G.sample(start=['Q1'])
 #
@@ -122,8 +122,8 @@ def welfare(G):
     G.sample()
     w = G.utility('1')+G.utility('2')
     return w
-    
-#Defining a PGT posterior on iq profiles (dict)    
+
+#Defining a PGT posterior on iq profiles (dict)
 def density(iqdict):
     x = iqdict.values()
     y = np.power(x,2)
@@ -168,11 +168,11 @@ print 'MH took:', T,  'sec., ', T/60, 'min., or', T/3600, 'hr.'
 ##PLOTTING PGT RESULTS
 ###########################################
 #selecting output into appropriate lists
-MCiqQ1 = [intelMC[s]['1'] for s in xrange(1,S+1)] 
+MCiqQ1 = [intelMC[s]['1'] for s in xrange(1,S+1)]
 MHiqQ1 = [intelMH[s]['1'] for s in xrange(1,S+1)]
 #creating the importance sampling weights from MC
 MCweight = [density(intelMC[s])/np.prod(weightMC[s].values()) for s in \
-            xrange(1,S+1)] 
+            xrange(1,S+1)]
 #the PGT distribution over intelligence values for player 1
 plt.figure()
 plt.hist(MCiqQ1, normed=True, weights=MCweight, alpha=0.5)

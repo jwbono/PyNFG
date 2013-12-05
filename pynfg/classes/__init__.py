@@ -2,7 +2,7 @@
 """
 Created on Mon Feb 18 09:14:41 2013
 
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
+Copyright (C) 2013 James Bono
 
 GNU Affero General Public License
 
