@@ -14,6 +14,8 @@ GNU Affero General Public License
 from __future__ import division
 import numpy as np
 import copy
+import pynfg
+
 
 def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     """Compute the move-conditioned expected utilities for all parent values
@@ -28,6 +30,12 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     :type tol: int
 
     """
+    if type(Game) == pynfg.classes.seminfg.SemiNFG:
+        return _mceu_static(Game, dn, N, tol, verbose)
+    else:
+        return _mceu_iterated(Game, dn, N, tol, delta,  verbose)
+
+def _mceu_iterated(Game, dn, N, tol=30, delta=1, verbose=False):
     G = copy.deepcopy(Game)
     player = G.node_dict[dn].player
     CPT_shape = G.node_dict[dn].CPT.shape
@@ -36,30 +44,20 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     Utable = np.zeros(CPT_shape)
     visits = np.zeros(CPT_shape)
     n = 0
-    try:
-        ufoo = G.npv_reward
-        uargs = [player, G.node_dict[dn].time, delta]
-    except AttributeError:
-        ufoo = G.utility
-        uargs = player
-    while np.min(visits)<tol and n<N:
-        n += 1
+    ufoo = G.npv_reward
+    uargs = [player, G.node_dict[dn].time, delta]
+    while np.min(visits)<tol and n<N: # Do we want both of these to hold
+        n += 1                         # or just one?  I think both.
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
-        if type(G) ==pynfg.classes.seminfg.SemiNFG:
-            Utable[idx] += ufoo(uargs)
-        else:
-            Utable[idx] += ufoo(*uargs)
+        Utable[idx] += ufoo(*uargs)
         for a in xrange(CPT_shape[-1]):
             if a != idx[-1]:
                 G.node_dict[dn].set_value(space[a])
                 G.sample(start=childnames)
                 idy = idx[:-1]+(a,)
-                if type(G) ==pynfg.classes.seminfg.SemiNFG:
-                    Utable[idy] += ufoo(uargs)
-                else:
-                     Utable[idy] += ufoo(*uargs)
+                Utable[idy] += ufoo(*uargs)
     if verbose:
         print('number of unvisited messages:', \
               (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
@@ -67,6 +65,39 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     idx = (visits==0)
     visits[idx] = 1
     return Utable/visits
+
+def _mceu_static(Game, dn, N, tol, verbose=False):
+    G = copy.deepcopy(Game)
+    player = G.node_dict[dn].player
+    CPT_shape = G.node_dict[dn].CPT.shape
+    childnames = [node.name for node in G.children(dn)]
+    space = G.node_dict[dn].space
+    Utable = np.zeros(CPT_shape)
+    visits = np.zeros(CPT_shape)
+    n = 0
+    ufoo = G.utility
+    uargs = player
+    while np.min(visits)<tol and n<N: # Do we want both of these to hold
+        n += 1                         # or just one?  I think both.
+        G.sample()
+        idx = G.node_dict[dn].get_CPTindex()
+        visits[idx[:-1]] += 1
+        Utable[idx] += ufoo(uargs)
+
+        for a in xrange(CPT_shape[-1]):
+            if a != idx[-1]:
+                G.node_dict[dn].set_value(space[a])
+                G.sample(start=childnames)
+                idy = idx[:-1]+(a,)
+                Utable[idy] += ufoo(uargs)
+    if verbose:
+        print('number of unvisited messages:', \
+              (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
+        print('least number of visits:', np.min(visits[np.nonzero(visits)]))
+    idx = (visits==0)
+    visits[idx] = 1
+    return Utable/visits
+
 
 def convert_2_pureCPT(anarray):
     """Convert an arbitrary matrix to a pure CPT w/ weight on maximum elements
