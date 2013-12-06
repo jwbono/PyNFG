@@ -2,12 +2,12 @@
 """
 Implements a simple hide-and-seek iterSemiNFG:
 There is a hider and a seeker. In each time step, each player is at a location
-on a grid. The seeker gets a point each time both players are at the same 
+on a grid. The seeker gets a point each time both players are at the same
 location. The hider loses a point when this happens. In each time step, players
-each make an observation (possibly noisy) about their opponent's location and 
+each make an observation (possibly noisy) about their opponent's location and
 choose one of the five following moves: up, down, left, right, stay. These moves
-result in an associated location change of one grid step. A player on the 
-"northern" boundary that chooses up remains as is. Similiar rules apply to 
+result in an associated location change of one grid step. A player on the
+"northern" boundary that chooses up remains as is. Similiar rules apply to
 other moves that would result in locations off the grid.
 
 Note: It is better to run this script line by line or customize your own run
@@ -16,7 +16,7 @@ reason is that the PGT and RL algorithms will take a long time.
 
 Created on Mon Jan 28 16:22:43 2013
 
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
+Copyright (C) 2013 James Bono
 
 GNU Affero General Public License
 
@@ -46,7 +46,7 @@ left = np.array([-1,0])
 right = np.array([1,0])
 stay = np.array([0,0])
 # space of actions that players can choose
-actionspace = [up, down, left, right, stay] 
+actionspace = [up, down, left, right, stay]
 
 # time steps
 T = 10
@@ -68,12 +68,12 @@ def adjust_loc(location):
         location[0] = west
     elif location[0]>east:
         location[0] = east
-        
+
     if location[1]<south:
         location[1] = south
     elif location[1]>north:
         location[1] = north
-        
+
     return location
 
 # Combines start loc. and moves to give new loc. Used by DeterNode F
@@ -86,24 +86,24 @@ def newloc(seekmove=np.array([0,0]), hidemove=np.array([0,0]), \
 # Combines observational noise and location to give a valid location on-grid
 # for seeker's observation of hider's location
 def adjust_seeker(noise, loc):
-    opponent = adjust_loc(noise+loc[1]) 
+    opponent = adjust_loc(noise+loc[1])
     return np.vstack((loc[0], opponent))
 
 # Combines observational noise and location to give a valid location on-grid.
 # for hider's observation of seeker's location
 def adjust_hider(noise, loc):
     opponent = adjust_loc(noise+loc[0])
-    return np.vstack((opponent, loc[1]))                 
+    return np.vstack((opponent, loc[1]))
 
 ##################################################
 ##THE NODES - first time 0, then 1 to T in a loop
 ##################################################
-#STATE ROOT NODE, DeterNode F 
+#STATE ROOT NODE, DeterNode F
 paramsf = {}
 continuousf = False
 Froot = DeterNode('Froot0', newloc, paramsf, continuousf, space=statespace, \
                basename='Froot', time=0)
-               
+
 #OBSERVATIONAL NOISE for SEEKER, ChanceNode Cseek
 parseek = []
 CPTipseek = (obsnoiseCPT, parseek, actionspace)
@@ -123,59 +123,59 @@ Fseek = DeterNode('Fseek0', adjust_seeker, paramsseek, continuousseek, \
 paramshide = {'noise': Chide, 'loc': Froot}
 Fhide = DeterNode('Fhide0', adjust_hider, paramshide, continuousseek, \
                   space=statespace, basename='Fhide', time=0)
-                  
+
 #SEEKER DecisionNode, Dseek
 Dseek = DecisionNode('Dseek0', 'seeker', actionspace, parents=[Fseek], \
                      basename='Dseek', time=0)
 #HIDER DecisionNode, Dhide
 Dhide = DecisionNode('Dhide0', 'hider', actionspace, parents=[Fhide], \
                      basename='Dhide', time=0)
-                     
-#STATE ROOT NODE, DeterNode F 
+
+#STATE ROOT NODE, DeterNode F
 paramsf = {'seekmove': Dseek, 'hidemove': Dhide, 'loc': Froot}
 F = DeterNode('F0', newloc, paramsf, continuousf, space=statespace, \
               basename='F', time=0)
-                
+
 #adding time 0 nodes to nodeset
 nodeset = set([F,Froot,Fseek,Fhide,Cseek,Chide,Dseek,Dhide])
 
-#BUILD time steps 1 to T-1 iteratively               
+#BUILD time steps 1 to T-1 iteratively
 for t in range(1,T):
-                    
+
     Cseek = ChanceNode('Cseek%s' %t, CPTip=CPTipseek, basename='Cseek', time=t)
-    
+
     Chide = ChanceNode('Chide%s' %t, CPTip=CPTiphide, basename='Chide', time=t)
-                    
+
     paramsseek = {'noise': Cseek, 'loc': F}
     Fseek = DeterNode('Fseek%s' %t, adjust_seeker, paramsseek, continuousseek, \
                       space=statespace, basename='Fseek', time=t)
-    
+
     paramshide = {'noise': Chide, 'loc': F}
     Fhide = DeterNode('Fhide%s' %t, adjust_hider, paramshide, continuousseek, \
                       space=statespace, basename='Fhide', time=t)
-              
+
     Dseek = DecisionNode('Dseek%s' %t, 'seeker', actionspace, \
                          parents=[Fseek], basename='Dseek', time=t)
-                    
+
     Dhide = DecisionNode('Dhide%s' %t, 'hider', actionspace, \
                          parents=[Fhide], basename='Dhide', time=t)
-    
+
     paramsf = {'seekmove': Dseek, 'hidemove': Dhide, 'loc': F}
     F = DeterNode('F%s' %t, newloc, paramsf, continuousf, space=statespace, \
                   basename='F', time=t)
-    #adding time t nodes to nodeset             
+    #adding time t nodes to nodeset
     nodeset.update([F,Fseek,Fhide,Cseek,Chide,Dseek,Dhide])
 
 ##########################
 ##REWARD FUNCTIONS
 ##########################
-# seeker's reward function    
+# seeker's reward function
 def seek_reward(F):
     if np.array_equal(F[0], F[1]):
         return 1
     else:
         return 0
-# hider's reward function    
+# hider's reward function
 def hide_reward(F):
     return -1*seek_reward(F)
 
@@ -204,14 +204,14 @@ cptdict = G.get_decisionCPTs(mode='basename')
 G.set_CPTs(cptdict)
 
 ###########################################
-##SAMPLING 
+##SAMPLING
 ###########################################
 #Sample the entire Bayesian Network
 G.sample()
 #sample entire net and return a dict of sampled values for node Dhide8 and F1
 valuedict = G.sample(nodenames=['Dhide8', 'F1'])
 #Sample timesteps 3 through 6 and returning a dict with values for specific basenames
-valuedict = G.sample_timesteps(3, 6, basenames=['Dhide', 'F', 'Cseek'])  
+valuedict = G.sample_timesteps(3, 6, basenames=['Dhide', 'F', 'Cseek'])
 #sample F4 and all of its descendants
 G.sample(start=['F4'])
 
@@ -252,13 +252,13 @@ def captures(G):
     num_captures = G.npv_reward('seeker', T0, 1)
     return num_captures/(T-T0)
 
-#Defining a PGT posterior on iq profiles (dict) 
+#Defining a PGT posterior on iq profiles (dict)
 def density(iq):
     x = iq.values()
     y = np.power(x, 2)
     z = np.prod(y)
     return z
-    
+
 GG = copy.deepcopy(G1) #NOTE: the CPTs of G are seeds for MH and MC sampling
 S = 30 #number of samples
 X = 10 #number of samples of utility of G in calculating iq
@@ -301,11 +301,11 @@ MCweight = [density(intelMC[s])/np.prod(weightMC[s].values()) for s in \
             xrange(1,S+1)]
 #the PGT distributions over welfare values
 plt.figure()
-plt.hist(funcoutMC.values(), normed=True, weights=MCweight, alpha=.5) 
+plt.hist(funcoutMC.values(), normed=True, weights=MCweight, alpha=.5)
 plt.hist(funcoutMH.values()[burn::], normed=True, alpha=.5)
 plt.show()
 
 
 
 
-    
+

@@ -4,7 +4,7 @@ Implements Monte Carlo Reinforcement Learning for iterSemiNFG objects
 
 Created on Mon Feb 18 09:03:32 2013
 
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
+Copyright (C) 2013 James Bono
 
 GNU Affero General Public License
 
@@ -18,12 +18,12 @@ import sys
 
 def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     """ Use EWMA MC RL to approximate the optimal CPT at bn given G
-    
+
     :arg Game: The iterated semi-NFG on which to perform the RL
     :type Game: iterSemiNFG
     :arg bn: the basename of the node with the CPT to be trained
     :type bn: str
-    :arg J: The number of runs per training episode. If a schedule is desired, 
+    :arg J: The number of runs per training episode. If a schedule is desired,
        enter a list or np.array with size equal to N.
     :type J: int, list, or np.array
     :arg N: The number of training episodes
@@ -31,26 +31,26 @@ def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     :arg alpha: The exponential weight for the moving average. If a schedule is
        desired, enter a list or np.array with size equal to N
     :type alpha: int, list or np.array
-    :arg delta: The discount factor 
+    :arg delta: The discount factor
     :type delta: float
     :arg eps: The maximum step-size for policy improvements
     :type eps: float
-    :arg uni: if True, training is initialized with a uniform policy. Default 
+    :arg uni: if True, training is initialized with a uniform policy. Default
        False to allow "seeding" with different policies, e.g. level k-1
     :type uni: bool
-    :arg pureout: if True, the policy is turned into a pure policy at the end 
+    :arg pureout: if True, the policy is turned into a pure policy at the end
        of training by assigning argmax actions prob 1. Default is False
     :type pureout: bool
-    
+
     Example::
-        
+
         import copy
         GG = copy.deepcopy(G)
         from pynfg.rlsolutions.mcrl import mcrl_ewma
-        G1, Rseries = mcrl_ewma(GG, 'D1', J=np.floor(linspace(300,100,num=50)), 
-                                N=50, alpha=1, delta=0.8, eps=0.4, 
+        G1, Rseries = mcrl_ewma(GG, 'D1', J=np.floor(linspace(300,100,num=50)),
+                                N=50, alpha=1, delta=0.8, eps=0.4,
                                 pureout=True)
-    
+
     """
     G = copy.deepcopy(Game)
     # initializing training schedules from scalar inputs
@@ -116,7 +116,7 @@ def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                         v = V[message]
                         bb = (b+1) #update equations double letters are time t
                         dd = d+1
-                        vv = (1/dd)*(d*v+(delta**(bb-1))*(rew))    
+                        vv = (1/dd)*(d*v+(delta**(bb-1))*(rew))
                         B[message] = bb #update dictionaries
                         D[message] = dd
                         V[message] = vv
@@ -152,7 +152,7 @@ def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
                     visit.add(mapair)#mapair added to visit sets the first time
                     visitn.add(mapair)
                     visitj.add(mapair)
-                    indicaten[mapair] = 1 #only visited actions are updated 
+                    indicaten[mapair] = 1 #only visited actions are updated
         # update CPT with shift towards Qtable argmax actions.
         shift = Q-V[...,np.newaxis]
         idx = np.nonzero(shift) #indices of nonzero shifts (avoid divide by 0)
@@ -170,6 +170,6 @@ def mcrl_ewma(Game, bn, J, N, alpha, delta, eps, uni=False, pureout=False):
     for tau in xrange(1, T-T0): #before exit, make CPTs independent in memory
         G.bn_part[bn][tau].CPT = copy.copy(G.bn_part[bn][0].CPT)
     plt.plot(Rseries) #plotting Rseries to gauge convergence
-    fig = plt.gcf() 
+    fig = plt.gcf()
     plt.show()
     return G, fig

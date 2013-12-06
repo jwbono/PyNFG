@@ -6,7 +6,7 @@ Part of: PyNFG - a Python package for modeling and solving Network Form Games
 
 Created on Tue May  7 15:39:38 2013
 
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
+Copyright (C) 2013 James Bono
 
 GNU Affero General Public License
 
@@ -14,10 +14,12 @@ GNU Affero General Public License
 from __future__ import division
 import numpy as np
 import copy
+import pynfg
+
 
 def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     """Compute the move-conditioned expected utilities for all parent values
-    
+
     :arg Game: the SemiNFG of interest
     :type Game: SemiNFG or iterSemiNFG
     :arg dn: the name of the decision node where MCEUs are estimated
@@ -26,8 +28,14 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     :type N: int
     :arg tol: the minimum number of samples per parent value
     :type tol: int
-    
+
     """
+    if type(Game) == pynfg.classes.seminfg.SemiNFG:
+        return _mceu_static(Game, dn, N, tol, verbose)
+    else:
+        return _mceu_iterated(Game, dn, N, tol, delta,  verbose)
+
+def _mceu_iterated(Game, dn, N, tol=30, delta=1, verbose=False):
     G = copy.deepcopy(Game)
     player = G.node_dict[dn].player
     CPT_shape = G.node_dict[dn].CPT.shape
@@ -36,14 +44,10 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     Utable = np.zeros(CPT_shape)
     visits = np.zeros(CPT_shape)
     n = 0
-    try:
-        ufoo = G.npv_reward
-        uargs = [player, G.node_dict[dn].time, delta]
-    except AttributeError:
-        ufoo = G.utility
-        uargs = player
-    while np.min(visits)<tol and n<N:
-        n += 1
+    ufoo = G.npv_reward
+    uargs = [player, G.node_dict[dn].time, delta]
+    while np.min(visits)<tol and n<N: # Do we want both of these to hold
+        n += 1                         # or just one?  I think both.
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
@@ -57,42 +61,81 @@ def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     if verbose:
         print('number of unvisited messages:', \
               (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
-        print('least number of visits:', np.min(visits[np.nonzero(visits)])) 
+        print('least number of visits:', np.min(visits[np.nonzero(visits)]))
     idx = (visits==0)
     visits[idx] = 1
     return Utable/visits
 
+def _mceu_static(Game, dn, N, tol, verbose=False):
+    G = copy.deepcopy(Game)
+    player = G.node_dict[dn].player
+    CPT_shape = G.node_dict[dn].CPT.shape
+    childnames = [node.name for node in G.children(dn)]
+    space = G.node_dict[dn].space
+    Utable = np.zeros(CPT_shape)
+    visits = np.zeros(CPT_shape)
+    n = 0
+    ufoo = G.utility
+    uargs = player
+    while np.min(visits)<tol and n<N: # Do we want both of these to hold
+        n += 1                         # or just one?  I think both.
+        G.sample()
+        idx = G.node_dict[dn].get_CPTindex()
+        visits[idx[:-1]] += 1
+        Utable[idx] += ufoo(uargs)
+        if len(childnames) > 0 :
+            for a in xrange(CPT_shape[-1]):
+                if a != idx[-1]:
+                    G.node_dict[dn].set_value(space[a])
+                    G.sample(start=childnames)
+                    idy = idx[:-1]+(a,)
+                    Utable[idy] += ufoo(uargs)
+        else: # no children samples whole net!
+            for a in xrange(CPT_shape[-1]):
+                if a != idx[-1]:
+                    G.node_dict[dn].set_value(space[a])
+                    idy = idx[:-1]+(a,)
+                    Utable[idy] += ufoo(uargs)
+    if verbose:
+        print('number of unvisited messages:', \
+              (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
+        print('least number of visits:', np.min(visits[np.nonzero(visits)]))
+    idx = (visits==0)
+    visits[idx] = 1
+    return Utable/visits
+
+
 def convert_2_pureCPT(anarray):
     """Convert an arbitrary matrix to a pure CPT w/ weight on maximum elements
-    
-    :arg anarray: The numpy array to be converted to 
+
+    :arg anarray: The numpy array to be converted to
     :type anarray: np.array
     :returns: a normalized conditional probability distribution over actions
        given messages with all elements zero or one.
-    
+
     """
     idx = np.where(anarray == np.max(anarray, axis=-1)[...,np.newaxis])
     newarray = np.zeros(anarray.shape)
     newarray[idx] = 1
     newCPT = newarray/np.sum(newarray, axis=-1)[...,np.newaxis]
     return newCPT
-    
+
 def mh_decision(pnew, pold, qnew=1, qold=1):
     """Decide to accept the new draw or keep the old one
-    
+
     :arg pnew: the unnormalized likelihood of the new draw
     :type pnew: float
     :arg pold: the unnormalized likelihood of the old draw
     :type pnew: float
-    :arg qnew: the probability of transitioning from the old draw to the new 
+    :arg qnew: the probability of transitioning from the old draw to the new
        draw.
     :type qnew: float
-    :arg qold: the probability of transitioning from the new draw to the old 
+    :arg qold: the probability of transitioning from the new draw to the old
        draw.
     :type qold: float
-    :returns: either True or False to determine whether the new draw is 
+    :returns: either True or False to determine whether the new draw is
        accepted.
-    
+
     """
     if pold<=0 or qnew<=0:
         a = 1

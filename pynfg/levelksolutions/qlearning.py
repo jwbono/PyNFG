@@ -4,7 +4,7 @@ Implements Optimistic Q-Learning for policies in pynfg.iterSemiNFG objects
 
 Created on Fri Mar 22 15:32:33 2013
 
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
+Copyright (C) 2013 James Bono
 
 GNU Affero General Public License
 
@@ -16,12 +16,12 @@ from __future__ import division
 import numpy as np
 import matplotlib.pylab as plt
 from pynfg.utilities.utilities import convert_2_pureCPT
-    
+
 def opt_qlearning(G,bn,w,d,N,r_max = 0):
     """Solve for the optimal policy using Optimistic Q-learning
-    
+
     Optimistic Q-Learning  is an off-policy TD control RL algorithm
-    
+
     :arg G: The iterated semi-NFG on which to perform the RL
     :type G: iterSemiNFG
     :arg bn: The basename of the node with the CPT to be trained
@@ -32,16 +32,16 @@ def opt_qlearning(G,bn,w,d,N,r_max = 0):
     :type d: float
     :arg N: The number of training episodes
     :type N: int
-    :arg r_max: (Optional) a guess of upperbound of reward in a single time 
+    :arg r_max: (Optional) a guess of upperbound of reward in a single time
         step. The default is 0 if no value is specified.
     :type r_max: float
     :returns: The iterated semi-NFG; a plot of the dynamic average reward; the
         q table
-    
+
     Example::
-        
+
         G1, rseries, Q1 = opt_qlearning(G,'D1',w=0.1,d=0.95,N=100):
-    
+
     """
     T0 = G.starttime #get the start time
     T = G.endtime + 1 #get the end time
@@ -52,14 +52,14 @@ def opt_qlearning(G,bn,w,d,N,r_max = 0):
     else:
         Q0 = r_max*(T-T0)
     Q = Q0 * np.ones(shape) #the initial q table
-    visit = np.zeros(shape) 
-    #the number of times each (m,a) pair has been visited.                            
+    visit = np.zeros(shape)
+    #the number of times each (m,a) pair has been visited.
     r_av = 0 #the dynamic (discounted) average reward
     rseries = [] #a series of average rewards
     for ep in xrange(N):
         print ep
         #convert Q table to CPT
-        G.bn_part[bn][T0].CPT = convert_2_pureCPT(Q) 
+        G.bn_part[bn][T0].CPT = convert_2_pureCPT(Q)
         G.sample_timesteps(T0,T0) #sample the start time step
         malist = G.bn_part[bn][T0].dict2list_vals(valueinput= \
                                                         G.bn_part[bn][T0].value)
@@ -82,11 +82,11 @@ def opt_qlearning(G,bn,w,d,N,r_max = 0):
             alpha = (1/(1+visit[mapair]))**w #the learning rate
             Qmax_new = Q[mapair_new] #new maximum q value
             Q[mapair] = Qmax + alpha*(r + d*Qmax_new -Qmax) #update q table
-            mapair = mapair_new 
+            mapair = mapair_new
             Qmax = Qmax_new
             r_av = r_av_new
         rseries.append(r_av)
     plt.plot(rseries) #plotting rseries to gauge convergence
-    fig = plt.gcf() 
+    fig = plt.gcf()
     plt.show()
     return G, fig
