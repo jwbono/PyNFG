@@ -1,8 +1,0 @@
-.. _MonteCarloRL:
-
-**********************
-Monte Carlo RL
-**********************
-
-.. automodule:: pynfg.rlsolutions.mcrl
-   :members:

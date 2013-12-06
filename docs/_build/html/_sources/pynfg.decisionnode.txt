@@ -1,8 +1,0 @@
-.. _DecisionNode:
-
-*****************
-Decision Node
-*****************
-
-.. automodule:: pynfg.classes.decisionnode
-   :members:

@@ -1,8 +1,0 @@
-.. _IteratedSemiNFG:
-
-*******************
-Iterated Semi-NFG
-*******************
-
-.. automodule:: pynfg.classes.iterseminfg
-   :members:

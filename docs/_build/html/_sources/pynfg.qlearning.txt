@@ -1,8 +1,0 @@
-.. _QLearning:
-
-**********************
-Q-Learning
-**********************
-
-.. automodule:: pynfg.rlsolutions.qlearning
-   :members:

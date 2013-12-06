@@ -1,8 +1,0 @@
-.. _DeterministicNode:
-
-********************
-Deterministic Node
-********************
-
-.. automodule:: pynfg.classes.deternode
-   :members:
