@@ -4,7 +4,7 @@ Implements Uncoordinated PGT Intelligence for iterSemiNFG objects
 
 Created on Wed Jan  2 16:33:36 2013
 
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
+Copyright (C) 2013 James Bono
 
 GNU Affero General Public License
 
@@ -20,54 +20,54 @@ import sys
 def iterated_MC(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
                 mix=False, satisfice=None):
     """Run Importance Sampling on policy sequences for PGT IQ Calculations
-    
+
     For examples, see below or PyNFG/bin/hideandseek.py
-    
+
     :arg G: the game to be evaluated
     :type G: iterSemiNFG
     :arg S: number of policy profiles to sample
     :type S: int
-    :arg noise: the degree of independence of the proposal distribution on the 
+    :arg noise: the degree of independence of the proposal distribution on the
        current value. 1 is independent, 0 returns no perturbation.
     :type noise: float
     :arg X: number of samples of each policy profile
     :type X: int
     :arg M: number of random alt policies to compare
     :type M: int
-    :arg innoise: the perturbation noise for the loop within iq_calc to draw 
+    :arg innoise: the perturbation noise for the loop within iq_calc to draw
        alt CPTs to compare utilities to current CPT.
     :type innoise: float
     :arg delta: the discount factor (ignored if SemiNFG)
     :type delta: float
-    :arg integrand: a user-supplied function of G that is evaluated for each s 
-       in S 
+    :arg integrand: a user-supplied function of G that is evaluated for each s
+       in S
     :type integrand: func
-    :arg mix: False if restricting sampling to pure strategies. True if mixed 
+    :arg mix: False if restricting sampling to pure strategies. True if mixed
        strategies are included in sampling. Default is False.
     :type mix: bool
-    :arg satisfice: game G such that the CPTs of G together with innoise 
+    :arg satisfice: game G such that the CPTs of G together with innoise
        determine the intelligence satisficing distribution.
     :type satisfice: iterSemiNFG
-    :returns: 
+    :returns:
        * intel - a sample-keyed dictionary of basename-keyed timestep iq lists
-       * funcout - a sample-keyed dictionary of the output of the 
+       * funcout - a sample-keyed dictionary of the output of the
          user-supplied integrand.
        * weight - a sample-keyed dictionay of basename-keyed importance weight
          dictionaries.
-    
+
     .. warning::
-       
-       This will throw an error if there is a decision node in G.starttime that 
+
+       This will throw an error if there is a decision node in G.starttime that
        is not repeated throughout the net.
-    
+
     .. note::
-       
-       This is an uncoordinated approach because intelligence is assigned to a 
-       decision node instead of players. As a result, it takes much longer to 
+
+       This is an uncoordinated approach because intelligence is assigned to a
+       decision node instead of players. As a result, it takes much longer to
        run than pynfg.pgtsolutions.intelligence.policy.policy_MC
-       
+
     Example::
-        
+
         def welfare(G):
             #calculate the welfare of a single sample of the iterSemiNFG G
             G.sample()
@@ -75,34 +75,34 @@ def iterated_MC(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
             for p in G.players:
                 w += G.npv_reward(p, G.starttime, 1.0)
             return w
-            
+
         import copy
         GG = copy.deepcopy(G) #G is an iterSemiNFG
         S = 50 #number of MC samples
         X = 10 #number of samples of utility of G in calculating iq
         M = 20 #number of alternative strategies sampled in calculating iq
         noise = .2 #noise in the perturbations of G for MC sampling
-        
+
         from pynfg.pgtsolutions.intelligence.iterated import iterated_MC
-        
-        intelMC, funcoutMC, weightMC = iterated_MC(GG, S, noise, X, M, 
-                                                   innoise=.2, 
-                                                   delta=1, 
-                                                   integrand=welfare, 
-                                                   mix=False, 
+
+        intelMC, funcoutMC, weightMC = iterated_MC(GG, S, noise, X, M,
+                                                   innoise=.2,
+                                                   delta=1,
+                                                   integrand=welfare,
+                                                   mix=False,
                                                    satisfice=GG)
-    
+
     """
     T0 = G.starttime
     T = G.endtime
     bnlist = [d.basename for d in G.time_partition[T0] if \
                                                 isinstance(d, DecisionNode)]
     intel = {} #keys are MC iterations s, values are iq dicts
-    iq = {} #keys are base names, iq timestep series 
+    iq = {} #keys are base names, iq timestep series
     funcout = {} #keys are s in S, vals are eval of integrand of G(s)
     weight = {} #keys are s in S, vals are bn-keyed dicts of importance weights
     for bn in bnlist: #preallocating iq dict entries
-        iq[bn] = np.zeros(T-T0+1) 
+        iq[bn] = np.zeros(T-T0+1)
     for s in xrange(1, S+1): #sampling S sequences of policy profiles
         sys.stdout.write('\r')
         sys.stdout.write('MC Sample ' + str(s))
@@ -113,8 +113,8 @@ def iterated_MC(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
             # gather list of decision nodes in time tout
             for bn in bnlist: #drawing current policy
                 w[bn] *= GG.bn_part[bn][t-T0].perturbCPT(noise, mixed=mix, \
-                                                            returnweight=True) 
-                for dd in GG.bn_part[bn][t-T0+1::]: 
+                                                            returnweight=True)
+                for dd in GG.bn_part[bn][t-T0+1::]:
                     dd.CPT = GG.bn_part[bn][t-T0].CPT #apply policy to future
             for bn in bnlist: #find the iq of each player's policy in turn
                 iq[bn][t-T0] = iterated_calciq(bn, GG, X, M, mix, delta, t, \
@@ -124,59 +124,59 @@ def iterated_MC(G, S, noise, X, M, innoise=1, delta=1, integrand=None, \
         intel[s] = copy.deepcopy(iq)
         weight[s] = copy.deepcopy(w)
     return intel, funcout, weight
-    
+
 def iterated_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
                 integrand=None, mix=False, satisfice=None):
     """Run Metropolis-Hastings on policy sequences for PGT IQ Calculations
-    
+
     For examples, see below or PyNFG/bin/hideandseek.py
-    
+
     :arg G: the game to be evaluated
     :type G: iterSemiNFG
     :arg S: number of MH iterations
     :type S: int
     :arg density: the function that assigns weights to iq
     :type density: func
-    :arg noise: the degree of independence of the proposal distribution on the 
+    :arg noise: the degree of independence of the proposal distribution on the
        current value. 1 is independent, 0 returns no perturbation.
     :type noise: float
     :arg X: number of samples of each policy profile
     :type X: int
     :arg M: number of random alt policies to compare
     :type M: int
-    :arg innoise: the perturbation noise for the loop within iq_calc to draw 
+    :arg innoise: the perturbation noise for the loop within iq_calc to draw
        alt CPTs to compare utilities to current CPT.
     :type innoise: float
     :arg delta: the discount factor (ignored if SemiNFG)
     :type delta: float
-    :arg integrand: a user-supplied function of G that is evaluated for each s 
-       in S 
+    :arg integrand: a user-supplied function of G that is evaluated for each s
+       in S
     :type integrand: func
-    :arg mix: if true, proposal distribution is over mixed CPTs. Default is 
+    :arg mix: if true, proposal distribution is over mixed CPTs. Default is
        False.
     :type mix: bool
-    :arg satisfice: game G such that the CPTs of G together with innoise 
+    :arg satisfice: game G such that the CPTs of G together with innoise
        determine the intelligence satisficing distribution.
     :type satisfice: iterSemiNFG
-    :returns: 
+    :returns:
        * intel - a sample-keyed dictionary of basename-keyed timestep iq lists
        * funcout - a sample-keyed dictionary of the output of the
          user-supplied integrand.
        * dens - a list of the density values, one for each MH draw.
-    
+
     .. warning::
-       
-       This will throw an error if there is a decision node in G.starttime that 
+
+       This will throw an error if there is a decision node in G.starttime that
        is not repeated throughout the net.
 
     .. note::
-       
-       This is an uncoordinated approach because intelligence is assigned to a 
-       decision node instead of players. As a result, it takes much longer to 
+
+       This is an uncoordinated approach because intelligence is assigned to a
+       decision node instead of players. As a result, it takes much longer to
        run than pynfg.pgtsolutions.intelligence.policy.policy_MH
-       
+
     Example::
-        
+
         def density(iqdict):
             #calculate the PGT density for a given iqdict
             x = iqdict.values()
@@ -191,23 +191,23 @@ def iterated_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
             for p in G.players:
                 w += G.npv_reward(p, G.starttime, 1.0)
             return w
-            
+
         import copy
         GG = copy.deepcopy(G) #G is an iterSemiNFG
         S = 50 #number of MH samples
         X = 10 #number of samples of utility of G in calculating iq
         M = 20 #number of alternative strategies sampled in calculating iq
         noise = .2 #noise in the perturbations of G for MH sampling
-        
+
         from pynfg.pgtsolutions.intelligence.iterated import iterated_MH
-        
+
         intelMH, funcoutMH, densMH = iterated_MH(GG, S, density, noise, X, M,
-                                                 innoise=.2, 
-                                                 delta=1, 
-                                                 integrand=welfare, 
-                                                 mix=False, 
+                                                 innoise=.2,
+                                                 delta=1,
+                                                 integrand=welfare,
+                                                 mix=False,
                                                  satisfice=GG)
-    
+
     """
     T0 = G.starttime
     T = G.endtime
@@ -229,7 +229,7 @@ def iterated_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
             for dn in dnlist:
                 GG.bn_part[dn][t-T0].CPT = G.bn_part[dn][t-T0].perturbCPT(\
                                             noise, mixed=mix)
-                for dd in GG.bn_part[dn][t-T0+1::]: 
+                for dd in GG.bn_part[dn][t-T0+1::]:
                     dd.CPT = GG.bn_part[dn][t-T0].CPT #apply policy to future
                 iq[dn][t-T0] = iterated_calciq(dn, G, X, M, mix, delta, t, \
                                                innoise, satisfice=None) #getting iq
@@ -246,10 +246,10 @@ def iterated_MH(G, S, density, noise, X, M, innoise=1, delta=1, \
         if integrand is not None:
             funcout[s] = integrand(G) #eval integrand G(s), assign to funcout
     return intel, funcout, dens[1::]
-                        
+
 def iterated_calciq(bn, G, X, M, mix, delta, start, innoise, satisfice=None):
     """Estimate IQ of player's policy at a given time step
-    
+
     :arg p: the name of the player whose intelligence is being evaluated.
     :type p: str
     :arg G: the iterated semi-NFG to be evaluated
@@ -258,19 +258,19 @@ def iterated_calciq(bn, G, X, M, mix, delta, start, innoise, satisfice=None):
     :type X: int
     :arg M: number of random alt policies with which to compare
     :type M: int
-    :arg mix: if true, proposal distribution is over mixed CPTs. Default is 
+    :arg mix: if true, proposal distribution is over mixed CPTs. Default is
        False.
     :type mix: bool
     :arg delta: the discount factor (ignored if SemiNFG)
     :type delta: float
     :arg innoise: the perturbation noise for the inner loop to draw alt CPTs
     :type innoise: float
-    :arg satisfice: game G such that the CPTs of G together with innoise 
+    :arg satisfice: game G such that the CPTs of G together with innoise
        determine the intelligence satisficing distribution.
     :type satisfice: iterSemiNFG
-    :returns: an estimate of the fraction of alternative policies at the given 
+    :returns: an estimate of the fraction of alternative policies at the given
        time step that have a lower npv reward than the current policy.
-    
+
     """
     T0 = G.starttime
     p = G.bn_part[bn][start-T0].player
@@ -295,7 +295,7 @@ def iterated_calciq(bn, G, X, M, mix, delta, start, innoise, satisfice=None):
         else:
             denw = G.bn_part[bn][start-T0].perturbCPT(innoise, mixed=mix, \
                                                         returnweight=True)
-        if not tick:  
+        if not tick:
             numw = denw #scaling constant num to ~ magnitude of den
         weight[m] = (numw/denw)
         tick += 1

@@ -6,7 +6,7 @@ Part of: PyNFG - a Python package for modeling and solving Network Form Games
 
 Created on Fri May 24 07:01:05 2013
 
-Copyright (C) 2013 James Bono (jwbono@gmail.com)
+Copyright (C) 2013 James Bono
 
 GNU Affero General Public License
 
@@ -27,8 +27,8 @@ def logitresponse_node(Game, dn, N, delta=1, beta=1, tol=30, verbose=False):
     :arg N: the max number of iterations for the estimation
     :type N: int
     :arg tol: the minimum number of samples per parent value
-    :type tol: int     
-    
+    :type tol: int
+
     """
     G = copy.deepcopy(Game)
     EUtable = mceu(G, dn, N, tol, delta, verbose)
