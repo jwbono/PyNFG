@@ -23,7 +23,7 @@ For an introduction to Predictive Game Theory:
 
 2. Installation
 --------------------
-PyNFG requires the following packages: Numpy, Scipy, Matplotlib, Networkx, and PyGraphviz. Pygraphviz and Networkx are used only for visualizing the Directed Acyclic Graphs (DAGs) that represent semi-NFGs. 
+PyNFG requires the following packages: Numpy, Scipy, Matplotlib, Networkx, and PyGraphviz. Pygraphviz and Networkx are used only for visualizing the Directed Acyclic Graphs (DAGs) that represent semi-NFGs.
 
 To install from source: Download the source from https://pypi.python.org/pypi/PyNFG/0.1.0. Unzip. Then from the directory with the unzipped files, do "python setup.py install".
 
@@ -32,7 +32,7 @@ To install from source: Download the source from https://pypi.python.org/pypi/Py
 ----------------------------------
 The documentation is hosted at http://pythonhosted.org/PyNFG/.
 
-Please contact James Bono for questions about using PyNFG in your research, reporting bug fixes, offering suggestions, etc.
+For questions about using PyNFG, reporting bugs or offering suggestions, please subscribe (low volume) and mail the googlegroup at pynfg@googlegroups.com.
 
 
 4. Contributors
