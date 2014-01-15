@@ -114,6 +114,7 @@ valuedict = G.sample(start=['Q1'])
 ###########################################
 valuedict = G.get_values(nodenames=['Q1', 'D'])
 
+
 ###########################################
 ##PGT INTELLIGENCE ESTIMATION
 ###########################################
