@@ -1,0 +1,8 @@
+.. _BestResponse:
+
+**********************
+Best Response
+**********************
+
+.. automodule:: pynfg.levelksolutions.bestresponse
+   :members:

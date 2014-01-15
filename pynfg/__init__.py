@@ -14,5 +14,6 @@ from .classes.deternode import DeterNode
 from .classes.node import Node
 from .classes.iterseminfg import iterSemiNFG
 from .classes.seminfg import SemiNFG
+from .levelksolutions import api as levelksolutions
 #from .rlsolutions import mcrl, qlearning
 #from .pgtsolutions.intelligence import

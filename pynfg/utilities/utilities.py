@@ -16,7 +16,6 @@ import numpy as np
 import copy
 import pynfg
 
-
 def mceu(Game, dn, N, tol=30, delta=1, verbose=False):
     """Compute the move-conditioned expected utilities for all parent values
 
@@ -39,32 +38,55 @@ def _mceu_iterated(Game, dn, N, tol=30, delta=1, verbose=False):
     G = copy.deepcopy(Game)
     player = G.node_dict[dn].player
     CPT_shape = G.node_dict[dn].CPT.shape
-    childnames = [node.name for node in G.children(dn)]
+    non_children_nodes = list(set(G.node_dict.values()) - set(G.children(dn)))
+    non_children = [n.name for n in non_children_nodes]
+    print non_children
     space = G.node_dict[dn].space
     Utable = np.zeros(CPT_shape)
     visits = np.zeros(CPT_shape)
     n = 0
+<<<<<<< HEAD
     ufoo = G.npv_reward
     uargs = [player, G.node_dict[dn].time, delta]
     while np.min(visits)<tol and n<N: # Do we want both of these to hold
         n += 1                         # or just one?  I think both.
+=======
+    try:
+        ufoo = G.npv_reward
+        uargs = [player, G.node_dict[dn].time, delta]
+    except AttributeError:
+        ufoo = G.utility
+        uargs = player
+    while not (np.min(visits)>tol and n>N):
+        n += 1
+>>>>>>> rlk
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
-        Utable[idx] += ufoo(*uargs)
+        #visits[idx]+=1
+        if type(G) ==pynfg.classes.seminfg.SemiNFG:
+            Utable[idx] += ufoo(uargs)
+        else:
+            Utable[idx] += ufoo(*uargs)
         for a in xrange(CPT_shape[-1]):
             if a != idx[-1]:
                 G.node_dict[dn].set_value(space[a])
-                G.sample(start=childnames)
+                G.sample(exclude = non_children)
                 idy = idx[:-1]+(a,)
-                Utable[idy] += ufoo(*uargs)
+                if type(G) ==pynfg.classes.seminfg.SemiNFG:
+                    Utable[idy] += ufoo(uargs)
+                else:
+                     Utable[idy] += ufoo(*uargs)
     if verbose:
         print('number of unvisited messages:', \
               (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
         print('least number of visits:', np.min(visits[np.nonzero(visits)]))
     idx = (visits==0)
     visits[idx] = 1
-    return Utable/visits
+    print Utable
+    print visits
+    print Utable/ np.float_(visits)
+    return Utable/np.float_(visits)
 
 def _mceu_static(Game, dn, N, tol, verbose=False):
     G = copy.deepcopy(Game)
@@ -147,3 +169,26 @@ def mh_decision(pnew, pold, qnew=1, qold=1):
     else:
         verdict = False
     return verdict
+
+def input_dict(G, player_spec, node_spec):
+    solver_input = {}
+    player_keys = [key[0] for key in player_spec]
+    node_keys = [key[0] for key in node_spec]
+    for player in G.players:
+        solver_input[player]= dict(player_spec)
+        for node in G.partition[player]:
+            solver_input[player][node.name] = dict(node_spec)
+    return solver_input
+
+def iterated_input_dict(G, player_spec, bn_spec):
+    solver_input = {}
+    player_keys = [key[0] for key in player_spec]
+    node_keys = [key[0] for key in bn_spec]
+    for player in G.players:
+        solver_input[player]= dict(player_spec)
+        basenames = set(map(lambda x: x.basename ,G.partition[player]))
+        for bn in basenames:
+            solver_input[player][bn] = dict(bn_spec)
+    return solver_input
+
+

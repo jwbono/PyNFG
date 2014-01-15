@@ -52,13 +52,13 @@ PyNFG is authored by James Bono, Justin Grana, and Dongping Xie. The project has
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    Node Classes <pynfg.nodeclasses>
    Game Classes <pynfg.gameclasses>
    PGT Solutions <pynfg.pgtsolutions>
-   RL Solutions <pynfg.rlsolutions>
    Utilities <pynfg.utilities>
+   Level K Solutions <pynfg.levelksolutions>
 
 
 Indices and tables
