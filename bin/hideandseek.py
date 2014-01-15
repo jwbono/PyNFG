@@ -238,8 +238,7 @@ MCRL_solved.figs['Dhide']['1'].show()
 # We can also train a player to the next level
 
 MCRL_solved.train_node('Dhide', 2, setCPT=False)
-print np.all(MCRL_solved.Game.bn_part['Dhide'][0].CPT ==
-             MCRL_solved.trained_CPTs['hider']['Dhide'][1])
+
 
 # Use the game attribute of MCRL_solved with appropriate CPTs to perform PGT
 
@@ -263,7 +262,7 @@ def density(iq):
     return z
 
 GG = copy.deepcopy(G1) #NOTE: the CPTs of G are seeds for MH and MC sampling
-S = 50 #number of samples
+S = 20 #number of samples
 X = 10 #number of samples of utility of G in calculating iq
 M = 20 #number of alternative strategies sampled in calculating iq
 noise = .2 #noise in the perturbations of G for MH or MC sampling
@@ -303,10 +302,11 @@ print 'MH took:', T,  'sec., ', T/60, 'min., or', T/3600, 'hr.'
 MCweight = [density(intelMC[s])/np.prod(weightMC[s].values()) for s in \
             xrange(1,S+1)]
 #the PGT distributions over welfare values
-plt.figure()
-plt.hist(funcoutMC.values(), normed=True, weights=MCweight, alpha=.5)
-plt.hist(funcoutMH.values()[burn::], normed=True, alpha=.5)
-plt.show()
+fig1, ax1 = plt.subplots(1)
+ax1.hist(funcoutMC.values(), normed=True, weights=MCweight, alpha=.5)
+fig2, ax2 = plt.subplots(1)
+ax2.hist(funcoutMH.values()[burn::], normed=True, alpha=.5)
+
 
 
 
