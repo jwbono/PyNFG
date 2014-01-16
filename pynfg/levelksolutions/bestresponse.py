@@ -21,16 +21,16 @@ import pynfg
 
 
 class BestResponse(object):
-    """ Finds the **uncoordinated** best response solution for a semi-NFGame.
+    """ Finds the **uncoordinated** best response solution
+    for a semi-NFGame.
 
     :arg Game:  A semi-NFG
     :type Game: semiNFG
-    :arg specs: dictionary of dictionaries containing specifications
+    :arg specs: dictionary of dictionaries containing
         the level, level-0 strategy, tolerance
         and degrees of rationality of each player.
         See below for details.
     :type specs: dict
-    :arg logit: Setting to true calculates logit best response.  Default is False
     :type N: bool
 
     specs is a triply-nested dictionary.  The first set of keys
@@ -41,8 +41,9 @@ class BestResponse(object):
     delta : float
         The discount factor
 
-    The rest of the keys for each player are the names of nodes that belong to that
-    player.  For each node, the dictionary has three entries with one optional entry:
+    For each player, there is a key for each node that the player controls.
+    For each node entry, there is a  dictionary with  three entries and
+     one optional entry:
 
 
     L0Dist : ndarray, str, None
@@ -120,6 +121,12 @@ class BestResponse(object):
             False
         :type setCPT: bool
 
+        Notes
+        -----
+
+        If training a player at level k, the other players' CPT will be accessed
+        through self.Game.node_dict[other_player].LevelCPT[k-1]
+
         """
         print 'Training ' + nodename + ' at level ' + str(level)
         Game = copy.deepcopy(self.Game)  # copy in order to maintain original CPT
@@ -170,7 +177,8 @@ class BestResponse(object):
 def br_dict(Game, N, Level, L0Dist=None, delta=1, tol=30, beta=None):
     """A helper function to generate the player_spec dictionary
     for best response.  If optional arguments are specified, they are
-    set for all decision nodes.
+    set for all decision nodes and all players.  The idea is to use br_dict
+    to great a shell of parameters and then modify them accordingly.
 
     :arg Game: A SemiNFG
     :type Game: SemiNFG
