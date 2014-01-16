@@ -45,12 +45,7 @@ def _mceu_iterated(Game, dn, N, tol=30, delta=1, verbose=False):
     Utable = np.zeros(CPT_shape)
     visits = np.zeros(CPT_shape)
     n = 0
-<<<<<<< HEAD
-    ufoo = G.npv_reward
-    uargs = [player, G.node_dict[dn].time, delta]
-    while np.min(visits)<tol and n<N: # Do we want both of these to hold
-        n += 1                         # or just one?  I think both.
-=======
+
     try:
         ufoo = G.npv_reward
         uargs = [player, G.node_dict[dn].time, delta]
@@ -59,7 +54,6 @@ def _mceu_iterated(Game, dn, N, tol=30, delta=1, verbose=False):
         uargs = player
     while not (np.min(visits)>tol and n>N):
         n += 1
->>>>>>> rlk
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
