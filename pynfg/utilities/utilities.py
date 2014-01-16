@@ -93,7 +93,7 @@ def _mceu_static(Game, dn, N, tol, verbose=False):
     n = 0
     ufoo = G.utility
     uargs = player
-    while np.min(visits)<tol and n<N: # Do we want both of these to hold
+    while np.min(visits)<tol or n<N: # Do we want both of these to hold
         n += 1                         # or just one?  I think both.
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
