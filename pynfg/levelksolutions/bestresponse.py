@@ -21,16 +21,16 @@ import pynfg
 
 
 class BestResponse(object):
-    """ Finds the **uncoordinated** best response solution for a semi-NFGame.
+    """ Finds the **uncoordinated** best response solution
+    for a semi-NFGame.
 
     :arg Game:  A semi-NFG
     :type Game: semiNFG
-    :arg specs: dictionary of dictionaries containing specifications
+    :arg specs: dictionary of dictionaries containing
         the level, level-0 strategy, tolerance
         and degrees of rationality of each player.
         See below for details.
     :type specs: dict
-    :arg logit: Setting to true calculates logit best response.  Default is False
     :type N: bool
 
     specs is a triply-nested dictionary.  The first set of keys
@@ -41,8 +41,9 @@ class BestResponse(object):
     delta : float
         The discount factor
 
-    The rest of the keys for each player are the names of nodes that belong to that
-    player.  For each node, the dictionary has three entries with one optional entry:
+    For each player, there is a key for each node that the player controls.
+    For each node entry, there is a  dictionary with  three entries and
+     one optional entry:
 
 
     L0Dist : ndarray, str, None
@@ -60,9 +61,8 @@ class BestResponse(object):
 
     """
 
-    def __init__(self, Game, specs, logit=False):
+    def __init__(self, Game, specs):
         self.Game = copy.deepcopy(Game)
-        self.logit = logit
         self.specs = specs
         self.high_level = self._set_new_attributes()
         self._set_L0_CPT()
@@ -76,11 +76,10 @@ class BestResponse(object):
             node_set = list(Game.partition[player])
             for node in node_set:
                 nodename = node.name
-                node.Level, node.delta, node.tol, node.N =  \
+                node.Level, node.delta, node.tol, node.N, node.beta =  \
                     ps[player]['Level'], ps[player]['delta'],\
-                    ps[player][nodename]['tol'], ps[player][nodename]['N']
-                if self.logit:
-                    node.beta = ps[player][nodename]['beta']
+                    ps[player][nodename]['tol'], ps[player][nodename]['N'], \
+                    ps[player][nodename]['beta']
                 try:
                     node.LevelCPT
                 except AttributeError:
@@ -110,7 +109,7 @@ class BestResponse(object):
                         node.LevelCPT[0] = \
                             ps[player][nodename]['L0Dist']
 
-    def train_node(self, nodename, level, setCPT=False, verbose=False):
+    def train_node(self, nodename, level, logit=False, setCPT=False, verbose=False):
         """Compute level-k best response at the DN given Game
 
         :arg nodename: the name of the decision node where MCEUs are estimated
@@ -122,12 +121,18 @@ class BestResponse(object):
             False
         :type setCPT: bool
 
+        Notes
+        -----
+
+        If training a player at level k, the other players' CPT will be accessed
+        through self.Game.node_dict[other_player].LevelCPT[k-1]
+
         """
         print 'Training ' + nodename + ' at level ' + str(level)
         Game = copy.deepcopy(self.Game)  # copy in order to maintain original CPT
         ps = self.specs
         for node in Game.node_dict.values():  # Game changes, self.Game doesn't
-            if type(node) is pynfg.classes.decisionnode.DecisionNode:
+            if type(node) is pynfg.DecisionNode:
                 try:
                     node.CPT = node.LevelCPT[level - 1]
                 except KeyError:
@@ -136,7 +141,7 @@ class BestResponse(object):
         EUtable = mceu(Game, nodename, Game.node_dict[nodename].N,
                        Game.node_dict[nodename].tol, Game.node_dict[nodename].delta,
                        verbose=verbose)
-        if not self.logit:
+        if not logit:
             self.Game.node_dict[nodename].LevelCPT[level] = \
                   convert_2_pureCPT(EUtable)
             if setCPT:
@@ -172,7 +177,8 @@ class BestResponse(object):
 def br_dict(Game, N, Level, L0Dist=None, delta=1, tol=30, beta=None):
     """A helper function to generate the player_spec dictionary
     for best response.  If optional arguments are specified, they are
-    set for all decision nodes.
+    set for all decision nodes and all players.  The idea is to use br_dict
+    to great a shell of parameters and then modify them accordingly.
 
     :arg Game: A SemiNFG
     :type Game: SemiNFG

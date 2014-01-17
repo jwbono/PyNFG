@@ -40,56 +40,35 @@ def _mceu_iterated(Game, dn, N, tol=30, delta=1, verbose=False):
     CPT_shape = G.node_dict[dn].CPT.shape
     non_children_nodes = list(set(G.node_dict.values()) - set(G.children(dn)))
     non_children = [n.name for n in non_children_nodes]
-    print non_children
     space = G.node_dict[dn].space
     Utable = np.zeros(CPT_shape)
     visits = np.zeros(CPT_shape)
     n = 0
-<<<<<<< HEAD
-    ufoo = G.npv_reward
-    uargs = [player, G.node_dict[dn].time, delta]
-    while np.min(visits)<tol and n<N: # Do we want both of these to hold
-        n += 1                         # or just one?  I think both.
-=======
     try:
         ufoo = G.npv_reward
         uargs = [player, G.node_dict[dn].time, delta]
-    except AttributeError:
-        ufoo = G.utility
-        uargs = player
-    while not (np.min(visits)>tol and n>N):
+    while  np.min(visits)<tol or n>N:
         n += 1
->>>>>>> rlk
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
         visits[idx[:-1]] += 1
         #visits[idx]+=1
-        if type(G) ==pynfg.classes.seminfg.SemiNFG:
-            Utable[idx] += ufoo(uargs)
-        else:
-            Utable[idx] += ufoo(*uargs)
+        Utable[idx] += ufoo(*uargs)
         for a in xrange(CPT_shape[-1]):
             if a != idx[-1]:
                 G.node_dict[dn].set_value(space[a])
                 G.sample(exclude = non_children)
                 idy = idx[:-1]+(a,)
-                if type(G) ==pynfg.classes.seminfg.SemiNFG:
-                    Utable[idy] += ufoo(uargs)
-                else:
-                     Utable[idy] += ufoo(*uargs)
+                Utable[idy] += ufoo(*uargs)
     if verbose:
         print('number of unvisited messages:', \
               (visits.size-np.count_nonzero(visits))/CPT_shape[-1])
         print('least number of visits:', np.min(visits[np.nonzero(visits)]))
     idx = (visits==0)
     visits[idx] = 1
-    print Utable
-    print visits
-    print Utable/ np.float_(visits)
     return Utable/np.float_(visits)
 
 def _mceu_static(Game, dn, N, tol, verbose=False):
-    G = copy.deepcopy(Game)
     player = G.node_dict[dn].player
     CPT_shape = G.node_dict[dn].CPT.shape
     childnames = [node.name for node in G.children(dn)]
@@ -99,7 +78,7 @@ def _mceu_static(Game, dn, N, tol, verbose=False):
     n = 0
     ufoo = G.utility
     uargs = player
-    while np.min(visits)<tol and n<N: # Do we want both of these to hold
+    while np.min(visits)<tol or n<N: # Do we want both of these to hold
         n += 1                         # or just one?  I think both.
         G.sample()
         idx = G.node_dict[dn].get_CPTindex()
